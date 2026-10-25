@@ -522,7 +522,7 @@ const sfxDone = () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 
 /* ---------- online + app ---------- */
 const SB_URL = 'https://slbgazdgvhjqhwwjifus.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsYmdhemRndmhqcWh3d2ppZnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzE1MjYsImV4cCI6MjEwODQ0NzUyNn0.dNpq38nOC6cYS1mgpo9tBbgWaD8riTo0CqXUMHehSGM';
-const sb = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
+const sb = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { params: { eventsPerSecond: 25 } } }) : null;
 
 const LS = {
   get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
@@ -912,7 +912,7 @@ let dragTimer = 0;
 function sendDrag(now){
   if (!S.chan || !drag) return;
   const t = performance.now();
-  if (!now && t - drag.sent < 70){ clearTimeout(dragTimer); dragTimer = setTimeout(() => sendDrag(true), 75); return; }
+  if (!now && t - drag.sent < 90){ clearTimeout(dragTimer); dragTimer = setTimeout(() => sendDrag(true), 95); return; }
   drag.sent = t;
   const { bx, by } = dragPos(), p = drag.p;
   S.chan.send({ type: 'broadcast', event: 'drag', payload: { id: p.id, fx: +(bx / S.W).toFixed(4), fy: +(by / S.H).toFixed(4), rot: p.srv.rot, k: ME.id, name: ME.name, color: ME_COLOR } });
@@ -991,7 +991,7 @@ function onDrag(m){
   const p = S.pieces[m.id]; if (!p || p.srv.state === 'placed' || m.k === ME.id) return;
   if (drag && drag.p === p){ if (m.k < ME.id) cancelDrag(true); else return; }
   if (!p.holder || p.holder.key !== m.k) p.holder = { key: m.k, name: m.name, color: m.color };
-  p.rpos = { fx: m.fx, fy: m.fy, rot: m.rot };
+  p.rpos = { fx: m.fx, fy: m.fy, rot: m.rot }; p.holdAt = Date.now();
   if (p.where === 'remote'){ p.deg = nearDeg(p.deg, m.rot); sizeFor(p); posTag(p); } else show(p);
 }
 function onRelease(m){
@@ -999,26 +999,27 @@ function onRelease(m){
   p.holder = null; p.rpos = null;
   applyRow(p, m);
 }
-function setHold(id){ if (S.chan && S.connected) S.chan.track({ name: ME.name, color: ME_COLOR, hold: id }).catch(() => {}); }
+function setHold(){}
+/* a held piece is released if its holder goes quiet; my own drag sends a heartbeat */
+setInterval(() => {
+  if (!S.game) return;
+  const now = Date.now();
+  S.pieces.forEach(p => { if (p.holder && now - (p.holdAt || 0) > 5000){ p.holder = null; p.rpos = null; show(p); } });
+  if (drag && performance.now() - drag.sent > 1500) sendDrag(true);
+}, 1000);
+setInterval(() => { if (S.game && !drag && !document.hidden) refetch(); }, 10000);
 
 function syncPresence(){
   if (!S.chan) return;
-  const st = S.chan.presenceState(), players = [], holds = new Map();
+  const st = S.chan.presenceState(), players = [];
   for (const [key, metas] of Object.entries(st)){
     const m = metas[metas.length - 1] || {};
     players.push({ key, name: m.name, color: m.color || colorOf(key), me: key === ME.id });
-    if (key !== ME.id && m.hold != null) holds.set(m.hold, { key, name: m.name, color: m.color || colorOf(key) });
   }
   if (!players.some(p => p.me)) players.unshift({ key: ME.id, name: ME.name, color: ME_COLOR, me: true });
   S.players = players.sort((a, b) => (b.me - a.me)); renderPlayers();
-  S.pieces.forEach(p => {
-    const h = holds.get(p.id) || null;
-    if ((h && h.key) === (p.holder && p.holder.key)) return;
-    p.holder = h; if (!h) p.rpos = null;
-    if (h && drag && drag.p === p && h.key < ME.id){ cancelDrag(true); return; }
-    show(p);
-  });
-  updateProg();
+  const here = new Set(players.map(p => p.key));
+  S.pieces.forEach(p => { if (p.holder && !here.has(p.holder.key)){ p.holder = null; p.rpos = null; show(p); } });
 }
 
 async function refetch(){
@@ -1038,9 +1039,13 @@ function connect(code){
     .on('broadcast', { event: 'drag' }, ({ payload }) => { if (S.chan === ch) onDrag(payload); })
     .on('broadcast', { event: 'release' }, ({ payload }) => { if (S.chan === ch) onRelease(payload); })
     .on('presence', { event: 'sync' }, () => { if (S.chan === ch) syncPresence(); })
-    .subscribe(status => {
+    .subscribe((status, err) => {
+      if (err) console.warn('realtime', status, err);
       if (S.chan !== ch) return;
-      if (status === 'SUBSCRIBED'){ S.connected = true; $('#conn').hidden = true; ch.track({ name: ME.name, color: ME_COLOR, hold: null }).catch(() => {}); refetch(); }
+      if (status === 'SUBSCRIBED'){
+        S.connected = true; $('#conn').hidden = true; refetch();
+        const t = Date.now(); if (!ch._trackedAt || t - ch._trackedAt > 5000){ ch._trackedAt = t; ch.track({ name: ME.name, color: ME_COLOR }).catch(() => {}); }
+      }
       else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'){ S.connected = false; $('#conn').hidden = false; }
     });
   $('#conn').hidden = false;
