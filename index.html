@@ -221,6 +221,20 @@ input{font:inherit}
 #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 120px);transform:translateX(-50%);z-index:90;background:rgba(30,30,30,.85);color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .code::placeholder{letter-spacing:normal;font-weight:500;font-family:var(--body)}
 
+#passBox{position:fixed;inset:0;z-index:75;display:grid;place-items:center;background:rgba(15,40,45,.5);padding:16px}
+.lobby-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mini{font-size:13px;font-weight:700;color:var(--mint-ink);padding:4px 10px;border-radius:999px;background:var(--mint-soft)}
+.lobby{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:330px;overflow-y:auto;touch-action:pan-y}
+.lr{position:relative;display:grid;gap:4px;padding:6px 6px 8px;border-radius:14px;background:#f3e6d2;box-shadow:0 2px 0 #dccab0;color:var(--ink);text-align:left;min-width:0}
+.lr .th{aspect-ratio:4/3;width:100%;border-radius:9px;object-fit:cover;background:var(--felt-a);display:grid;place-items:center;color:var(--wood-lo)}
+.lr .th svg{width:34%;height:34%}
+.lr b{font-size:14px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline:2px}
+.lr small{font-size:12px;color:var(--ink-soft);padding-inline:2px;font-variant-numeric:tabular-nums}
+.lr .lock{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+.lr .lock svg{width:14px;height:14px}
+.lr .bar2{height:5px;border-radius:3px;background:#e6d4b6;overflow:hidden;margin-inline:2px}
+.lr .bar2 i{display:block;height:100%;background:var(--mint)}
+
 </style>
 </head>
 <body>
@@ -242,7 +256,11 @@ input{font:inherit}
       </div>
     </div>
     <p class="err" id="homeErr" role="alert"></p>
-    <div class="field" id="recentWrap" hidden><span class="lbl">ห้องล่าสุด</span><div class="recent" id="recent"></div></div>
+    <div class="field" id="recentWrap" hidden><span class="lbl">ห้องล่าสุดของคุณ</span><div class="recent" id="recent"></div></div>
+    <div class="field">
+      <div class="lobby-head"><span class="lbl">ห้องที่เปิดอยู่</span><button class="mini" id="lobbyRefresh">รีเฟรช</button></div>
+      <div class="lobby" id="lobby"><p class="note">กำลังโหลดรายการห้อง…</p></div>
+    </div>
     <div class="divider">หรือสร้างห้องใหม่</div>
     <div class="setup-grid">
       <div class="prev-wrap" id="prevWrap"><canvas id="prev" aria-label="ตัวอย่างรูปพร้อมรอยตัดชิ้น"></canvas></div>
@@ -259,6 +277,11 @@ input{font:inherit}
         <div class="chips" id="counts"></div>
         <label class="custom" for="customN">หรือกรอกเอง <input type="number" id="customN" inputmode="numeric" min="4" max="500" placeholder="เช่น 60"> ชิ้น</label>
         <div class="hint" id="gridHint"></div>
+        <label class="field" for="roomName"><span class="lbl">ชื่อห้อง (ไม่ใส่ก็ได้)</span>
+          <input class="text" id="roomName" maxlength="40" placeholder="เช่น ต่อภาพประภาคารกัน">
+        </label>
+        <label class="check"><input type="checkbox" id="passOpt"><span>ตั้งรหัสผ่านห้อง<small>คนที่จะเข้าห้องต้องใส่รหัสผ่านก่อน ห้องจะขึ้นในรายการพร้อมแม่กุญแจ และไม่แสดงรูป</small></span></label>
+        <input class="text" id="passNew" maxlength="20" placeholder="รหัสผ่าน 4–20 ตัว" autocomplete="new-password" hidden aria-label="รหัสผ่านห้อง">
         <label class="check"><input type="checkbox" id="rotOpt"><span>ระดับยาก: ชิ้นส่วนหมุนมา<small>แตะชิ้นเพื่อหมุนทีละ 90° ต้องหมุนให้ตรงก่อนถึงจะล็อก</small></span></label>
         <button class="btn primary big" id="startBtn">สร้างห้อง</button>
         <p class="note">รูปที่ใช้สร้างห้องจะเก็บไว้บนเซิร์ฟเวอร์ของเกม ใครมีรหัสห้องก็เห็นรูปนี้ได้ ความคืบหน้าบันทึกอัตโนมัติ กลับมาต่อเมื่อไหร่ก็ได้</p>
@@ -342,6 +365,7 @@ input{font:inherit}
       <button class="btn primary" id="copyBtn">คัดลอกลิงก์</button>
       <button class="btn soft" id="shareBtn" hidden>แชร์</button>
     </div>
+    <p class="note" id="ibLocked" hidden>ห้องนี้มีรหัสผ่าน อย่าลืมบอกรหัสผ่านให้เพื่อนด้วย</p>
     <div class="lbl">อยู่ในห้องตอนนี้</div>
     <ul id="ibPlayers"></ul>
     <button class="btn soft" id="ibClose">ปิด</button>
@@ -350,6 +374,18 @@ input{font:inherit}
 <div id="busy" hidden><div><span class="spin"></span><span id="busyMsg">กำลังโหลด…</span></div></div>
 <div id="toast" hidden></div>
 <div id="dragLayer"></div>
+<div id="passBox" hidden>
+  <form class="ib" id="passForm" role="dialog" aria-labelledby="pbTitle">
+    <h2 id="pbTitle">ห้องนี้มีรหัสผ่าน</h2>
+    <p class="note" id="pbInfo"></p>
+    <input class="text" id="passIn" maxlength="20" placeholder="ใส่รหัสผ่าน" autocomplete="off" aria-label="รหัสผ่าน">
+    <p class="err" id="passErr" role="alert"></p>
+    <div class="row" style="justify-content:flex-end">
+      <button type="button" class="btn soft" id="passCancel">ยกเลิก</button>
+      <button type="submit" class="btn primary">เข้าห้อง</button>
+    </div>
+  </form>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
@@ -583,11 +619,18 @@ function compress(src){
 $('#startBtn').onclick = async () => {
   audioInit(); homeErr('');
   if (!needName() || !needNet()) return;
+  let pass = null;
+  if ($('#passOpt').checked){
+    pass = $('#passNew').value.trim();
+    if (pass.length < 4){ homeErr('รหัสผ่านต้องมีอย่างน้อย 4 ตัว'); $('#passNew').focus(); return; }
+  }
   busy('กำลังสร้างห้อง…');
   const up = compress(pick.src);
   try {
-    const { data, error } = await sb.rpc('create_room', { p_image: up.url, p_cols: pick.cols, p_rows: pick.rows, p_edges: pick.E, p_rotate: $('#rotOpt').checked });
+    const { data, error } = await sb.rpc('create_room', { p_image: up.url, p_thumb: thumbOf(up.canvas, 240, .7), p_cols: pick.cols, p_rows: pick.rows, p_edges: pick.E,
+      p_rotate: $('#rotOpt').checked, p_name: $('#roomName').value.trim() || null, p_host: ME.name, p_pass: pass });
     if (error || !data) throw error || new Error('no code');
+    if (pass) savePass(data, pass);
     await joinRoom(data, up.canvas);
   } catch(e){ busy(); homeErr('สร้างห้องไม่สำเร็จ ลองเช็กอินเทอร์เน็ตแล้วกดใหม่อีกครั้ง'); }
 };
@@ -601,6 +644,51 @@ $('#joinBtn').onclick = () => {
   if (!needName() || !needNet()) return;
   joinRoom(code);
 };
+$('#passOpt').addEventListener('change', e => { $('#passNew').hidden = !e.target.checked; if (e.target.checked) $('#passNew').focus(); });
+const getPass = code => LS.get('jt-pass', {})[code] || null;
+function savePass(code, pass){ const m = LS.get('jt-pass', {}); if (pass) m[code] = pass; else delete m[code]; LS.set('jt-pass', m); }
+function thumbOf(canvas, size, q){ const t = document.createElement('canvas'), k = size / Math.max(canvas.width, canvas.height); t.width = Math.round(canvas.width * k); t.height = Math.round(canvas.height * k); t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height); return t.toDataURL('image/jpeg', q); }
+
+/* lobby */
+const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+function ago(t){ const m = Math.round((Date.now() - Date.parse(t)) / 60000); if (m < 2) return 'เพิ่งเล่น'; if (m < 60) return `${m} นาทีที่แล้ว`; const h = Math.round(m / 60); if (h < 24) return `${h} ชม.ที่แล้ว`; return `${Math.round(h / 24)} วันที่แล้ว`; }
+async function loadLobby(){
+  const box = $('#lobby');
+  if (!sb){ box.innerHTML = '<p class="note">โหลดรายการห้องไม่ได้</p>'; return; }
+  try {
+    const { data, error } = await sb.rpc('list_rooms');
+    if (error) throw error;
+    box.innerHTML = '';
+    if (!data || !data.length){ box.innerHTML = '<p class="note">ยังไม่มีห้องที่เปิดอยู่ สร้างห้องแรกด้านล่างได้เลย</p>'; return; }
+    data.forEach(r => {
+      const b = document.createElement('button'); b.className = 'lr';
+      b.innerHTML = (r.thumb ? '<img class="th" alt="">' : `<div class="th">${LOCK_SVG}</div>`) + '<b></b><small class="s1"></small><div class="bar2"><i></i></div><small class="s2"></small>' + (r.locked ? `<span class="lock" title="มีรหัสผ่าน">${LOCK_SVG}</span>` : '');
+      if (r.thumb) b.querySelector('img').src = r.thumb;
+      b.querySelector('b').textContent = r.name || (r.host ? `ห้องของ ${r.host}` : `ห้อง ${r.code}`);
+      b.querySelector('.s1').textContent = `${r.placed} / ${r.total} ชิ้น` + (r.rotate ? ' · ยาก' : '');
+      b.querySelector('.bar2 i').style.width = Math.round(r.placed / r.total * 100) + '%';
+      b.querySelector('.s2').textContent = `${r.code} · ${ago(r.active_at)}`;
+      b.setAttribute('aria-label', `${b.querySelector('b').textContent}${r.locked ? ' มีรหัสผ่าน' : ''}`);
+      b.onclick = () => { audioInit(); homeErr(''); if (needName() && needNet()) joinRoom(r.code); };
+      box.appendChild(b);
+    });
+  } catch(e){ box.innerHTML = '<p class="note">โหลดรายการห้องไม่ได้ ลองกดรีเฟรช</p>'; }
+}
+$('#lobbyRefresh').onclick = loadLobby;
+
+/* password dialog */
+let passCb = null;
+function askPass(code, info, wrong){
+  return new Promise(res => {
+    passCb = res;
+    $('#pbInfo').textContent = info;
+    $('#passErr').textContent = wrong ? 'รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง' : '';
+    $('#passIn').value = ''; $('#passBox').hidden = false; setTimeout(() => $('#passIn').focus(), 30);
+  });
+}
+function closePass(v){ $('#passBox').hidden = true; const cb = passCb; passCb = null; if (cb) cb(v); }
+$('#passForm').addEventListener('submit', e => { e.preventDefault(); const v = $('#passIn').value.trim(); if (!v){ $('#passErr').textContent = 'ใส่รหัสผ่านก่อน'; return; } closePass(v); });
+$('#passCancel').onclick = () => closePass(null);
 
 function renderRecent(){
   const list = LS.get('jt-recent', []), box = $('#recent'); box.innerHTML = '';
@@ -620,20 +708,30 @@ function remember(code, canvas, done){
   let list = LS.get('jt-recent', []);
   const old = list.find(r => r.code === code);
   let thumb = old && old.thumb;
-  if (!thumb){ const t = document.createElement('canvas'), k = 120 / Math.max(canvas.width, canvas.height); t.width = Math.round(canvas.width * k); t.height = Math.round(canvas.height * k); t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height); thumb = t.toDataURL('image/jpeg', .6); }
+  if (!thumb) thumb = thumbOf(canvas, 120, .6);
   list = [{ code, thumb, at: Date.now(), done: !!done }].concat(list.filter(r => r.code !== code)).slice(0, 8);
   LS.set('jt-recent', list);
 }
 const loadCanvas = url => new Promise((res, rej) => { const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0); res(c); }; img.onerror = rej; img.src = url; });
 
 async function joinRoom(code, canvas){
-  busy('กำลังเข้าห้อง…');
+  let pass = getPass(code), wrong = false, res;
   try {
-    const { data: room, error } = await sb.from('rooms').select('*').eq('code', code).maybeSingle();
-    if (error) throw error;
-    if (!room){ busy(); homeErr(`ไม่พบห้องรหัส ${code} ลองเช็กรหัสอีกครั้ง`); return; }
-    const { data: rows, error: e2 } = await sb.from('pieces').select('id,state,fx,fy,rot').eq('room', code);
-    if (e2) throw e2;
+    for (;;){
+      busy('กำลังเข้าห้อง…');
+      const { data, error } = await sb.rpc('open_room', { p_code: code, p_pass: pass });
+      if (error) throw error;
+      res = data;
+      if (res.status === 'ok') break;
+      busy();
+      if (res.status === 'not_found'){ savePass(code, null); homeErr(`ไม่พบห้องรหัส ${code} ลองเช็กรหัสอีกครั้ง`); return; }
+      if (res.status === 'wrong_password') savePass(code, null);
+      pass = await askPass(code, `ใส่รหัสผ่านเพื่อเข้าห้อง ${code}`, res.status === 'wrong_password' && pass != null);
+      if (pass == null) return;
+    }
+    if (pass) savePass(code, pass);
+    const room = res.room, rows = res.pieces;
+    S.pass = pass;
     const cv = canvas || await loadCanvas(room.image);
     remember(code, cv, !!room.done_at);
     try { history.replaceState(null, '', location.pathname + '?r=' + code); } catch(e){}
@@ -645,7 +743,7 @@ async function joinRoom(code, canvas){
 
 function showHome(){
   $('#game').hidden = true; $('#setup').hidden = false; $('#inviteBox').hidden = true;
-  renderRecent(); drawPreview();
+  renderRecent(); drawPreview(); loadLobby();
 }
 
 /* ---------- game ---------- */
@@ -867,7 +965,7 @@ async function write(p){
   p.inflight++;
   let ok = false;
   try {
-    const { data, error } = await sb.rpc('move_piece', { p_room: code, p_id: p.id, p_state: s.state, p_fx: s.fx, p_fy: s.fy, p_rot: s.rot });
+    const { data, error } = await sb.rpc('move_piece', { p_room: code, p_pass: S.pass, p_id: p.id, p_state: s.state, p_fx: s.fx, p_fy: s.fy, p_rot: s.rot });
     ok = !error && data === true;
     if (error) toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต');
   } catch(e){ toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต'); }
@@ -986,7 +1084,7 @@ $('#tGather').onclick = async () => {
   if (!loose.length){ toast('ไม่มีชิ้นพักอยู่บนกระดาน'); return; }
   loose.forEach(p => { p.srv = { ...p.srv, state: 'tray' }; p.inflight++; show(p); p.slot.hidden = S.filterEdges && !p.edge; });
   updateProg(); tray.scrollLeft = 0;
-  try { const { error } = await sb.rpc('gather_loose', { p_room: S.code }); if (error) throw error; } catch(e){ toast('เก็บชิ้นไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+  try { const { error } = await sb.rpc('gather_loose', { p_room: S.code, p_pass: S.pass }); if (error) throw error; } catch(e){ toast('เก็บชิ้นไม่สำเร็จ ลองใหม่อีกครั้ง'); }
   loose.forEach(p => { p.inflight--; p.lastRow = null; });
   refetch();
 };
@@ -1002,7 +1100,7 @@ $('#viewBtn').onclick = () => { $('#done').hidden = true; };
 
 /* invite */
 const roomLink = () => location.origin + location.pathname + '?r=' + S.code;
-$('#inviteBtn').onclick = () => { $('#ibCode').textContent = S.code; $('#ibLink').textContent = roomLink(); $('#shareBtn').hidden = !navigator.share; renderPlayers(); $('#inviteBox').hidden = false; };
+$('#inviteBtn').onclick = () => { $('#ibCode').textContent = S.code; $('#ibLink').textContent = roomLink(); $('#shareBtn').hidden = !navigator.share; $('#ibLocked').hidden = !S.room.locked; renderPlayers(); $('#inviteBox').hidden = false; };
 $('#ibClose').onclick = () => { $('#inviteBox').hidden = true; };
 $('#inviteBox').addEventListener('click', e => { if (e.target.id === 'inviteBox') $('#inviteBox').hidden = true; });
 $('#copyBtn').onclick = async () => {
@@ -1037,7 +1135,7 @@ let rt = 0;
 window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (!$('#game').hidden){ layout(); S.pieces.forEach(p => { if (p.where !== 'drag') sizeFor(p); posTag(p); }); } else drawPreview(); }, 120); });
 
 /* ---------- boot ---------- */
-pick.src = paintSample(); refreshPick(); renderRecent();
+pick.src = paintSample(); refreshPick(); renderRecent(); loadLobby();
 document.fonts && document.fonts.ready.then(drawPreview);
 if (!sb) homeErr('โหลดระบบออนไลน์ไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง');
 (() => {
