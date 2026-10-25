@@ -7,9 +7,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="โต๊ะจิ๊กซอว์">
 <meta name="theme-color" content="#1d4c55">
-<meta name="description" content="ต่อจิ๊กซอว์จากรูปของคุณเองกับเพื่อน ๆ แบบเรียลไทม์">
-<title>โต๊ะจิ๊กซอว์</title>
+<meta name="description" content="ต่อจิ๊กซอว์จากรูปของคุณเอง เลือกจำนวนชิ้นได้ ลากชิ้นจากถาดขึ้นไปต่อบนกระดาน">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='14' width='40' height='40' rx='6' fill='%2338b2a6'/%3E%3Ccircle cx='26' cy='12' r='8' fill='%2338b2a6'/%3E%3Ccircle cx='48' cy='34' r='8' fill='%23e2b06e'/%3E%3C/svg%3E">
+<style>[hidden]{display:none!important}img{max-width:100%}html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}@supports (height:100dvh){html{height:100dvh}}</style>
+<title>โต๊ะจิ๊กซอว์</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap">
@@ -166,75 +168,6 @@ button:focus-visible,.btn:focus-within{outline:3px solid var(--wood-hi);outline-
 @keyframes fall{to{transform:translateY(var(--d)) rotate(var(--r));opacity:.2}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 body.is-dragging .slot{cursor:grabbing}
-
-/* ---------- standalone page additions ---------- */
-[hidden]{display:none!important}
-img{max-width:100%}
-html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@supports (height:100dvh){html{height:100dvh}}
-input{font:inherit}
-.field{display:grid;gap:6px}
-.text{height:46px;border-radius:12px;border:2px solid #e3d3b8;background:#fff;color:var(--ink);padding:0 14px;font-size:17px;width:100%;min-width:0}
-.text:focus{outline:none;border-color:var(--mint)}
-.code{text-transform:uppercase;letter-spacing:.2em;font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
-.join{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
-.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:720px){.split{grid-template-columns:1fr}}
-.divider{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px;font-weight:600}
-.divider::before,.divider::after{content:"";flex:1;height:2px;border-radius:2px;background:#eee0c8}
-.err{min-height:1.2em;margin:0;font-size:14px;color:#c4475f}
-.recent{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;touch-action:pan-x}
-.rc{flex:none;display:grid;gap:4px;justify-items:center;padding:6px;border-radius:12px;background:#f3e6d2;box-shadow:0 2px 0 #dccab0;color:var(--ink)}
-.rc img{width:84px;height:60px;object-fit:cover;border-radius:8px;background:var(--felt-a)}
-.rc b{font-size:13px;letter-spacing:.12em;font-variant-numeric:tabular-nums}
-.rc small{font-size:11px;color:var(--ink-soft)}
-
-#busy{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(15,40,45,.55)}
-#busy div{background:var(--paper);color:var(--ink);padding:16px 22px;border-radius:16px;font-weight:600;display:flex;gap:12px;align-items:center;box-shadow:0 16px 30px rgba(0,0,0,.35)}
-.spin{width:22px;height:22px;border-radius:50%;border:3px solid var(--mint-soft);border-top-color:var(--mint);animation:sp .8s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-
-.players{display:flex;align-items:center}
-.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:16px;border:3px solid #fff;margin-left:-8px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
-.av:first-child{margin-left:0}
-.av.more{background:#5b7479;font-size:13px}
-.invite{height:40px;padding:0 14px;border-radius:999px;background:var(--mint);color:#fff;font-weight:700;display:flex;align-items:center;gap:6px;box-shadow:0 3px 0 var(--mint-ink)}
-.invite svg{width:18px;height:18px}
-#conn{background:#f6d6a0;color:#6b4a1c}
-@media (max-width:560px){.pill.time{display:none}.invite span{display:none}.invite{padding:0 11px}}
-
-#inviteBox{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(15,40,45,.5);padding:16px}
-.ib{width:min(380px,100%);background:var(--paper);color:var(--ink);border-radius:20px;padding:20px;display:grid;gap:12px;box-shadow:0 20px 40px rgba(0,0,0,.35)}
-.ib h2{margin:0;font-family:var(--display);font-weight:700;font-size:22px}
-.ib .big{font-family:var(--display);font-weight:800;font-size:40px;letter-spacing:.18em;text-align:center;color:var(--mint-ink);font-variant-numeric:tabular-nums;user-select:text;-webkit-user-select:text}
-.ib .link{font-size:13px;color:var(--ink-soft);text-align:center;word-break:break-all;user-select:text;-webkit-user-select:text}
-.ib ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
-.ib li{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:#f3e6d2;font-size:14px}
-.ib li i{width:22px;height:22px;border-radius:50%;display:inline-block}
-
-#remote{position:absolute;inset:0;pointer-events:none;z-index:2}
-.piece.remote{position:absolute;filter:drop-shadow(0 10px 8px rgba(0,0,0,.4));transition:left .09s linear,top .09s linear,transform .15s}
-.piece.loose{transition:left .2s ease-out,top .2s ease-out,transform .15s ease-out}
-.tag{position:absolute;transform:translate(-50%,-100%);padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;pointer-events:none;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:left .09s linear,top .09s linear}
-.slot.held{opacity:.35}
-
-#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 120px);transform:translateX(-50%);z-index:90;background:rgba(30,30,30,.85);color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
-.code::placeholder{letter-spacing:normal;font-weight:500;font-family:var(--body)}
-
-#passBox{position:fixed;inset:0;z-index:75;display:grid;place-items:center;background:rgba(15,40,45,.5);padding:16px}
-.lobby-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.mini{font-size:13px;font-weight:700;color:var(--mint-ink);padding:4px 10px;border-radius:999px;background:var(--mint-soft)}
-.lobby{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:330px;overflow-y:auto;touch-action:pan-y}
-.lr{position:relative;display:grid;gap:4px;padding:6px 6px 8px;border-radius:14px;background:#f3e6d2;box-shadow:0 2px 0 #dccab0;color:var(--ink);text-align:left;min-width:0}
-.lr .th{aspect-ratio:4/3;width:100%;border-radius:9px;object-fit:cover;background:var(--felt-a);display:grid;place-items:center;color:var(--wood-lo)}
-.lr .th svg{width:34%;height:34%}
-.lr b{font-size:14px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline:2px}
-.lr small{font-size:12px;color:var(--ink-soft);padding-inline:2px;font-variant-numeric:tabular-nums}
-.lr .lock{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
-.lr .lock svg{width:14px;height:14px}
-.lr .bar2{height:5px;border-radius:3px;background:#e6d4b6;overflow:hidden;margin-inline:2px}
-.lr .bar2 i{display:block;height:100%;background:var(--mint)}
-
 </style>
 </head>
 <body>
@@ -242,26 +175,13 @@ input{font:inherit}
   <div class="card"><div class="card-in">
     <div class="head">
       <h1>โต๊ะจิ๊กซอว์</h1>
-      <p>ต่อจิ๊กซอว์จากรูปของคุณเองกับเพื่อน ๆ ส่งรหัสห้องหรือลิงก์ให้เพื่อน ทุกคนจะเห็นกระดานเดียวกันและเห็นเพื่อนลากชิ้นแบบสด ๆ</p>
+      <p>เลือกรูปที่อยากต่อ เลือกจำนวนชิ้น แล้วลากชิ้นส่วนจากถาดด้านล่างขึ้นไปวางบนกระดาน วางตรงตำแหน่งชิ้นจะล็อกเข้าที่ วางที่อื่นชิ้นจะพักไว้บนกระดานให้ย้ายทีหลังได้</p>
     </div>
-    <div class="split">
-      <label class="field" for="nick"><span class="lbl">ชื่อเล่นของคุณ</span>
-        <input class="text" id="nick" maxlength="16" placeholder="เช่น มิ้นท์" autocomplete="nickname">
-      </label>
-      <div class="field"><span class="lbl">เข้าห้องเพื่อน</span>
-        <div class="join">
-          <input class="text code" id="joinCode" maxlength="6" placeholder="รหัส 6 ตัว" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="รหัสห้อง">
-          <button class="btn primary" id="joinBtn">เข้าห้อง</button>
-        </div>
-      </div>
+    <div id="resume" hidden>
+      <img id="resumeThumb" alt="รูปที่ต่อค้างไว้">
+      <div class="txt"><b>มีจิ๊กซอว์ที่ต่อค้างไว้</b><span id="resumeInfo"></span></div>
+      <button class="btn primary" id="resumeBtn">เล่นต่อ</button>
     </div>
-    <p class="err" id="homeErr" role="alert"></p>
-    <div class="field" id="recentWrap" hidden><span class="lbl">ห้องล่าสุดของคุณ</span><div class="recent" id="recent"></div></div>
-    <div class="field">
-      <div class="lobby-head"><span class="lbl">ห้องที่เปิดอยู่</span><button class="mini" id="lobbyRefresh">รีเฟรช</button></div>
-      <div class="lobby" id="lobby"><p class="note">กำลังโหลดรายการห้อง…</p></div>
-    </div>
-    <div class="divider">หรือสร้างห้องใหม่</div>
     <div class="setup-grid">
       <div class="prev-wrap" id="prevWrap"><canvas id="prev" aria-label="ตัวอย่างรูปพร้อมรอยตัดชิ้น"></canvas></div>
       <div class="opts">
@@ -277,14 +197,10 @@ input{font:inherit}
         <div class="chips" id="counts"></div>
         <label class="custom" for="customN">หรือกรอกเอง <input type="number" id="customN" inputmode="numeric" min="4" max="500" placeholder="เช่น 60"> ชิ้น</label>
         <div class="hint" id="gridHint"></div>
-        <label class="field" for="roomName"><span class="lbl">ชื่อห้อง (ไม่ใส่ก็ได้)</span>
-          <input class="text" id="roomName" maxlength="40" placeholder="เช่น ต่อภาพประภาคารกัน">
-        </label>
-        <label class="check"><input type="checkbox" id="passOpt"><span>ตั้งรหัสผ่านห้อง<small>คนที่จะเข้าห้องต้องใส่รหัสผ่านก่อน ห้องจะขึ้นในรายการพร้อมแม่กุญแจ และไม่แสดงรูป</small></span></label>
-        <input class="text" id="passNew" maxlength="20" placeholder="รหัสผ่าน 4–20 ตัว" autocomplete="new-password" hidden aria-label="รหัสผ่านห้อง">
+        <label class="check"><input type="checkbox" id="ghostOpt"> แสดงภาพจาง ๆ บนกระดานช่วยดู</label>
         <label class="check"><input type="checkbox" id="rotOpt"><span>ระดับยาก: ชิ้นส่วนหมุนมา<small>แตะชิ้นเพื่อหมุนทีละ 90° ต้องหมุนให้ตรงก่อนถึงจะล็อก</small></span></label>
-        <button class="btn primary big" id="startBtn">สร้างห้อง</button>
-        <p class="note">รูปที่ใช้สร้างห้องจะเก็บไว้บนเซิร์ฟเวอร์ของเกม ใครมีรหัสห้องก็เห็นรูปนี้ได้ ความคืบหน้าบันทึกอัตโนมัติ กลับมาต่อเมื่อไหร่ก็ได้</p>
+        <button class="btn primary big" id="startBtn">เริ่มต่อ</button>
+        <p class="note">รูปอยู่ในเครื่องนี้เท่านั้น ไม่ถูกอัปโหลดไปที่ไหน และระบบจำความคืบหน้าไว้ให้ ปิดแล้วกลับมาต่อได้</p>
       </div>
     </div>
   </div></div>
@@ -292,18 +208,12 @@ input{font:inherit}
 
 <section id="game" hidden>
   <header class="bar">
-    <button class="back" id="backBtn" aria-label="ออกจากห้อง">
+    <button class="back" id="backBtn" aria-label="กลับไปหน้าเลือกรูป">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
     <div class="pill"><span class="n" id="prog">0 / 0</span> ชิ้น</div>
-    <div class="pill" id="conn" hidden>กำลังเชื่อมต่อ…</div>
     <div class="spacer"></div>
-    <div class="players" id="players"></div>
-    <button class="invite" id="inviteBtn" aria-label="ชวนเพื่อน">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg>
-      <span>ชวนเพื่อน</span>
-    </button>
-    <div class="pill time"><span class="n" id="time">00:00</span></div>
+    <div class="pill"><span class="n" id="time">00:00</span></div>
   </header>
   <main class="stage">
     <div id="boardArea">
@@ -311,7 +221,6 @@ input{font:inherit}
         <img id="ghost" alt="">
         <div id="placed"></div>
         <div id="loose"></div>
-        <div id="remote"></div>
         <img id="full" alt="">
         <div id="done" hidden>
           <div class="done-card">
@@ -354,43 +263,12 @@ input{font:inherit}
     <span class="tray-count" id="trayCount"></span>
   </footer>
 </section>
-
-<div id="inviteBox" hidden>
-  <div class="ib" role="dialog" aria-labelledby="ibTitle">
-    <h2 id="ibTitle">ชวนเพื่อนมาต่อด้วยกัน</h2>
-    <div class="lbl">รหัสห้อง</div>
-    <div class="big" id="ibCode"></div>
-    <div class="link" id="ibLink"></div>
-    <div class="row" style="justify-content:center">
-      <button class="btn primary" id="copyBtn">คัดลอกลิงก์</button>
-      <button class="btn soft" id="shareBtn" hidden>แชร์</button>
-    </div>
-    <p class="note" id="ibLocked" hidden>ห้องนี้มีรหัสผ่าน อย่าลืมบอกรหัสผ่านให้เพื่อนด้วย</p>
-    <div class="lbl">อยู่ในห้องตอนนี้</div>
-    <ul id="ibPlayers"></ul>
-    <button class="btn soft" id="ibClose">ปิด</button>
-  </div>
-</div>
-<div id="busy" hidden><div><span class="spin"></span><span id="busyMsg">กำลังโหลด…</span></div></div>
-<div id="toast" hidden></div>
 <div id="dragLayer"></div>
-<div id="passBox" hidden>
-  <form class="ib" id="passForm" role="dialog" aria-labelledby="pbTitle">
-    <h2 id="pbTitle">ห้องนี้มีรหัสผ่าน</h2>
-    <p class="note" id="pbInfo"></p>
-    <input class="text" id="passIn" maxlength="20" placeholder="ใส่รหัสผ่าน" autocomplete="off" aria-label="รหัสผ่าน">
-    <p class="err" id="passErr" role="alert"></p>
-    <div class="row" style="justify-content:flex-end">
-      <button type="button" class="btn soft" id="passCancel">ยกเลิก</button>
-      <button type="submit" class="btn primary">เข้าห้อง</button>
-    </div>
-  </form>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (() => {
 const $ = s => document.querySelector(s);
+const KEY = 'jigsaw-table-v1';
 const COUNTS = [12, 24, 48, 80, 120, 180];
 const FRAME = 12, MAXN = 500;
 
@@ -404,7 +282,6 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function gridFor(n, ar){ const cols = Math.max(2, Math.round(Math.sqrt(n * ar))); const rows = Math.max(2, Math.round(n / cols)); return [cols, rows]; }
 
 /* ---------- jigsaw geometry: straight sides with a small round knob ---------- */
-
 const BASE = [[0,0],[.14,0],[.28,0],[.42,0],[.43,.04],[.38,.06],[.38,.13],[.38,.20],[.44,.25],[.50,.25],[.56,.25],[.62,.20],[.62,.13],[.62,.06],[.57,.04],[.58,0],[.72,0],[.86,0],[1,0]];
 function makeEdges(cols, rows){
   const e = () => ({ s: Math.random() < .5 ? 1 : -1 });
@@ -518,34 +395,13 @@ const sfxSet = () => tone(300, 0, .07, 'triangle', .1, 240);
 const sfxTurn = () => tone(760, 0, .05, 'sine', .07, 900);
 const sfxDone = () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * .11, .4, 'triangle', .16));
 
+/* ---------- state ---------- */
+const S = { game: false, running: false, pieces: [], W: 0, H: 0, elapsed: 0, filterEdges: false, ghost: false, rotate: false };
 
-/* ---------- online + app ---------- */
-const SB_URL = 'https://slbgazdgvhjqhwwjifus.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsYmdhemRndmhqcWh3d2ppZnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzE1MjYsImV4cCI6MjEwODQ0NzUyNn0.dNpq38nOC6cYS1mgpo9tBbgWaD8riTo0CqXUMHehSGM';
-const sb = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { params: { eventsPerSecond: 25 } } }) : null;
-
-const LS = {
-  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
-  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
-};
-const COLORS = ['#e8728c', '#2fa79b', '#e8932c', '#7c6cf0', '#3f92d8', '#c95fd0', '#4fae55', '#d9573f'];
-let ME = LS.get('jt-me', null);
-if (!ME || !ME.id){ ME = { id: Math.random().toString(36).slice(2, 10), name: '' }; LS.set('jt-me', ME); }
-const colorOf = k => COLORS[[...String(k)].reduce((a, c) => a * 31 + c.charCodeAt(0) >>> 0, 7) % COLORS.length];
-const ME_COLOR = colorOf(ME.id);
-
-let toastT = 0;
-function toast(msg){ const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
-function busy(msg){ $('#busy').hidden = !msg; if (msg) $('#busyMsg').textContent = msg; }
-const fmtT = s => s >= 3600 ? Math.floor(s / 3600) + ':' + fmt(s % 3600) : fmt(s);
-function hashStr(s){ let h = 2166136261; for (const ch of s){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-
-const S = { game: false, pieces: [], W: 0, H: 0, filterEdges: false, ghost: LS.get('jt-ghost', false), chan: null, players: [], connected: false };
-const remoteEl = $('#remote');
-
-/* ---------- home ---------- */
+/* ---------- setup screen ---------- */
 const pick = { src: null, count: 48, cols: 0, rows: 0, E: null };
 const prev = $('#prev');
+
 function refreshPick(){
   const ar = pick.src.width / pick.src.height;
   [pick.cols, pick.rows] = gridFor(pick.count, ar);
@@ -553,7 +409,7 @@ function refreshPick(){
   renderChips(); drawPreview();
   const n = pick.cols * pick.rows;
   $('#gridHint').textContent = `รูปนี้จะได้ ${pick.cols} × ${pick.rows} = ${n} ชิ้น` + (n !== pick.count ? ` (ปรับจาก ${pick.count} ให้ชิ้นออกมาเป็นสี่เหลี่ยมพอดีรูป)` : '');
-  $('#startBtn').textContent = `สร้างห้อง · ${n} ชิ้น`;
+  $('#startBtn').textContent = `เริ่มต่อ · ${n} ชิ้น`;
 }
 function renderChips(){
   const ar = pick.src.width / pick.src.height, box = $('#counts'); box.innerHTML = '';
@@ -567,12 +423,13 @@ function renderChips(){
 }
 $('#customN').addEventListener('input', e => {
   const n = parseInt(e.target.value, 10);
-  if (!n || n < 4){ $('#gridHint').textContent = 'ใส่อย่างน้อย 4 ชิ้น'; return; }
-  pick.count = Math.min(MAXN, n); if (n > MAXN) e.target.value = MAXN;
+  if (!n || n < 4) { $('#gridHint').textContent = 'ใส่อย่างน้อย 4 ชิ้น'; return; }
+  pick.count = Math.min(MAXN, n);
+  if (n > MAXN) e.target.value = MAXN;
   refreshPick();
 });
 function drawPreview(){
-  if (!pick.src || $('#setup').hidden) return;
+  if (!pick.src) return;
   const wrap = $('#prevWrap'), maxW = Math.max(200, wrap.clientWidth - 16), maxH = Math.min(420, window.innerHeight * .46);
   const ar = pick.src.width / pick.src.height;
   let w = maxW, h = w / ar; if (h > maxH){ h = maxH; w = h * ar; }
@@ -592,187 +449,71 @@ function loadFile(file){
   if (!file) return;
   const url = URL.createObjectURL(file), img = new Image();
   img.onload = () => { pick.src = toSrc(img); URL.revokeObjectURL(url); refreshPick(); };
-  img.onerror = () => { URL.revokeObjectURL(url); homeErr('เปิดรูปนี้ไม่ได้ ลองเลือกรูปอื่น'); };
+  img.onerror = () => { URL.revokeObjectURL(url); $('#gridHint').textContent = 'เปิดรูปนี้ไม่ได้ ลองเลือกรูปอื่น'; };
   img.src = url;
 }
 $('#file').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
 $('#sampleBtn').onclick = () => { pick.src = paintSample(); refreshPick(); };
-
-const homeErr = m => { $('#homeErr').textContent = m || ''; };
-$('#nick').value = ME.name || '';
-$('#nick').addEventListener('input', () => { ME.name = $('#nick').value.trim().slice(0, 16); LS.set('jt-me', ME); homeErr(''); });
-function needName(){
-  const n = $('#nick').value.trim();
-  if (!n){ homeErr('ใส่ชื่อเล่นก่อน เพื่อนจะได้เห็นว่าใครกำลังต่อชิ้นไหน'); $('#nick').focus(); return false; }
-  ME.name = n.slice(0, 16); LS.set('jt-me', ME); return true;
-}
-function needNet(){ if (sb) return true; homeErr('โหลดระบบออนไลน์ไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง'); return false; }
-
-function compress(src){
-  const m = Math.min(1, 1400 / Math.max(src.width, src.height));
-  const c = document.createElement('canvas'); c.width = Math.round(src.width * m); c.height = Math.round(src.height * m);
-  c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
-  let url = c.toDataURL('image/jpeg', .82);
-  if (url.length > 3500000) url = c.toDataURL('image/jpeg', .6);
-  return { canvas: c, url };
-}
-$('#startBtn').onclick = async () => {
-  audioInit(); homeErr('');
-  if (!needName() || !needNet()) return;
-  let pass = null;
-  if ($('#passOpt').checked){
-    pass = $('#passNew').value.trim();
-    if (pass.length < 4){ homeErr('รหัสผ่านต้องมีอย่างน้อย 4 ตัว'); $('#passNew').focus(); return; }
-  }
-  busy('กำลังสร้างห้อง…');
-  const up = compress(pick.src);
-  try {
-    const { data, error } = await sb.rpc('create_room', { p_image: up.url, p_thumb: thumbOf(up.canvas, 240, .7), p_cols: pick.cols, p_rows: pick.rows, p_edges: pick.E,
-      p_rotate: $('#rotOpt').checked, p_name: $('#roomName').value.trim() || null, p_host: ME.name, p_pass: pass });
-    if (error || !data) throw error || new Error('no code');
-    if (pass) savePass(data, pass);
-    await joinRoom(data, up.canvas);
-  } catch(e){ busy(); homeErr('สร้างห้องไม่สำเร็จ ลองเช็กอินเทอร์เน็ตแล้วกดใหม่อีกครั้ง'); }
+$('#startBtn').onclick = () => {
+  audioInit();
+  startGame({ src: pick.src, cols: pick.cols, rows: pick.rows, E: pick.E, ghost: $('#ghostOpt').checked, rotate: $('#rotOpt').checked });
 };
-const cleanCode = v => v.toUpperCase().replace(/[^A-Z0-9]/g, '');
-$('#joinCode').addEventListener('input', e => { const v = cleanCode(e.target.value); if (v !== e.target.value) e.target.value = v; });
-$('#joinCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('#joinBtn').click(); });
-$('#joinBtn').onclick = () => {
-  audioInit(); homeErr('');
-  const code = cleanCode($('#joinCode').value);
-  if (code.length !== 6){ homeErr('รหัสห้องมี 6 ตัว ลองเช็กอีกครั้ง'); $('#joinCode').focus(); return; }
-  if (!needName() || !needNet()) return;
-  joinRoom(code);
+
+function readSave(){
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (!d) return null;
+    if (d.v === 1) return { ...d, v: 2, tray: (d.order || []).map(id => [id, 0]), loose: [], rotate: false };
+    return d.v === 2 ? d : null;
+  } catch(e){ return null; }
+}
+function showResume(){
+  const d = readSave(), box = $('#resume');
+  if (!d){ box.hidden = true; return; }
+  box.hidden = false; $('#resumeThumb').src = d.src;
+  $('#resumeInfo').textContent = `ต่อไปแล้ว ${d.locked.length} / ${d.cols * d.rows} ชิ้น · ใช้เวลา ${fmt(d.elapsed || 0)}` + (d.rotate ? ' · ระดับยาก' : '');
+}
+$('#resumeBtn').onclick = () => {
+  const d = readSave(); if (!d) return; audioInit();
+  const img = new Image();
+  img.onload = () => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img, 0, 0);
+    startGame({ src: c, cols: d.cols, rows: d.rows, E: d.E, dataURL: d.src, locked: d.locked, tray: d.tray, loose: d.loose, elapsed: d.elapsed, ghost: d.ghost, rotate: d.rotate }); };
+  img.src = d.src;
 };
-$('#passOpt').addEventListener('change', e => { $('#passNew').hidden = !e.target.checked; if (e.target.checked) $('#passNew').focus(); });
-const getPass = code => LS.get('jt-pass', {})[code] || null;
-function savePass(code, pass){ const m = LS.get('jt-pass', {}); if (pass) m[code] = pass; else delete m[code]; LS.set('jt-pass', m); }
-function thumbOf(canvas, size, q){ const t = document.createElement('canvas'), k = size / Math.max(canvas.width, canvas.height); t.width = Math.round(canvas.width * k); t.height = Math.round(canvas.height * k); t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height); return t.toDataURL('image/jpeg', q); }
-
-/* lobby */
-const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
-function ago(t){ const m = Math.round((Date.now() - Date.parse(t)) / 60000); if (m < 2) return 'เพิ่งเล่น'; if (m < 60) return `${m} นาทีที่แล้ว`; const h = Math.round(m / 60); if (h < 24) return `${h} ชม.ที่แล้ว`; return `${Math.round(h / 24)} วันที่แล้ว`; }
-async function loadLobby(){
-  const box = $('#lobby');
-  if (!sb){ box.innerHTML = '<p class="note">โหลดรายการห้องไม่ได้</p>'; return; }
-  try {
-    const { data, error } = await sb.rpc('list_rooms');
-    if (error) throw error;
-    box.innerHTML = '';
-    if (!data || !data.length){ box.innerHTML = '<p class="note">ยังไม่มีห้องที่เปิดอยู่ สร้างห้องแรกด้านล่างได้เลย</p>'; return; }
-    data.forEach(r => {
-      const b = document.createElement('button'); b.className = 'lr';
-      b.innerHTML = (r.thumb ? '<img class="th" alt="">' : `<div class="th">${LOCK_SVG}</div>`) + '<b></b><small class="s1"></small><div class="bar2"><i></i></div><small class="s2"></small>' + (r.locked ? `<span class="lock" title="มีรหัสผ่าน">${LOCK_SVG}</span>` : '');
-      if (r.thumb) b.querySelector('img').src = r.thumb;
-      b.querySelector('b').textContent = r.name || (r.host ? `ห้องของ ${r.host}` : `ห้อง ${r.code}`);
-      b.querySelector('.s1').textContent = `${r.placed} / ${r.total} ชิ้น` + (r.rotate ? ' · ยาก' : '');
-      b.querySelector('.bar2 i').style.width = Math.round(r.placed / r.total * 100) + '%';
-      b.querySelector('.s2').textContent = `${r.code} · ${ago(r.active_at)}`;
-      b.setAttribute('aria-label', `${b.querySelector('b').textContent}${r.locked ? ' มีรหัสผ่าน' : ''}`);
-      b.onclick = () => { audioInit(); homeErr(''); if (needName() && needNet()) joinRoom(r.code); };
-      box.appendChild(b);
-    });
-  } catch(e){ box.innerHTML = '<p class="note">โหลดรายการห้องไม่ได้ ลองกดรีเฟรช</p>'; }
-}
-$('#lobbyRefresh').onclick = loadLobby;
-
-/* password dialog */
-let passCb = null;
-function askPass(code, info, wrong){
-  return new Promise(res => {
-    passCb = res;
-    $('#pbInfo').textContent = info;
-    $('#passErr').textContent = wrong ? 'รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง' : '';
-    $('#passIn').value = ''; $('#passBox').hidden = false; setTimeout(() => $('#passIn').focus(), 30);
-  });
-}
-function closePass(v){ $('#passBox').hidden = true; const cb = passCb; passCb = null; if (cb) cb(v); }
-$('#passForm').addEventListener('submit', e => { e.preventDefault(); const v = $('#passIn').value.trim(); if (!v){ $('#passErr').textContent = 'ใส่รหัสผ่านก่อน'; return; } closePass(v); });
-$('#passCancel').onclick = () => closePass(null);
-
-function renderRecent(){
-  const list = LS.get('jt-recent', []), box = $('#recent'); box.innerHTML = '';
-  $('#recentWrap').hidden = !list.length;
-  list.forEach(r => {
-    const b = document.createElement('button'); b.className = 'rc';
-    const d = new Date(r.at);
-    b.innerHTML = `<img alt=""><b></b><small></small>`;
-    b.querySelector('img').src = r.thumb || '';
-    b.querySelector('b').textContent = r.code;
-    b.querySelector('small').textContent = r.done ? 'ต่อเสร็จแล้ว' : `${d.getDate()}/${d.getMonth() + 1}`;
-    b.onclick = () => { audioInit(); homeErr(''); if (needName() && needNet()) joinRoom(r.code); };
-    box.appendChild(b);
-  });
-}
-function remember(code, canvas, done){
-  let list = LS.get('jt-recent', []);
-  const old = list.find(r => r.code === code);
-  let thumb = old && old.thumb;
-  if (!thumb) thumb = thumbOf(canvas, 120, .6);
-  list = [{ code, thumb, at: Date.now(), done: !!done }].concat(list.filter(r => r.code !== code)).slice(0, 8);
-  LS.set('jt-recent', list);
-}
-const loadCanvas = url => new Promise((res, rej) => { const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0); res(c); }; img.onerror = rej; img.src = url; });
-
-async function joinRoom(code, canvas){
-  let pass = getPass(code), wrong = false, res;
-  try {
-    for (;;){
-      busy('กำลังเข้าห้อง…');
-      const { data, error } = await sb.rpc('open_room', { p_code: code, p_pass: pass });
-      if (error) throw error;
-      res = data;
-      if (res.status === 'ok') break;
-      busy();
-      if (res.status === 'not_found'){ savePass(code, null); homeErr(`ไม่พบห้องรหัส ${code} ลองเช็กรหัสอีกครั้ง`); return; }
-      if (res.status === 'wrong_password') savePass(code, null);
-      pass = await askPass(code, `ใส่รหัสผ่านเพื่อเข้าห้อง ${code}`, res.status === 'wrong_password' && pass != null);
-      if (pass == null) return;
-    }
-    if (pass) savePass(code, pass);
-    const room = res.room, rows = res.pieces;
-    S.pass = pass;
-    const cv = canvas || await loadCanvas(room.image);
-    remember(code, cv, !!room.done_at);
-    try { history.replaceState(null, '', location.pathname + '?r=' + code); } catch(e){}
-    busy();
-    startGame(room, cv, rows || []);
-    connect(code);
-  } catch(e){ busy(); homeErr('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองเช็กอินเทอร์เน็ตแล้วลองใหม่'); }
-}
-
-function showHome(){
-  $('#game').hidden = true; $('#setup').hidden = false; $('#inviteBox').hidden = true;
-  renderRecent(); drawPreview(); loadLobby();
-}
+function showSetup(){ $('#game').hidden = true; $('#setup').hidden = false; showResume(); drawPreview(); }
 
 /* ---------- game ---------- */
-function startGame(room, canvas, rows){
-  S.room = room; S.code = room.code; S.src = canvas; S.cols = room.cols; S.rows = room.rows; S.E = room.edges; S.rotate = room.rotate;
-  S.created = Date.parse(room.created_at); S.doneAt = room.done_at ? Date.parse(room.done_at) : null; S.doneShown = false;
-  $('#ghost').src = $('#full').src = $('#refImg').src = room.image;
-  placedEl.innerHTML = ''; looseEl.innerHTML = ''; remoteEl.innerHTML = ''; tray.innerHTML = '';
-  $('#done').hidden = true; $('#full').classList.remove('show');
+function startGame(o){
+  S.src = o.src; S.cols = o.cols; S.rows = o.rows; S.E = o.E; S.rotate = !!o.rotate;
+  S.dataURL = o.dataURL || o.src.toDataURL('image/jpeg', .86);
+  $('#ghost').src = $('#full').src = $('#refImg').src = S.dataURL;
+  placedEl.innerHTML = ''; looseEl.innerHTML = ''; tray.innerHTML = ''; $('#done').hidden = true; $('#full').classList.remove('show');
   board.querySelectorAll('.conf').forEach(n => n.remove());
   S.pieces = [];
   for (let r = 0; r < S.rows; r++) for (let c = 0; c < S.cols; c++){
-    const id = r * S.cols + c, el = document.createElement('canvas'), slot = document.createElement('div');
-    el.dataset.id = id; slot.className = 'slot gone'; slot.dataset.id = id;
-    S.pieces.push({ id, r, c, el, slot, where: null, deg: 0, srv: { state: 'tray', fx: 0, fy: 0, rot: 0 }, holder: null, rpos: null, tag: null, inflight: 0, lastRow: null,
+    const id = r * S.cols + c, el = document.createElement('canvas'), slot = document.createElement('div'); el.dataset.id = id;
+    slot.className = 'slot'; slot.dataset.id = id;
+    S.pieces.push({ id, r, c, el, slot, where: 'tray', rot: 0, deg: 0, fx: 0, fy: 0,
       edge: r === 0 || c === 0 || r === S.rows - 1 || c === S.cols - 1 });
   }
-  const R = rng(hashStr(S.code)), order = S.pieces.map(p => p.id);
-  for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(R() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-  order.forEach(id => tray.appendChild(S.pieces[id].slot));
-  rows.forEach(r => { const p = S.pieces[r.id]; if (p) p.srv = { state: r.state, fx: r.fx, fy: r.fy, rot: r.rot }; });
-  S.pieces.forEach(p => p.deg = p.srv.rot * 90);
-  S.game = true; S.filterEdges = false;
+  const setRot = (p, rot) => { p.rot = ((rot % 4) + 4) % 4; p.deg = p.rot * 90; };
+  const seen = new Set();
+  (o.locked || []).forEach(id => { const p = S.pieces[id]; if (!p || seen.has(id)) return; seen.add(id); p.where = 'placed'; p.el.className = 'piece placed'; placedEl.appendChild(p.el); });
+  (o.loose || []).forEach(([id, fx, fy, rot]) => { const p = S.pieces[id]; if (!p || seen.has(id)) return; seen.add(id); p.where = 'loose'; p.fx = fx; p.fy = fy; setRot(p, S.rotate ? rot : 0); p.el.className = 'piece loose'; looseEl.appendChild(p.el); });
+  let trayList = (o.tray || []).filter(([id]) => S.pieces[id] && !seen.has(id));
+  trayList.forEach(([id]) => seen.add(id));
+  const rest = shuffle(S.pieces.filter(p => !seen.has(p.id)).map(p => [p.id, S.rotate ? Math.floor(Math.random() * 4) : 0]));
+  trayList = trayList.concat(rest);
+  trayList.forEach(([id, rot]) => { const p = S.pieces[id]; setRot(p, S.rotate ? rot : 0); p.el.className = 'piece'; p.slot.appendChild(p.el); tray.appendChild(p.slot); });
+  S.placedN = S.pieces.filter(p => p.where === 'placed').length;
+  S.elapsed = o.elapsed || 0; S.ghost = !!o.ghost; S.filterEdges = false;
+  S.game = true; S.running = true;
   $('#setup').hidden = true; $('#game').hidden = false;
+  $('#time').textContent = fmt(S.elapsed);
   setPressed('#tGhost', S.ghost); setPressed('#tEdge', false); setPressed('#tRef', false); $('#ref').hidden = true;
   board.classList.toggle('ghost-on', S.ghost);
-  S.players = [{ key: ME.id, name: ME.name, color: ME_COLOR, me: true }]; renderPlayers();
-  S.W = 0; layout(); S.pieces.forEach(p => show(p)); applyFilter(); updateProg(); tickTime(); tray.scrollLeft = 0;
-  if (allPlaced()) complete(true);
+  S.W = 0; layout(); applyFilter(); updateProg(); tray.scrollLeft = 0; save();
+  if (S.placedN === S.pieces.length) complete(true);
 }
 
 function layout(){
@@ -805,44 +546,20 @@ function renderPiece(p){
   g.save(); g.translate(-lw * .6, -lw * .6); piecePath(g, S.E, p.r, p.c, cw, ch); g.strokeStyle = 'rgba(40,20,10,.2)'; g.stroke(); g.restore();
   g.restore();
   p.pw = pw; p.ph = ph; p.tx = ox; p.ty = oy;
-  sizeFor(p); posTag(p);
+  sizeFor(p);
 }
 function sizeFor(p){
   const st = p.el.style;
   if (p.where === 'tray'){
     const f = (S.slotSize - 4) / Math.max(p.pw, p.ph);
     st.width = p.pw * f + 'px'; st.height = p.ph * f + 'px'; st.left = st.top = ''; st.transform = `rotate(${p.deg}deg)`;
-    return;
+  } else {
+    st.width = p.pw + 'px'; st.height = p.ph + 'px';
+    if (p.where === 'placed'){ st.left = p.tx + 'px'; st.top = p.ty + 'px'; }
+    if (p.where === 'loose'){ st.left = (p.fx * S.W - p.pw / 2) + 'px'; st.top = (p.fy * S.H - p.ph / 2) + 'px'; st.transform = `rotate(${p.deg}deg)`; }
+    if (p.where === 'drag'){ st.left = '0px'; st.top = '0px'; }
   }
-  st.width = p.pw + 'px'; st.height = p.ph + 'px';
-  if (p.where === 'placed'){ st.left = p.tx + 'px'; st.top = p.ty + 'px'; st.transform = ''; }
-  else if (p.where === 'loose' || p.where === 'remote'){
-    const q = p.where === 'loose' ? p.srv : p.rpos;
-    st.left = (q.fx * S.W - p.pw / 2) + 'px'; st.top = (q.fy * S.H - p.ph / 2) + 'px'; st.transform = `rotate(${p.deg}deg)`;
-  } else if (p.where === 'drag'){ st.left = '0px'; st.top = '0px'; }
 }
-const nearDeg = (cur, rot) => cur + ((((rot * 90 - cur) % 360) + 540) % 360 - 180);
-
-/* put a piece where the shared state says it is */
-function show(p, sound){
-  if (drag && drag.p === p) return;
-  const prevW = p.where;
-  const w = (p.holder && p.rpos && p.srv.state !== 'placed') ? 'remote' : p.srv.state;
-  p.deg = nearDeg(p.deg, w === 'placed' ? 0 : w === 'remote' ? p.rpos.rot : p.srv.rot);
-  p.where = w;
-  const el = p.el, parent = w === 'tray' ? p.slot : w === 'loose' ? looseEl : w === 'placed' ? placedEl : remoteEl;
-  el.className = 'piece' + (w === 'tray' ? '' : ' ' + w);
-  if (el.parentNode !== parent){ el.style.transition = 'none'; parent.appendChild(el); sizeFor(p); void el.offsetWidth; el.style.transition = ''; }
-  else { if (w === 'loose') parent.appendChild(el); sizeFor(p); }
-  p.slot.classList.toggle('gone', w !== 'tray');
-  p.slot.classList.toggle('held', w === 'tray' && !!p.holder);
-  if (w === 'placed' && prevW && prevW !== 'placed'){ el.classList.add('flash'); if (sound) sfxSnap(); }
-  if (w === 'remote'){
-    if (!p.tag){ p.tag = document.createElement('div'); p.tag.className = 'tag'; remoteEl.appendChild(p.tag); }
-    p.tag.textContent = p.holder.name || 'เพื่อน'; p.tag.style.background = p.holder.color; posTag(p);
-  } else if (p.tag){ p.tag.remove(); p.tag = null; }
-}
-function posTag(p){ if (p.tag && p.rpos){ p.tag.style.left = p.rpos.fx * S.W + 'px'; p.tag.style.top = (p.rpos.fy * S.H - p.ph / 2 + S.pad * .5) + 'px'; } }
 
 /* ---------- hit test for pieces resting on the board ---------- */
 function looseAt(x, y){
@@ -850,8 +567,7 @@ function looseAt(x, y){
   const kids = looseEl.children;
   for (let i = kids.length - 1; i >= 0; i--){
     const p = S.pieces[+kids[i].dataset.id];
-    if (p.holder) continue;
-    const dx = bx - p.srv.fx * S.W, dy = by - p.srv.fy * S.H, a = -p.srv.rot * Math.PI / 2;
+    const dx = bx - p.fx * S.W, dy = by - p.fy * S.H, a = -p.rot * Math.PI / 2;
     const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
     if (Math.abs(lx) <= S.cw / 2 + S.pad * .6 && Math.abs(ly) <= S.ch / 2 + S.pad * .6) return p;
   }
@@ -862,26 +578,22 @@ function looseAt(x, y){
 let pend = null, drag = null;
 tray.addEventListener('pointerdown', e => {
   const slot = e.target.closest('.slot'); if (!slot || drag || pend || e.button > 0) return;
-  const p = S.pieces[+slot.dataset.id];
-  if (p.srv.state !== 'tray') return;
   audioInit();
-  if (p.holder){ toast(`${p.holder.name || 'เพื่อน'} กำลังถือชิ้นนี้อยู่`); return; }
-  pend = { p, from: 'tray', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
+  pend = { p: S.pieces[+slot.dataset.id], from: 'tray', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
   if (e.pointerType === 'mouse') e.preventDefault();
 });
 $('#boardArea').addEventListener('pointerdown', e => {
-  if (drag || pend || e.button > 0 || !S.game || S.doneShown) return;
+  if (drag || pend || e.button > 0 || !S.running) return;
   const p = looseAt(e.clientX, e.clientY); if (!p) return;
   audioInit(); e.preventDefault();
   pend = { p, from: 'loose', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
 });
 window.addEventListener('pointermove', e => {
-  if (drag && e.pointerId === drag.id){ drag.x = e.clientX; drag.y = e.clientY; place(); sendDrag(); e.preventDefault(); return; }
+  if (drag && e.pointerId === drag.id){ drag.x = e.clientX; drag.y = e.clientY; place(); e.preventDefault(); return; }
   if (pend && e.pointerId === pend.id){
     const dx = e.clientX - pend.x0, dy = e.clientY - pend.y0;
     if (Math.hypot(dx, dy) < 8) return;
     if (pend.from === 'tray' && pend.type !== 'mouse' && Math.abs(dx) > Math.abs(dy) * 1.3){ pend = null; return; }
-    if (pend.p.holder){ pend = null; return; }
     startDrag(e);
   }
 }, { passive: false });
@@ -889,236 +601,108 @@ window.addEventListener('pointerup', e => {
   if (pend && e.pointerId === pend.id){ const p = pend.p; pend = null; if (S.rotate) turn(p); return; }
   if (drag && e.pointerId === drag.id) drop();
 });
-window.addEventListener('pointercancel', e => { if (pend && e.pointerId === pend.id) pend = null; if (drag && e.pointerId === drag.id) cancelDrag(false); });
+window.addEventListener('pointercancel', e => { if (pend && e.pointerId === pend.id) pend = null; if (drag && e.pointerId === drag.id) cancelDrag(); });
 document.addEventListener('touchmove', e => {
   if (drag){ e.preventDefault(); return; }
   if (pend && e.touches[0]){ const t = e.touches[0]; if (pend.from === 'loose' || Math.abs(t.clientY - pend.y0) > Math.abs(t.clientX - pend.x0)) e.preventDefault(); }
 }, { passive: false });
 
+function turn(p){
+  if (p.where !== 'tray' && p.where !== 'loose') return;
+  p.rot = (p.rot + 1) % 4; p.deg += 90; sizeFor(p); sfxTurn();
+  if (p.where === 'loose') trySnapInPlace(p);
+  save();
+}
+
 function startDrag(e){
   const p = pend.p, from = pend.from;
-  drag = { p, from, id: pend.id, x: e.clientX, y: e.clientY, gx: 0, gy: 0, sent: 0 };
-  if (from === 'tray') drag.gy = pend.type === 'mouse' ? 0 : Math.min(70, p.ph * .45);
-  else { const br = board.getBoundingClientRect(); drag.gx = pend.x0 - (br.left + p.srv.fx * S.W); drag.gy = pend.y0 - (br.top + p.srv.fy * S.H); }
+  drag = { p, from, id: pend.id, x: e.clientX, y: e.clientY, gx: 0, gy: 0 };
+  if (from === 'tray'){
+    drag.gy = pend.type === 'mouse' ? 0 : Math.min(70, p.ph * .45);
+    drag.next = p.slot.nextSibling; p.slot.remove();
+  } else {
+    const br = board.getBoundingClientRect();
+    drag.gx = pend.x0 - (br.left + p.fx * S.W); drag.gy = pend.y0 - (br.top + p.fy * S.H);
+  }
   pend = null;
   p.where = 'drag'; p.el.className = 'piece dragging'; sizeFor(p); dragLayer.appendChild(p.el);
-  p.slot.classList.add('gone');
   document.body.classList.add('is-dragging'); place(); sfxPick();
-  setHold(p.id); sendDrag(true);
 }
 function place(){ const p = drag.p; p.el.style.transform = `translate3d(${drag.x - drag.gx - p.pw / 2}px, ${drag.y - drag.gy - p.ph / 2}px, 0) rotate(${p.deg}deg)`; }
-function dragPos(){ const br = board.getBoundingClientRect(); return { bx: drag.x - drag.gx - br.left, by: drag.y - drag.gy - br.top }; }
-let dragTimer = 0;
-function sendDrag(now){
-  if (!S.chan || !drag) return;
-  const t = performance.now();
-  if (!now && t - drag.sent < 90){ clearTimeout(dragTimer); dragTimer = setTimeout(() => sendDrag(true), 95); return; }
-  drag.sent = t;
-  const { bx, by } = dragPos(), p = drag.p;
-  S.chan.send({ type: 'broadcast', event: 'drag', payload: { id: p.id, fx: +(bx / S.W).toFixed(4), fy: +(by / S.H).toFixed(4), rot: p.srv.rot, k: ME.id, name: ME.name, color: ME_COLOR } });
-}
-function endDrag(){ clearTimeout(dragTimer); drag = null; document.body.classList.remove('is-dragging'); setHold(null); }
+function finishDrag(){ drag = null; document.body.classList.remove('is-dragging'); }
 
 function drop(){
-  const p = drag.p, shelf = $('.shelf').getBoundingClientRect();
-  const { bx, by } = dragPos();
-  let res, snapped = false;
-  if (drag.y > shelf.top + 4) res = { ...p.srv, state: 'tray' };
-  else {
-    const hx = (p.c + .5) * S.cw, hy = (p.r + .5) * S.ch, thr = Math.max(18, Math.min(S.cw, S.ch) * .4);
-    if (p.srv.rot === 0 && Math.hypot(bx - hx, by - hy) < thr){ res = { state: 'placed', fx: hx / S.W, fy: hy / S.H, rot: 0 }; snapped = true; }
-    else res = { state: 'loose', fx: clamp(bx, 0, S.W) / S.W, fy: clamp(by, 0, S.H) / S.H, rot: p.srv.rot };
+  const p = drag.p, br = board.getBoundingClientRect(), shelf = $('.shelf').getBoundingClientRect();
+  if (drag.y > shelf.top + 4){ toTray(p, drag.from === 'tray' ? drag.next : tray.firstChild); finishDrag(); save(); updateProg(); return; }
+  const bx = drag.x - drag.gx - br.left, by = drag.y - drag.gy - br.top;
+  if (!snap(p, bx, by)){
+    p.fx = clamp(bx, 0, S.W) / S.W; p.fy = clamp(by, 0, S.H) / S.H;
+    p.where = 'loose'; p.el.className = 'piece loose'; p.el.dataset.id = p.id;
+    p.el.style.transition = 'none'; sizeFor(p); looseEl.appendChild(p.el); void p.el.offsetWidth; p.el.style.transition = '';
+    sfxSet();
   }
-  endDrag();
-  p.srv = res;
-  if (snapped){
-    show(p, true);
-    const hx = (p.c + .5) * S.cw, hy = (p.r + .5) * S.ch;
-    p.el.style.transition = 'none'; p.el.style.transform = `translate(${bx - hx}px, ${by - hy}px)`;
-    void p.el.offsetWidth; p.el.style.transition = ''; p.el.style.transform = '';
-  } else {
-    show(p);
-    if (res.state === 'loose') sfxSet();
-    if (res.state === 'tray'){ p.slot.classList.remove('back'); void p.slot.offsetWidth; p.slot.classList.add('back'); p.slot.hidden = S.filterEdges && !p.edge; }
-  }
-  sendRelease(p); write(p); updateProg(); checkDone();
+  finishDrag(); updateProg(); save();
 }
-function cancelDrag(conflict){
-  const p = drag.p; endDrag(); show(p);
-  if (conflict) toast('เพื่อนหยิบชิ้นนี้ไปก่อนแล้ว');
-}
-function turn(p){
-  if (p.holder || p.srv.state === 'placed' || p.srv.state === 'remote') return;
-  const rot = (p.srv.rot + 1) % 4;
-  p.srv = { ...p.srv, rot };
-  if (p.srv.state === 'loose' && rot === 0){
-    const hx = (p.c + .5) * S.cw, hy = (p.r + .5) * S.ch, thr = Math.max(18, Math.min(S.cw, S.ch) * .4);
-    if (Math.hypot(p.srv.fx * S.W - hx, p.srv.fy * S.H - hy) < thr) p.srv = { state: 'placed', fx: hx / S.W, fy: hy / S.H, rot: 0 };
-  }
-  sfxTurn(); show(p, true); sendRelease(p); write(p); updateProg(); checkDone();
+function cancelDrag(){ const p = drag.p; if (drag.from === 'tray') toTray(p, drag.next); else { p.where = 'loose'; p.el.className = 'piece loose'; sizeFor(p); looseEl.appendChild(p.el); } finishDrag(); }
+
+function toTray(p, before){
+  p.where = 'tray'; p.el.className = 'piece'; p.slot.appendChild(p.el);
+  if (before && before.parentNode === tray) tray.insertBefore(p.slot, before); else tray.insertBefore(p.slot, tray.firstChild);
+  p.slot.hidden = S.filterEdges && !p.edge;
+  sizeFor(p);
+  p.slot.classList.remove('back'); void p.slot.offsetWidth; p.slot.classList.add('back');
+  const e = tray.querySelector('.tray-empty'); if (e) e.remove();
 }
 
-/* ---------- shared state ---------- */
-async function write(p){
-  if (!sb || !S.code) return;
-  const code = S.code, s = p.srv;
-  p.inflight++;
-  let ok = false;
-  try {
-    const { data, error } = await sb.rpc('move_piece', { p_room: code, p_pass: S.pass, p_id: p.id, p_state: s.state, p_fx: s.fx, p_fy: s.fy, p_rot: s.rot });
-    ok = !error && data === true;
-    if (error) toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต');
-  } catch(e){ toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต'); }
-  p.inflight--;
-  if (code !== S.code) return;
-  if (!ok){
-    try { const { data } = await sb.from('pieces').select('id,state,fx,fy,rot').eq('room', code).eq('id', p.id).maybeSingle(); if (data){ p.lastRow = null; applyRow(p, data, true); } } catch(e){}
-  } else if (p.inflight === 0 && p.lastRow){ const r = p.lastRow; p.lastRow = null; if (r.state === 'placed') applyRow(p, r); }
+/* snap: center close to its home and rotated upright */
+function snap(p, bx, by){
+  if (p.rot !== 0) return false;
+  const hx = (p.c + .5) * S.cw, hy = (p.r + .5) * S.ch, thr = Math.max(18, Math.min(S.cw, S.ch) * .4);
+  if (Math.hypot(bx - hx, by - hy) >= thr) return false;
+  p.where = 'placed'; p.el.className = 'piece placed'; sizeFor(p);
+  p.el.style.transition = 'none'; p.el.style.transform = `translate(${bx - hx}px, ${by - hy}px)`; placedEl.appendChild(p.el);
+  void p.el.offsetWidth; p.el.style.transition = ''; p.el.style.transform = ''; p.el.classList.add('flash');
+  S.placedN++; sfxSnap();
+  if (S.placedN === S.pieces.length) setTimeout(() => complete(false), 150);
+  return true;
 }
-function onRow(r){ const p = S.pieces[r.id]; if (!p) return; if (p.inflight > 0){ p.lastRow = r; return; } applyRow(p, r); }
-function applyRow(p, r, force){
-  const was = p.srv.state;
-  if (was === 'placed' && r.state !== 'placed' && !force) return;
-  p.srv = { state: r.state, fx: r.fx, fy: r.fy, rot: r.rot };
-  if (r.state === 'placed'){ p.holder = null; p.rpos = null; }
-  if (drag && drag.p === p){ if (r.state === 'placed') cancelDrag(true); return; }
-  show(p, was !== 'placed');
-  if (p.where === 'tray') p.slot.hidden = S.filterEdges && !p.edge;
-  updateProg(); checkDone();
+function trySnapInPlace(p){
+  if (snap(p, p.fx * S.W, p.fy * S.H)){ updateProg(); }
 }
-function sendRelease(p){ if (S.chan) S.chan.send({ type: 'broadcast', event: 'release', payload: { id: p.id, ...p.srv } }); }
-function onDrag(m){
-  const p = S.pieces[m.id]; if (!p || p.srv.state === 'placed' || m.k === ME.id) return;
-  if (drag && drag.p === p){ if (m.k < ME.id) cancelDrag(true); else return; }
-  if (!p.holder || p.holder.key !== m.k) p.holder = { key: m.k, name: m.name, color: m.color };
-  p.rpos = { fx: m.fx, fy: m.fy, rot: m.rot }; p.holdAt = Date.now();
-  if (p.where === 'remote'){ p.deg = nearDeg(p.deg, m.rot); sizeFor(p); posTag(p); } else show(p);
-}
-function onRelease(m){
-  const p = S.pieces[m.id]; if (!p || p.inflight > 0) return;
-  p.holder = null; p.rpos = null;
-  applyRow(p, m);
-}
-function setHold(){}
-/* a held piece is released if its holder goes quiet; my own drag sends a heartbeat */
-setInterval(() => {
-  if (!S.game) return;
-  const now = Date.now();
-  S.pieces.forEach(p => { if (p.holder && now - (p.holdAt || 0) > 5000){ p.holder = null; p.rpos = null; show(p); } });
-  if (drag && performance.now() - drag.sent > 1500) sendDrag(true);
-}, 1000);
-setInterval(() => { if (S.game && !drag && !document.hidden) refetch(); }, 10000);
-
-function syncPresence(){
-  if (!S.chan) return;
-  const st = S.chan.presenceState(), players = [];
-  for (const [key, metas] of Object.entries(st)){
-    const m = metas[metas.length - 1] || {};
-    players.push({ key, name: m.name, color: m.color || colorOf(key), me: key === ME.id });
-  }
-  if (!players.some(p => p.me)) players.unshift({ key: ME.id, name: ME.name, color: ME_COLOR, me: true });
-  S.players = players.sort((a, b) => (b.me - a.me)); renderPlayers();
-  const here = new Set(players.map(p => p.key));
-  S.pieces.forEach(p => { if (p.holder && !here.has(p.holder.key)){ p.holder = null; p.rpos = null; show(p); } });
-}
-
-async function refetch(){
-  if (!S.code) return;
-  try {
-    const { data } = await sb.from('pieces').select('id,state,fx,fy,rot').eq('room', S.code);
-    (data || []).forEach(r => { const p = S.pieces[r.id]; if (!p || p.inflight > 0 || (drag && drag.p === p)) return;
-      const s = p.srv; if (s.state !== r.state || s.rot !== r.rot || Math.abs(s.fx - r.fx) > 1e-4 || Math.abs(s.fy - r.fy) > 1e-4) applyRow(p, r); });
-  } catch(e){}
-}
-
-function connect(code){
-  disconnect();
-  const ch = sb.channel('room:' + code, { config: { presence: { key: ME.id }, broadcast: { self: false } } });
-  S.chan = ch;
-  ch.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pieces', filter: 'room=eq.' + code }, pl => { if (S.chan === ch) onRow(pl.new); })
-    .on('broadcast', { event: 'drag' }, ({ payload }) => { if (S.chan === ch) onDrag(payload); })
-    .on('broadcast', { event: 'release' }, ({ payload }) => { if (S.chan === ch) onRelease(payload); })
-    .on('presence', { event: 'sync' }, () => { if (S.chan === ch) syncPresence(); })
-    .subscribe((status, err) => {
-      if (err) console.warn('realtime', status, err);
-      if (S.chan !== ch) return;
-      if (status === 'SUBSCRIBED'){
-        S.connected = true; $('#conn').hidden = true; refetch();
-        const t = Date.now(); if (!ch._trackedAt || t - ch._trackedAt > 5000){ ch._trackedAt = t; ch.track({ name: ME.name, color: ME_COLOR }).catch(() => {}); }
-      }
-      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'){ S.connected = false; $('#conn').hidden = false; }
-    });
-  $('#conn').hidden = false;
-}
-function disconnect(){ if (S.chan){ const c = S.chan; S.chan = null; S.connected = false; try { sb.removeChannel(c); } catch(e){} } }
-document.addEventListener('visibilitychange', () => { if (!document.hidden && S.game) refetch(); });
 
 /* ---------- HUD, tools, tray ---------- */
-const allPlaced = () => S.pieces.length > 0 && S.pieces.every(p => p.srv.state === 'placed');
-function checkDone(){ if (!S.doneShown && allPlaced()) complete(false); }
 function updateProg(){
-  let placed = 0, inTray = 0, loose = 0;
-  S.pieces.forEach(p => { if (p.srv.state === 'placed') placed++; else if (p.srv.state === 'tray') inTray++; else loose++; });
-  $('#prog').textContent = `${placed} / ${S.pieces.length}`;
-  $('#trayCount').textContent = `ในถาด ${inTray}` + (loose ? ` · พักบนกระดาน ${loose}` : '');
+  $('#prog').textContent = `${S.placedN} / ${S.pieces.length}`;
+  const inTray = tray.querySelectorAll('.slot').length, onBoard = looseEl.children.length;
+  $('#trayCount').textContent = `ในถาด ${inTray}` + (onBoard ? ` · พักบนกระดาน ${onBoard}` : '');
   let empty = tray.querySelector('.tray-empty');
   if (inTray === 0 && !empty){ empty = document.createElement('div'); empty.className = 'tray-empty'; tray.appendChild(empty); }
-  if (inTray > 0 && empty){ empty.remove(); empty = null; }
-  if (empty) empty.textContent = loose ? 'ถาดว่างแล้ว ที่เหลือพักอยู่บนกระดาน' : 'ถาดว่างแล้ว';
+  if (empty) empty.textContent = onBoard ? 'ถาดว่างแล้ว ที่เหลือพักอยู่บนกระดาน' : 'ถาดว่างแล้ว';
 }
 function applyFilter(){
   let shown = 0;
-  S.pieces.forEach(p => { const hide = S.filterEdges && !p.edge; p.slot.hidden = hide; if (!hide && p.srv.state === 'tray') shown++; });
-  if (S.filterEdges && shown === 0){ S.filterEdges = false; setPressed('#tEdge', false); applyFilter(); toast('ชิ้นขอบหมดถาดแล้ว'); }
-}
-function renderPlayers(){
-  const box = $('#players'); box.innerHTML = '';
-  const list = S.players, max = 4;
-  list.slice(0, max).forEach(pl => { const d = document.createElement('div'); d.className = 'av'; d.style.background = pl.color; d.textContent = [...(pl.name || '?')][0]; d.title = (pl.name || 'เพื่อน') + (pl.me ? ' (คุณ)' : ''); box.appendChild(d); });
-  if (list.length > max){ const d = document.createElement('div'); d.className = 'av more'; d.textContent = '+' + (list.length - max); box.appendChild(d); }
-  const ul = $('#ibPlayers'); ul.innerHTML = '';
-  list.forEach(pl => { const li = document.createElement('li'), i = document.createElement('i'); i.style.background = pl.color; li.append(i, (pl.name || 'เพื่อน') + (pl.me ? ' (คุณ)' : '')); ul.appendChild(li); });
+  tray.querySelectorAll('.slot').forEach(s => { const p = S.pieces[+s.dataset.id], hide = S.filterEdges && !p.edge; s.hidden = hide; if (!hide) shown++; });
+  if (S.filterEdges && shown === 0){ S.filterEdges = false; setPressed('#tEdge', false); applyFilter(); }
 }
 function setPressed(sel, v){ $(sel).setAttribute('aria-pressed', v ? 'true' : 'false'); }
 $('#tRef').onclick = () => { const r = $('#ref'); r.hidden = !r.hidden; setPressed('#tRef', !r.hidden); };
 $('#ref').onclick = () => { $('#ref').hidden = true; setPressed('#tRef', false); };
-$('#tGhost').onclick = () => { S.ghost = !S.ghost; board.classList.toggle('ghost-on', S.ghost); setPressed('#tGhost', S.ghost); LS.set('jt-ghost', S.ghost); };
+$('#tGhost').onclick = () => { S.ghost = !S.ghost; board.classList.toggle('ghost-on', S.ghost); setPressed('#tGhost', S.ghost); save(); };
 $('#tEdge').onclick = () => { S.filterEdges = !S.filterEdges; setPressed('#tEdge', S.filterEdges); applyFilter(); tray.scrollLeft = 0; };
-$('#tGather').onclick = async () => {
-  const loose = S.pieces.filter(p => p.srv.state === 'loose' && !p.holder);
-  if (!loose.length){ toast('ไม่มีชิ้นพักอยู่บนกระดาน'); return; }
-  loose.forEach(p => { p.srv = { ...p.srv, state: 'tray' }; p.inflight++; show(p); p.slot.hidden = S.filterEdges && !p.edge; });
-  updateProg(); tray.scrollLeft = 0;
-  try { const { error } = await sb.rpc('gather_loose', { p_room: S.code, p_pass: S.pass }); if (error) throw error; } catch(e){ toast('เก็บชิ้นไม่สำเร็จ ลองใหม่อีกครั้ง'); }
-  loose.forEach(p => { p.inflight--; p.lastRow = null; });
-  refetch();
-};
-$('#tShuffle').onclick = () => { shuffle([...tray.querySelectorAll('.slot')]).forEach(s => tray.appendChild(s)); const e = tray.querySelector('.tray-empty'); if (e) tray.appendChild(e); tray.scrollLeft = 0; };
+$('#tGather').onclick = () => { [...looseEl.children].reverse().forEach(el => toTray(S.pieces[+el.dataset.id], tray.firstChild)); tray.scrollLeft = 0; updateProg(); save(); };
+$('#tShuffle').onclick = () => { const slots = shuffle([...tray.querySelectorAll('.slot')]); slots.forEach(s => tray.appendChild(s)); const e = tray.querySelector('.tray-empty'); if (e) tray.appendChild(e); tray.scrollLeft = 0; save(); };
 $('#tSound').onclick = () => { soundOn = !soundOn; setPressed('#tSound', soundOn); $('#wave').style.opacity = soundOn ? 1 : .15; if (soundOn){ audioInit(); sfxSnap(); } };
 $('#tl').onclick = () => tray.scrollBy({ left: -tray.clientWidth * .8, behavior: 'smooth' });
 $('#tr').onclick = () => tray.scrollBy({ left: tray.clientWidth * .8, behavior: 'smooth' });
 tray.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)){ tray.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-function leave(){ disconnect(); S.game = false; S.code = null; try { history.replaceState(null, '', location.pathname); } catch(e){} showHome(); }
-$('#backBtn').onclick = leave;
-$('#againBtn').onclick = leave;
+$('#backBtn').onclick = () => { saveNow(); S.running = false; showSetup(); };
+$('#againBtn').onclick = () => { S.game = false; showSetup(); };
 $('#viewBtn').onclick = () => { $('#done').hidden = true; };
 
-/* invite */
-const roomLink = () => location.origin + location.pathname + '?r=' + S.code;
-$('#inviteBtn').onclick = () => { $('#ibCode').textContent = S.code; $('#ibLink').textContent = roomLink(); $('#shareBtn').hidden = !navigator.share; $('#ibLocked').hidden = !S.room.locked; renderPlayers(); $('#inviteBox').hidden = false; };
-$('#ibClose').onclick = () => { $('#inviteBox').hidden = true; };
-$('#inviteBox').addEventListener('click', e => { if (e.target.id === 'inviteBox') $('#inviteBox').hidden = true; });
-$('#copyBtn').onclick = async () => {
-  try { await navigator.clipboard.writeText(roomLink()); toast('คัดลอกลิงก์แล้ว'); }
-  catch(e){ const r = document.createRange(); r.selectNodeContents($('#ibLink')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('เลือกลิงก์ไว้แล้ว กดคัดลอกได้เลย'); }
-};
-$('#shareBtn').onclick = () => { navigator.share({ title: 'มาต่อจิ๊กซอว์กัน', text: `มาต่อจิ๊กซอว์ด้วยกัน รหัสห้อง ${S.code}`, url: roomLink() }).catch(() => {}); };
-
 function complete(silent){
-  S.doneShown = true; if (!S.doneAt) S.doneAt = Date.now();
-  const list = LS.get('jt-recent', []).map(r => r.code === S.code ? { ...r, done: true } : r); LS.set('jt-recent', list);
-  tickTime();
-  $('#doneInfo').textContent = `${S.pieces.length} ชิ้น · ใช้เวลา ${fmtT(Math.max(0, Math.round((S.doneAt - S.created) / 1000)))}` + (S.rotate ? ' · ระดับยาก' : '');
+  S.running = false;
+  try { localStorage.removeItem(KEY); } catch(e){}
+  $('#doneInfo').textContent = `${S.pieces.length} ชิ้น · ใช้เวลา ${fmt(S.elapsed)}` + (S.rotate ? ' · ระดับยาก' : '');
   $('#done').hidden = false; $('#full').classList.add('show');
   if (silent) return;
   sfxDone();
@@ -1133,25 +717,31 @@ function complete(silent){
   }
 }
 
-function tickTime(){ if (!S.game) return; const end = S.doneAt || Date.now(); $('#time').textContent = fmtT(Math.max(0, Math.floor((end - S.created) / 1000))); }
-setInterval(tickTime, 1000);
+/* ---------- timer + saving ---------- */
+setInterval(() => { if (S.game && S.running && !document.hidden){ S.elapsed++; $('#time').textContent = fmt(S.elapsed); if (S.elapsed % 10 === 0) save(); } }, 1000);
+let saveT = 0;
+function save(){ clearTimeout(saveT); saveT = setTimeout(saveNow, 300); }
+function saveNow(){
+  if (!S.game || !S.running) return;
+  try {
+    const trayL = [...tray.querySelectorAll('.slot')].map(s => { const p = S.pieces[+s.dataset.id]; return [p.id, p.rot]; });
+    const loose = [...looseEl.children].map(el => { const p = S.pieces[+el.dataset.id]; return [p.id, +p.fx.toFixed(4), +p.fy.toFixed(4), p.rot]; });
+    if (drag) trayL.push([drag.p.id, drag.p.rot]);
+    localStorage.setItem(KEY, JSON.stringify({ v: 2, src: S.dataURL, cols: S.cols, rows: S.rows, E: S.E,
+      locked: S.pieces.filter(p => p.where === 'placed').map(p => p.id), tray: trayL, loose, elapsed: S.elapsed, ghost: S.ghost, rotate: S.rotate }));
+  } catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
 
 let rt = 0;
-window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (!$('#game').hidden){ layout(); S.pieces.forEach(p => { if (p.where !== 'drag') sizeFor(p); posTag(p); }); } else drawPreview(); }, 120); });
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (!$('#game').hidden) layout(); else drawPreview(); }, 120); });
 
 /* ---------- boot ---------- */
-pick.src = paintSample(); refreshPick(); renderRecent(); loadLobby();
+pick.src = paintSample(); refreshPick(); showResume();
 document.fonts && document.fonts.ready.then(drawPreview);
-if (!sb) homeErr('โหลดระบบออนไลน์ไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง');
-(() => {
-  const code = cleanCode(new URLSearchParams(location.search).get('r') || '');
-  if (code.length !== 6) return;
-  $('#joinCode').value = code;
-  if (ME.name && sb) joinRoom(code);
-  else { homeErr('ใส่ชื่อเล่นแล้วกด "เข้าห้อง" ได้เลย'); $('#nick').focus(); }
 })();
 
-})();
 </script>
+
 </body>
 </html>
