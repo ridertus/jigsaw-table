@@ -895,6 +895,15 @@ document.addEventListener('touchmove', e => {
   if (pend && e.touches[0]){ const t = e.touches[0]; if (pend.from === 'loose' || Math.abs(t.clientY - pend.y0) > Math.abs(t.clientX - pend.x0)) e.preventDefault(); }
 }, { passive: false });
 
+/* a drag must always end: capture the pointer on the page itself, and settle any drag whose end event got lost */
+function settleDrag(){ if (drag) drop(); }
+document.documentElement.addEventListener('lostpointercapture', e => { if (drag && e.target === document.documentElement && e.pointerId === drag.id) settleDrag(); });
+document.addEventListener('touchend', e => { if (drag && e.touches.length === 0) settleDrag(); });
+document.addEventListener('touchcancel', e => { if (drag && e.touches.length === 0) settleDrag(); });
+window.addEventListener('blur', () => { if (drag) cancelDrag(false); pend = null; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && drag) cancelDrag(false); });
+document.addEventListener('pointerdown', e => { if (drag && e.pointerId !== drag.id) settleDrag(); }, true);
+
 function startDrag(e){
   const p = pend.p, from = pend.from;
   drag = { p, from, id: pend.id, x: e.clientX, y: e.clientY, gx: 0, gy: 0, sent: 0 };
@@ -903,6 +912,7 @@ function startDrag(e){
   pend = null;
   p.where = 'drag'; p.el.className = 'piece dragging'; sizeFor(p); dragLayer.appendChild(p.el);
   p.slot.classList.add('gone');
+  try { document.documentElement.setPointerCapture(drag.id); } catch(err){}
   document.body.classList.add('is-dragging'); place(); sfxPick();
   setHold(p.id); sendDrag(true);
 }
@@ -1099,7 +1109,7 @@ $('#tl').onclick = () => tray.scrollBy({ left: -tray.clientWidth * .8, behavior:
 $('#tr').onclick = () => tray.scrollBy({ left: tray.clientWidth * .8, behavior: 'smooth' });
 tray.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)){ tray.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
 function leave(){ disconnect(); S.game = false; S.code = null; try { history.replaceState(null, '', location.pathname); } catch(e){} showHome(); }
-$('#backBtn').onclick = leave;
+$('#backBtn').onclick = () => { if (drag) cancelDrag(false); pend = null; leave(); };
 $('#againBtn').onclick = leave;
 $('#viewBtn').onclick = () => { $('#done').hidden = true; };
 

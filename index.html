@@ -614,6 +614,15 @@ function turn(p){
   save();
 }
 
+/* a drag must always end: capture the pointer on the page itself, and settle any drag whose end event got lost */
+function settleDrag(){ if (drag) drop(); }
+document.documentElement.addEventListener('lostpointercapture', e => { if (drag && e.target === document.documentElement && e.pointerId === drag.id) settleDrag(); });
+document.addEventListener('touchend', e => { if (drag && e.touches.length === 0) settleDrag(); });
+document.addEventListener('touchcancel', e => { if (drag && e.touches.length === 0) settleDrag(); });
+window.addEventListener('blur', () => { if (drag) cancelDrag(); pend = null; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && drag) cancelDrag(); });
+document.addEventListener('pointerdown', e => { if (drag && e.pointerId !== drag.id) settleDrag(); }, true);
+
 function startDrag(e){
   const p = pend.p, from = pend.from;
   drag = { p, from, id: pend.id, x: e.clientX, y: e.clientY, gx: 0, gy: 0 };
@@ -626,6 +635,7 @@ function startDrag(e){
   }
   pend = null;
   p.where = 'drag'; p.el.className = 'piece dragging'; sizeFor(p); dragLayer.appendChild(p.el);
+  try { document.documentElement.setPointerCapture(drag.id); } catch(err){}
   document.body.classList.add('is-dragging'); place(); sfxPick();
 }
 function place(){ const p = drag.p; p.el.style.transform = `translate3d(${drag.x - drag.gx - p.pw / 2}px, ${drag.y - drag.gy - p.ph / 2}px, 0) rotate(${p.deg}deg)`; }
@@ -695,7 +705,7 @@ $('#tSound').onclick = () => { soundOn = !soundOn; setPressed('#tSound', soundOn
 $('#tl').onclick = () => tray.scrollBy({ left: -tray.clientWidth * .8, behavior: 'smooth' });
 $('#tr').onclick = () => tray.scrollBy({ left: tray.clientWidth * .8, behavior: 'smooth' });
 tray.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)){ tray.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-$('#backBtn').onclick = () => { saveNow(); S.running = false; showSetup(); };
+$('#backBtn').onclick = () => { if (drag) cancelDrag(); pend = null; saveNow(); S.running = false; showSetup(); };
 $('#againBtn').onclick = () => { S.game = false; showSetup(); };
 $('#viewBtn').onclick = () => { $('#done').hidden = true; };
 
