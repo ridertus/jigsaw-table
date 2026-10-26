@@ -713,10 +713,10 @@ const SKIN = '#f2c7a0', SKIN_D = '#d9a57c', PANTS = '#3d3a4e', SHOE = '#2a2433';
 const HAIR_COL = ['#4a2f22', '#2b2230', '#c27a3a', '#7a4a2e'];
 function shade(hex, k){ const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = n >> 8 & 255, b = n & 255; r = Math.round(r * k); g = Math.round(g * k); b = Math.round(b * k); return `rgb(${Math.min(255, r)},${Math.min(255, g)},${Math.min(255, b)})`; }
 /* draws a 10x16 character with feet at (x,y); dir 0 down 1 up 2 left 3 right */
-function drawChar(g, x, y, color, hair, dir, frame){
+function drawChar(g, x, y, color, hair, dir, frame, noShadow){
   x = Math.round(x) - 5; y = Math.round(y) - 16;
   const R = (a, b, w, h, c) => { g.fillStyle = c; g.fillRect(x + a, y + b, w, h); };
-  g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(x + 1, y + 15, 8, 2);
+  if (!noShadow){ g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(x + 1, y + 15, 8, 2); }
   const step = frame % 2 ? 1 : 0, lift = (frame % 4 === 1) ? 1 : 0;
   // legs
   if (dir >= 2){ R(3 + (step ? 1 : 0), 12, 2, 3, PANTS); R(5 - (step ? 1 : 0), 12, 2, 3, PANTS); R(3 + (step ? 1 : 0), 14, 2, 1, SHOE); R(5 - (step ? 1 : 0), 14, 2, 1, SHOE); }
@@ -792,84 +792,6 @@ const blocked = Array.from({ length: MR }, (_, r) => Array.from({ length: MC }, 
 FURN.forEach(f => f.block.forEach(([c, r]) => blocked[r][c] = true));
 const SPAWN = [9, 10];
 const Room = { me: null, others: new Map(), s: 3, ox: 0, oy: 0, cam: 0, tableImg: null, notes: [] };
-
-/* ----- static art ----- */
-function paintRoom(){
-  const g = bg.getContext('2d'), R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-  // wall
-  R(0, 0, LW, 36, '#e9d6bd');
-  for (let x = 0; x < LW; x += 8) R(x, 0, 4, 34, '#e2ccb0');
-  R(0, 30, LW, 4, '#c9a982'); R(0, 34, LW, 2, '#9c7650');
-  // floor planks
-  R(0, 36, LW, LH - 36, '#c6915f');
-  for (let r = 0; r < 18; r++){
-    const y = 36 + r * 6; R(0, y, LW, 1, '#a9764a');
-    for (let x = (r % 2) * 17; x < LW; x += 34) R(x, y, 1, 6, '#b07d50');
-    for (let x = (r * 7) % 23; x < LW; x += 23) R(x, y + 3, 3, 1, '#cf9d6c');
-  }
-  // window
-  R(54, 4, 52, 24, '#fffaf1'); R(57, 7, 46, 18, '#9fd3ee'); R(57, 19, 46, 6, '#bfe4f3');
-  R(64, 10, 10, 3, '#fff'); R(61, 12, 16, 3, '#fff'); R(86, 15, 12, 3, '#fff');
-  R(57, 22, 46, 3, '#7cbf7a'); R(79, 7, 2, 18, '#fffaf1'); R(57, 15, 46, 1, '#fffaf1');
-  R(52, 27, 56, 3, '#d8c1a1');
-  R(50, 3, 6, 26, '#e8728c'); R(104, 3, 6, 26, '#e8728c'); R(50, 3, 6, 2, '#c95c74'); R(104, 3, 6, 2, '#c95c74');
-  // painting
-  R(124, 8, 22, 16, '#7a4a2e'); R(126, 10, 18, 12, '#f4d39c'); R(126, 16, 18, 6, '#6aa96b'); R(132, 12, 5, 4, '#f0a23b');
-  // shelf
-  R(12, 6, 24, 40, '#8a5a36'); R(14, 8, 20, 36, '#6b4428');
-  [[8, 20], [20, 32], [32, 44]].forEach(([y]) => R(14, y + 10, 20, 2, '#8a5a36'));
-  const books = ['#e8728c', '#3f92d8', '#f0a23b', '#2fa79b', '#7c6cf0', '#e2b06e', '#d9573f'];
-  [9, 21, 33].forEach((y, row) => { let x = 15; for (let i = 0; i < 6; i++){ const w = 2 + (i + row) % 2; R(x, y + (i % 3 === 0 ? 1 : 0), w, 9 - (i % 3 === 0 ? 1 : 0), books[(i + row * 2) % books.length]); x += w + 1; } });
-  // rug
-  R(78, 64, 84, 52, '#d9573f'); R(80, 66, 80, 48, '#e8932c'); R(84, 70, 72, 40, '#f4d39c');
-  for (let x = 86; x < 154; x += 8) R(x, 72, 4, 2, '#e8932c');
-  for (let x = 86; x < 154; x += 8) R(x, 106, 4, 2, '#e8932c');
-  // sofa (left, facing right)
-  R(10, 82, 26, 40, '#2fa79b'); R(10, 82, 8, 40, '#238a80'); R(10, 80, 26, 6, '#238a80'); R(10, 118, 26, 6, '#238a80');
-  R(20, 88, 12, 13, '#3fbfb2'); R(20, 103, 12, 13, '#3fbfb2'); R(22, 90, 6, 4, '#f4d39c');
-  // armchair right
-  R(190, 94, 26, 26, '#7c6cf0'); R(190, 94, 26, 6, '#6555d4'); R(190, 94, 5, 26, '#6555d4'); R(211, 94, 5, 26, '#6555d4'); R(196, 102, 14, 12, '#9a8df5');
-  // radio cabinet
-  R(178, 26, 36, 22, '#8a5a36'); R(180, 30, 32, 16, '#6b4428'); R(195, 30, 2, 16, '#8a5a36'); R(186, 37, 3, 2, '#e2b06e'); R(203, 37, 3, 2, '#e2b06e');
-  // lamp
-  R(148, 20, 1, 22, '#5a4632'); R(144, 42, 9, 2, '#5a4632'); R(142, 12, 13, 9, '#f6dfa0'); R(142, 20, 13, 1, '#d8b56a');
-  // plants
-  const plant = (x, y) => { R(x + 2, y + 6, 8, 6, '#c75d4b'); R(x + 1, y + 5, 10, 2, '#a64a3a'); R(x + 3, y - 4, 3, 10, '#4fae55'); R(x + 6, y - 6, 3, 12, '#3d9447'); R(x, y - 1, 3, 6, '#5cc063'); R(x + 9, y - 2, 3, 7, '#4fae55'); };
-  plant(228, 32); plant(0, 128);
-  // door hint at bottom
-  R(104, 140, 32, 4, '#9c7650');
-}
-function drawTable(g, t){
-  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-  // chairs
-  R(84, 70, 10, 10, '#a86a3e'); R(146, 70, 10, 10, '#a86a3e'); R(84, 90, 10, 10, '#a86a3e'); R(146, 90, 10, 10, '#a86a3e');
-  // table
-  R(94, 70, 52, 26, '#a86a3e'); R(94, 94, 52, 3, '#7a4a2e'); R(96, 96, 4, 6, '#7a4a2e'); R(140, 96, 4, 6, '#7a4a2e');
-  R(97, 72, 46, 20, '#ecd3a8');
-  if (Room.tableImg){
-    const img = Room.tableImg, k = Math.min(44 / img.width, 18 / img.height), w = Math.round(img.width * k), h = Math.round(img.height * k);
-    g.imageSmoothingEnabled = true; g.drawImage(img, 120 - w / 2, 82 - h / 2, w, h); g.imageSmoothingEnabled = false;
-  } else {
-    for (let y = 0; y < 20; y += 4) for (let x = (y / 4) % 2 * 4; x < 46; x += 8) R(97 + x, 72 + y, 4, 4, '#e2c391');
-  }
-  // sparkle when someone is at the table
-  if (Math.floor(t / 400) % 2 && [...Room.others.values(), Room.me].some(a => a && Math.abs(a.x - 120) < 40 && Math.abs(a.y - 84) < 26)) R(146, 68, 2, 2, '#fff');
-}
-function drawRadio(g, t){
-  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-  const on = Radio.isPlaying();
-  R(183, 12, 26, 15, '#d9573f'); R(183, 12, 26, 2, '#e8735c'); R(186, 15, 10, 9, '#3a2a2a');
-  for (let y = 16; y < 24; y += 2) R(187, y, 8, 1, '#5a4040');
-  R(199, 16, 7, 3, on ? '#ffd36e' : '#7a5a50'); R(199, 21, 3, 3, '#f4d39c'); R(203, 21, 3, 3, '#f4d39c');
-  R(206, 4, 1, 8, '#5a4632'); R(205, 3, 3, 1, '#5a4632');
-  if (on){
-    const k = (t / 1000) % 2;
-    [[0, '#7c6cf0'], [1, '#e8728c']].forEach(([o, c]) => {
-      const p = (k + o) % 2, nx = 190 + o * 10 + Math.sin(p * 3) * 3, ny = 10 - p * 8;
-      g.globalAlpha = 1 - p / 2; R(nx, ny, 2, 2, c); R(nx + 2, ny - 4, 1, 5, c); R(nx + 2, ny - 4, 2, 1, c); g.globalAlpha = 1;
-    });
-  }
-}
 
 /* ----- avatars ----- */
 function makeAvatar(k, name, color, hair, x, y){ return { k, name, color, hair: hair || 0, x, y, path: [], dir: 0, walk: 0, bubble: null, seen: Date.now(), goal: null }; }
@@ -961,22 +883,24 @@ function frame(t){
   if (roomCv.width !== Math.round(W * dpr) || roomCv.height !== Math.round(H * dpr)){ roomCv.width = Math.round(W * dpr); roomCv.height = Math.round(H * dpr); }
   const top = 56, bottom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chatH')) + 10;
   const availH = Math.max(120, H - top - bottom);
-  const contain = Math.min(W / LW, availH / LH);
-  const s = Math.max(contain, Math.min(availH / LH, 3.4));
+  const TW = LW + PAD * 2, TH = LH + PAD * 2;
+  const contain = Math.min(W / TW, availH / TH);
+  const s = Math.max(contain, Math.min(availH / TH, 3.4));
   Room.s = s;
   if (Room.me){ if (stepAvatar(Room.me, dt) && Room.me.goal){ const f = Room.me.goal; Room.me.goal = null; if (atFurn(f)) useFurn(f); } }
   Room.others.forEach(a => stepAvatar(a, dt));
   // camera follows me horizontally when the room is wider than the screen
-  const rw = LW * s, rh = LH * s;
-  if (rw <= W) Room.ox = (W - rw) / 2;
-  else { const target = clamp(W / 2 - (Room.me ? Room.me.x : LW / 2) * s, W - rw, 0); Room.cam += (target - Room.cam) * Math.min(1, dt * 6); Room.ox = Room.cam; }
-  Room.oy = top + Math.max(0, (availH - rh) / 2);
+  const rw = TW * s, rh = TH * s;
+  let fx;
+  if (rw <= W) fx = (W - rw) / 2;
+  else { const target = clamp(W / 2 - ((Room.me ? Room.me.x : LW / 2) + PAD) * s, W - rw, 0); Room.cam += (target - Room.cam) * Math.min(1, dt * 6); fx = Room.cam; }
+  Room.ox = fx + PAD * s; Room.oy = top + Math.max(0, (availH - rh) / 2) + PAD * s;
   const g = rg; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingEnabled = false;
-  g.fillStyle = '#1a3c43'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#10292d'; g.fillRect(0, 0, W, H);
   g.save(); g.translate(Math.round(Room.ox), Math.round(Room.oy)); g.scale(s, s);
-  g.drawImage(bg, 0, 0); drawTable(g, t); drawRadio(g, t);
+  g.drawImage(bg, -PAD, -PAD); drawTable(g, t); drawRadio(g, t);
   const all = [...Room.others.values()]; if (Room.me) all.push(Room.me);
-  all.sort((a, b) => a.y - b.y).forEach(a => drawChar(g, a.x, a.y, a.color, a.hair, a.dir, a.path.length ? Math.floor(a.walk * 8) : 0));
+  all.sort((a, b) => a.y - b.y).forEach(a => drawAvatar(g, a));
   g.restore();
   // names and bubbles in screen space
   g.textAlign = 'center'; g.textBaseline = 'bottom';
@@ -1031,6 +955,156 @@ function onPos(m){
   if (!a.path.length) a.dir = m.dir || 0;
 }
 setInterval(() => { const now = Date.now(); Room.others.forEach((a, k) => { if (now - a.seen > 14000) Room.others.delete(k); }); }, 3000);
+
+/* ----- static art: cozy 3/4 pixel room with outlined furniture ----- */
+const PAD = 6;
+bg.width = LW + PAD * 2; bg.height = LH + PAD * 2;
+const P = {
+  out: '#2a1c16', frame: '#1f4b52', frameL: '#2d6872', frameD: '#14363b',
+  wall: '#f3e7c6', wallD: '#e4d3a6', wallL: '#fbf3dc', trim: '#9a6a42', trimD: '#6b4428',
+  floor: '#6e4631', floorL: '#80553b', floorD: '#56362a', floorH: '#8c5f42',
+  wood: '#a8703f', woodT: '#c48a52', woodF: '#8a5a32', woodD: '#6b4428',
+  cur: '#2fae8f', curD: '#22866e', curL: '#5bcaa9', gold: '#e8c35a',
+  glass: '#bfe6f0', glassD: '#93cde0',
+  rug: '#57b3ab', rugL: '#86d3cb', rugD: '#3c8f88',
+  red: '#d9574a', redD: '#a9433a', redL: '#ef8072',
+  mus: '#e0a63a', musD: '#b47f25', musL: '#f2c562',
+  blue: '#6ec3ef', blueD: '#4aa3d4', blueL: '#a8def7',
+  metal: '#8a939e', metalD: '#5f6873', metalL: '#b3bcc6',
+  leaf: '#4fae55', leafD: '#357f3c', leafL: '#7fd06a', white: '#fffaf1'
+};
+/* filled box with a 1px dark outline */
+function obox(g, x, y, w, h, fill){ g.fillStyle = P.out; g.fillRect(x, y, w, h); g.fillStyle = fill; g.fillRect(x + 1, y + 1, w - 2, h - 2); }
+/* 3/4 furniture block: lighter top face over a darker front face */
+function block(g, x, y, w, topH, frontH, top, front, edge){
+  obox(g, x, y, w, topH + frontH, front);
+  g.fillStyle = top; g.fillRect(x + 1, y + 1, w - 2, topH - 1);
+  g.fillStyle = edge || P.out; g.fillRect(x + 1, y + topH, w - 2, 1);
+}
+function paintRoom(){
+  const g = bg.getContext('2d'); g.imageSmoothingEnabled = false;
+  g.clearRect(0, 0, bg.width, bg.height); g.save(); g.translate(PAD, PAD);
+  g.beginPath(); g.rect(0, 0, LW, LH); g.clip();
+  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  // floor planks, staggered
+  R(0, 30, LW, LH - 30, P.floor);
+  for (let r = 0; r * 8 + 30 < LH; r++){
+    const y = 30 + r * 8; R(0, y, LW, 1, P.floorD); R(0, y + 1, LW, 1, P.floorL);
+    for (let x = (r % 2) * 20 - 20; x < LW; x += 40){ R(x, y + 1, 1, 7, P.floorD); R(x + 1, y + 2, 1, 5, P.floorH); }
+    for (let x = (r * 13) % 37; x < LW; x += 37) R(x, y + 4, 4, 1, P.floorD);
+  }
+  // wall
+  R(0, 0, LW, 30, P.wall); R(0, 0, LW, 2, P.wallL);
+  for (let x = 6; x < LW; x += 12) R(x, 4, 1, 22, P.wallD);
+  R(0, 26, LW, 3, P.trim); R(0, 29, LW, 1, P.trimD); R(0, 30, LW, 3, 'rgba(0,0,0,.18)');
+  // windows with curtains
+  const win = x => {
+    obox(g, x, 5, 26, 19, P.trim); R(x + 2, 7, 22, 15, P.glass); R(x + 2, 7, 22, 4, P.white); R(x + 2, 17, 22, 5, P.glassD);
+    R(x + 12, 7, 2, 15, P.trim); R(x + 2, 14, 22, 1, P.trim); R(x + 4, 9, 4, 1, P.white);
+    R(x - 1, 23, 28, 2, P.trimD);
+    [x - 5, x + 23].forEach((cx, i) => { obox(g, cx, 3, 8, 22, P.cur); R(cx + 1, 4, 2, 20, P.curL); R(cx + 5, 4, 2, 20, P.curD); R(cx + (i ? 1 : 2), 14, 5, 2, P.gold); });
+    obox(g, x - 6, 2, 38, 3, P.trimD);
+  };
+  win(54); win(100);
+  // bookshelf
+  block(g, 12, 6, 24, 4, 38, P.woodT, P.woodF);
+  [16, 28, 40].forEach((y, row) => {
+    R(14, y - 4, 20, 10, P.woodD); R(14, y + 6, 20, 2, P.wood);
+    const books = [P.red, P.blue, P.mus, P.cur, '#8a6fd0', P.white, P.redD];
+    let x = 15; for (let i = 0; i < 6; i++){ const w = 2 + (i + row) % 2, h = 8 - ((i * 3 + row) % 3); R(x, y + 6 - h, w, h, books[(i + row * 2) % books.length]); R(x, y + 6 - h, w, 1, 'rgba(255,255,255,.35)'); x += w + 1; }
+  });
+  // grandfather clock
+  obox(g, 142, 4, 15, 40, P.wood); R(143, 5, 13, 2, P.woodT); R(144, 8, 11, 11, P.woodD);
+  obox(g, 145, 9, 9, 9, P.white); R(149, 11, 1, 4, P.out); R(149, 14, 3, 1, P.out);
+  R(145, 22, 9, 16, P.woodD); R(147, 24, 5, 12, '#c9a24a'); R(149, 30, 1, 5, P.gold); obox(g, 147, 34, 5, 4, P.gold);
+  R(141, 42, 17, 3, P.woodD);
+  // standing lamp (blue shade)
+  R(233, 22, 1, 20, P.metalD); obox(g, 228, 41, 11, 4, P.metal);
+  obox(g, 226, 8, 15, 14, P.blue); R(227, 9, 13, 3, P.blueL); R(234, 12, 5, 9, P.blueD); R(226, 21, 15, 1, P.out);
+  // radio cabinet
+  block(g, 178, 22, 38, 5, 22, P.woodT, P.woodF);
+  R(181, 30, 15, 13, P.woodD); R(198, 30, 15, 13, P.woodD); R(182, 31, 13, 11, P.wood); R(199, 31, 13, 11, P.wood);
+  R(193, 36, 2, 2, P.gold); R(200, 36, 2, 2, P.gold);
+  // rug with diamonds
+  obox(g, 76, 60, 88, 58, P.rugD); R(78, 62, 84, 54, P.rug);
+  for (let y = 66; y < 114; y += 10) for (let x = 82 + ((y - 66) / 10 % 2) * 7; x < 158; x += 14){ R(x + 2, y, 2, 1, P.rugL); R(x + 1, y + 1, 4, 1, P.rugL); R(x, y + 2, 6, 1, P.rugL); R(x + 1, y + 3, 4, 1, P.rugL); R(x + 2, y + 4, 2, 1, P.rugL); }
+  R(78, 62, 84, 1, P.rugL);
+  // sofa (left, facing right)
+  obox(g, 10, 80, 10, 44, P.redD); R(11, 81, 3, 42, P.red);
+  block(g, 18, 80, 18, 6, 4, P.redL, P.redD); block(g, 18, 114, 18, 6, 4, P.redL, P.redD);
+  obox(g, 18, 89, 18, 26, P.red); R(19, 90, 16, 2, P.redL); R(19, 101, 16, 1, P.redD); R(19, 113, 16, 1, P.redD);
+  obox(g, 21, 92, 9, 8, P.white); R(22, 93, 7, 2, '#ffffff'); R(22, 98, 7, 1, P.wallD);
+  // armchair (right, facing left)
+  obox(g, 208, 92, 10, 30, P.musD); R(214, 93, 3, 28, P.mus);
+  block(g, 190, 92, 20, 5, 4, P.musL, P.musD); block(g, 190, 113, 20, 5, 4, P.musL, P.musD);
+  obox(g, 190, 100, 20, 14, P.mus); R(191, 101, 18, 2, P.musL);
+  // plant (bottom-left)
+  obox(g, 2, 134, 10, 9, '#c75d4b'); R(3, 135, 8, 2, '#e07a62');
+  [[1, 124, 4, 10], [6, 120, 3, 14], [9, 125, 3, 9], [4, 128, 6, 7]].forEach(([x, y, w, h], i) => { obox(g, x, y, w, h, i % 2 ? P.leaf : P.leafD); R(x + 1, y + 1, 1, h - 3, P.leafL); });
+  // doormat
+  obox(g, 104, 138, 32, 6, '#b8864e'); R(106, 140, 28, 1, '#d4a46a');
+  g.restore();
+  // room shell: thick teal walls with wooden posts at the open front
+  const W = bg.width, H = bg.height, F = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  F(0, 0, W, PAD, P.frame); F(0, 0, PAD, H, P.frame); F(W - PAD, 0, PAD, H, P.frame);
+  F(PAD - 1, PAD - 1, W - PAD * 2 + 2, 1, P.frameD); F(PAD - 1, PAD, 1, H - PAD, P.frameD); F(W - PAD, PAD, 1, H - PAD, P.frameD);
+  F(1, 1, W - 2, 1, P.frameL); F(1, 1, 1, H - 2, P.frameL); F(W - 2, 1, 1, H - 2, P.frameL);
+  F(0, H - 10, PAD + 1, 10, P.trim); F(W - PAD - 1, H - 10, PAD + 1, 10, P.trim); F(0, H - 10, PAD + 1, 1, P.trimD); F(W - PAD - 1, H - 10, PAD + 1, 1, P.trimD);
+}
+function drawTable(g, t){
+  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  // stools
+  [[84, 68], [148, 68], [84, 90], [148, 90]].forEach(([x, y]) => { block(g, x - 2, y, 12, 4, 6, P.woodT, P.woodF); R(x, y + 10, 2, 2, P.woodD); R(x + 6, y + 10, 2, 2, P.woodD); });
+  // table top and front
+  block(g, 93, 68, 54, 24, 6, P.woodT, P.woodF);
+  obox(g, 95, 97, 4, 6, P.woodD); obox(g, 141, 97, 4, 6, P.woodD);
+  obox(g, 97, 70, 46, 20, '#ecd3a8');
+  if (Room.tableImg){
+    const img = Room.tableImg, k = Math.min(42 / img.width, 16 / img.height), w = Math.round(img.width * k), h = Math.round(img.height * k);
+    g.imageSmoothingEnabled = true; g.drawImage(img, 120 - w / 2, 80 - h / 2, w, h); g.imageSmoothingEnabled = false;
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(120 - w / 2, 80 - h / 2, w, 1);
+  } else {
+    for (let y = 0; y < 18; y += 3) for (let x = (y / 3) % 2 * 3; x < 44; x += 6) R(98 + x, 71 + y, 3, 3, '#e0c08d');
+  }
+  if (Math.floor(t / 400) % 2 && [...Room.others.values(), Room.me].some(a => a && Math.abs(a.x - 120) < 40 && Math.abs(a.y - 84) < 26)){ R(146, 66, 2, 2, '#fff'); R(145, 67, 4, 0.5, '#fff'); }
+}
+function drawRadio(g, t){
+  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  const on = Radio.isPlaying();
+  obox(g, 183, 9, 28, 15, P.red); R(184, 10, 26, 2, P.redL); R(184, 22, 26, 1, P.redD);
+  obox(g, 186, 13, 11, 9, '#3a2a2a'); for (let y = 15; y < 21; y += 2) R(187, y, 9, 1, '#5a4040');
+  obox(g, 199, 13, 9, 4, on ? '#ffd36e' : '#7a5a50'); if (on) R(200 + Math.floor(t / 300) % 7, 14, 1, 2, P.redD);
+  obox(g, 199, 18, 4, 4, P.white); obox(g, 204, 18, 4, 4, P.white);
+  R(207, 2, 1, 8, P.metalD); R(206, 1, 3, 1, P.metalD);
+  if (on){
+    const k = (t / 1000) % 2;
+    [[0, '#7c6cf0'], [1, P.red]].forEach(([o, c]) => {
+      const p = (k + o) % 2, nx = 190 + o * 10 + Math.sin(p * 3) * 3, ny = 6 - p * 8;
+      g.globalAlpha = 1 - p / 2; R(nx, ny, 2, 2, c); R(nx + 2, ny - 4, 1, 5, c); R(nx + 2, ny - 4, 2, 1, c); g.globalAlpha = 1;
+    });
+  }
+}
+/* outlined character sprites, cached per look */
+const spriteCache = new Map();
+function charSprite(color, hair, dir, frame){
+  const key = color + hair + dir + frame;
+  let c = spriteCache.get(key); if (c) return c;
+  c = document.createElement('canvas'); c.width = 12; c.height = 18;
+  const g = c.getContext('2d'); drawChar(g, 6, 17, color, hair, dir, frame, true);
+  const d = g.getImageData(0, 0, 12, 18), px = d.data, out = new Uint8ClampedArray(px);
+  for (let y = 0; y < 18; y++) for (let x = 0; x < 12; x++){
+    const i = (y * 12 + x) * 4; if (px[i + 3]) continue;
+    const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const nx = x + dx, ny = y + dy; return nx >= 0 && ny >= 0 && nx < 12 && ny < 18 && px[(ny * 12 + nx) * 4 + 3] > 200; });
+    if (near){ out[i] = 42; out[i + 1] = 28; out[i + 2] = 22; out[i + 3] = 255; }
+  }
+  d.data.set(out); g.putImageData(d, 0, 0);
+  spriteCache.set(key, c); return c;
+}
+function drawAvatar(g, a){
+  const x = Math.round(a.x), y = Math.round(a.y);
+  g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x - 4, y - 1, 8, 2); g.fillRect(x - 3, y + 1, 6, 1);
+  g.drawImage(charSprite(a.color, a.hair, a.dir, a.path.length ? Math.floor(a.walk * 8) % 4 : 0), x - 6, y - 17);
+}
 
 /* ---------- game ---------- */
 function startGame(room, canvas, rows){
