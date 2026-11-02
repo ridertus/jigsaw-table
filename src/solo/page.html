@@ -1,0 +1,741 @@
+<title>โต๊ะจิ๊กซอว์</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: one-screen cozy room — wooden puzzle board centre, round tool buttons right, glass shelf tray at the bottom (Heartopia-style). Single deliberate dusk-room look. */
+:root{
+  --wall:#1d4c55; --wall-2:#163d45; --floor:#2c5b62;
+  --wood:#e2b06e; --wood-hi:#f4d39c; --wood-lo:#b47a3e;
+  --felt-a:#ecd3a8; --felt-b:#e2c391;
+  --paper:#fffaf1; --ink:#3b2b20; --ink-soft:#7d6553;
+  --mint:#38b2a6; --mint-ink:#1f8c82; --mint-soft:#dcf3ef;
+  --berry:#e8728c;
+  --display:'Nunito','Mitr',ui-rounded,system-ui,sans-serif;
+  --body:'Nunito','Mitr',ui-rounded,system-ui,sans-serif;
+  --slot:76px; --tool:52px;
+  color-scheme:dark;
+}
+@media (max-height:520px), (max-width:560px){ :root{ --slot:62px; --tool:44px; } }
+*{box-sizing:border-box}
+html{height:100%;box-sizing:border-box;background:var(--wall)}
+body{
+  height:100%;margin:0;overflow:hidden;overscroll-behavior:none;
+  font-family:var(--body);font-size:16px;color:var(--paper);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, transparent 2px 46px),
+    linear-gradient(180deg, var(--wall) 0%, var(--wall-2) 72%, var(--floor) 100%);
+  background-color:var(--wall);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+button:focus-visible,.btn:focus-within{outline:3px solid var(--wood-hi);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;
+  background:var(--paper);color:var(--ink);box-shadow:0 3px 0 #d9c6a8;transition:transform .08s}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #d9c6a8}
+.btn.primary{background:var(--mint);color:#fff;box-shadow:0 4px 0 var(--mint-ink)}
+.btn.primary:active{box-shadow:0 1px 0 var(--mint-ink)}
+.btn.big{min-height:54px;font-size:18px;font-family:var(--display);font-weight:600;width:100%}
+.btn.soft{background:#f3e6d2}
+
+/* ---------- setup ---------- */
+#setup{position:fixed;inset:0;z-index:40;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) max(16px, env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) max(16px, env(safe-area-inset-left,0px));
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, transparent 2px 46px),
+    linear-gradient(180deg, var(--wall), var(--wall-2));
+  display:grid;place-items:center}
+.card{width:min(940px,100%);border-radius:22px;padding:14px;
+  background:linear-gradient(160deg,var(--wood-hi),var(--wood) 45%,var(--wood-lo));
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 20px 40px rgba(0,0,0,.4)}
+.card-in{background:var(--paper);color:var(--ink);border-radius:14px;padding:22px clamp(16px,3vw,28px);display:grid;gap:18px}
+.head h1{margin:0;font-family:var(--display);font-weight:600;font-size:clamp(28px,4.4vw,40px);line-height:1.1;color:var(--ink)}
+.head p{margin:6px 0 0;color:var(--ink-soft);font-size:15px;line-height:1.6;text-wrap:pretty}
+.setup-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:720px){.setup-grid{grid-template-columns:1fr}}
+.prev-wrap{border-radius:10px;padding:8px;background:linear-gradient(160deg,var(--wood-hi),var(--wood));box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);display:grid;place-items:center;min-width:0}
+#prev{display:block;max-width:100%;border-radius:4px;background:var(--felt-a)}
+.opts{display:grid;gap:14px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.lbl{font-weight:600;font-size:14px;color:var(--ink-soft);letter-spacing:.02em}
+.chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.chip{border-radius:14px;padding:8px 6px;background:#f3e6d2;color:var(--ink);display:grid;justify-items:center;gap:0;box-shadow:0 2px 0 #dccab0}
+.chip b{font-family:var(--display);font-weight:600;font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.chip small{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--mint);color:#fff;box-shadow:0 3px 0 var(--mint-ink)}
+.chip[aria-pressed="true"] small{color:var(--mint-soft)}
+.custom{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px}
+.custom input{width:96px;height:44px;border-radius:12px;border:2px solid #e3d3b8;background:#fff;color:var(--ink);font:inherit;font-size:18px;text-align:center;font-variant-numeric:tabular-nums}
+.custom input:focus{outline:none;border-color:var(--mint)}
+.hint{font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.check small{display:block;font-size:12px;color:var(--ink-soft)}
+.check{display:flex;gap:10px;align-items:center;font-size:15px;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--mint)}
+.note{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.6}
+#resume{display:flex;align-items:center;gap:14px;padding:10px;border-radius:14px;background:var(--mint-soft);flex-wrap:wrap}
+#resume img{width:72px;height:54px;object-fit:cover;border-radius:8px;border:3px solid #fff}
+#resume .txt{flex:1;min-width:140px;display:grid}
+#resume .txt b{font-family:var(--display);font-weight:600;font-size:18px}
+#resume .txt span{font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+/* ---------- game ---------- */
+#game{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;touch-action:none}
+#game>*{min-width:0}
+.bar{display:flex;align-items:center;gap:10px;padding-block:10px 6px}
+.back{width:58px;height:44px;border-radius:14px;background:rgba(255,255,255,.88);color:#5d6f73;display:grid;place-items:center;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.pill{height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;
+  background:linear-gradient(180deg,var(--wood-hi),var(--wood));color:var(--ink);box-shadow:0 2px 0 var(--wood-lo);font-variant-numeric:tabular-nums}
+.pill .n{font-family:var(--display);font-weight:600;font-size:19px}
+.spacer{flex:1}
+.stage{display:flex;gap:12px;min-height:0}
+#boardArea{flex:1;min-width:0;min-height:0;display:grid;place-items:center;position:relative}
+#frame{padding:12px;border-radius:12px;
+  background:
+    repeating-linear-gradient(100deg, rgba(120,70,20,.07) 0 3px, transparent 3px 11px),
+    linear-gradient(160deg,var(--wood-hi),var(--wood) 50%,var(--wood-lo));
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.4),inset 0 -3px 0 rgba(0,0,0,.12),0 16px 32px rgba(0,0,0,.38)}
+#board{position:relative;border-radius:3px;background-color:var(--felt-a);
+  background-image:conic-gradient(var(--felt-b) 0 25%, transparent 0 50%, var(--felt-b) 0 75%, transparent 0);
+  background-size:30px 30px;box-shadow:inset 0 2px 6px rgba(80,50,20,.28)}
+#ghost,#full{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:3px}
+#ghost{opacity:0;filter:saturate(.5);transition:opacity .25s}
+#board.ghost-on #ghost{opacity:.24}
+#placed{position:absolute;inset:0;pointer-events:none}
+#full{opacity:0;transition:opacity 1.2s ease .6s}
+#full.show{opacity:1}
+.piece{display:block;pointer-events:none}
+.slot canvas{filter:drop-shadow(0 3px 2px rgba(0,0,0,.35))}
+.piece.placed{position:absolute;transition:transform .16s cubic-bezier(.3,1.4,.6,1)}
+.piece.placed.flash{animation:flash .5s ease-out}
+@keyframes flash{0%{filter:brightness(1.35) drop-shadow(0 0 6px #fff)}100%{filter:none}}
+.piece.loose{position:absolute;transition:transform .15s ease-out;filter:drop-shadow(0 3px 3px rgba(0,0,0,.32))}
+#loose{position:absolute;inset:0;pointer-events:none}
+.slot canvas{transition:transform .15s ease-out}
+.piece.dragging{position:absolute;left:0;top:0;filter:drop-shadow(0 14px 12px rgba(0,0,0,.45));will-change:transform}
+#dragLayer{position:fixed;inset:0;pointer-events:none;z-index:60}
+
+#tools{display:flex;flex-direction:column;justify-content:center;gap:12px;padding-right:env(safe-area-inset-right,0px)}
+.tool{width:var(--tool);height:var(--tool);border-radius:50%;background:#fff;color:var(--mint);display:grid;place-items:center;
+  box-shadow:0 4px 0 #bfe3dd,0 8px 14px rgba(0,0,0,.25);transition:transform .08s,background .15s}
+.tool:active{transform:translateY(2px)}
+.tool svg{width:55%;height:55%}
+.tool[aria-pressed="true"]{background:var(--mint);color:#fff;box-shadow:0 4px 0 var(--mint-ink),0 8px 14px rgba(0,0,0,.25)}
+
+#ref{position:absolute;top:6px;left:6px;width:min(42%,280px);padding:6px;border-radius:10px;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.35);z-index:5}
+#ref img{display:block;width:100%;border-radius:6px}
+#ref span{display:block;font-size:12px;color:var(--ink-soft);text-align:center;padding-top:4px}
+
+.shelf{display:flex;align-items:center;gap:6px;padding-block:6px 10px;position:relative}
+.shelf::before{content:"";position:absolute;inset:4px 0 6px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.10));box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 8px 18px rgba(0,0,0,.25)}
+.arrow{position:relative;width:34px;height:calc(var(--slot) + 8px);border-radius:12px;display:grid;place-items:center;color:#fff;flex:none}
+.arrow svg{width:20px;height:20px}
+#tray{position:relative;flex:1;min-width:0;display:flex;gap:4px;align-items:center;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;
+  height:calc(var(--slot) + 16px);padding:0 4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.35) transparent}
+.slot{flex:none;width:var(--slot);height:var(--slot);display:grid;place-items:center;touch-action:pan-x;cursor:grab;border-radius:10px}
+.slot:hover{background:rgba(255,255,255,.08)}
+.slot.gone{display:none}
+.slot.back{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.08)}100%{transform:none}}
+.tray-empty{position:relative;margin:auto;color:rgba(255,255,255,.75);font-size:14px}
+.tray-count{position:absolute;right:46px;top:-12px;font-size:12px;padding:2px 10px;border-radius:999px;background:rgba(0,0,0,.3);color:#fff;font-variant-numeric:tabular-nums}
+
+#done{position:absolute;inset:0;display:grid;place-items:center;z-index:4;padding:12px}
+.done-card{background:var(--paper);color:var(--ink);border-radius:18px;padding:20px 22px;text-align:center;display:grid;gap:10px;
+  box-shadow:0 18px 40px rgba(0,0,0,.35);max-width:320px;animation:rise .5s cubic-bezier(.3,1.4,.6,1) both .4s}
+.done-card .big{font-family:var(--display);font-weight:600;font-size:30px;color:var(--berry);line-height:1.1}
+.done-card p{margin:0;color:var(--ink-soft);font-size:14px;font-variant-numeric:tabular-nums}
+@keyframes rise{from{transform:translateY(16px) scale(.9);opacity:0}}
+.conf{position:absolute;top:-10px;width:9px;height:14px;border-radius:2px;z-index:3;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(var(--d)) rotate(var(--r));opacity:.2}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+body.is-dragging .slot{cursor:grabbing}
+</style>
+
+<section id="setup">
+  <div class="card"><div class="card-in">
+    <div class="head">
+      <h1>โต๊ะจิ๊กซอว์</h1>
+      <p>เลือกรูปที่อยากต่อ เลือกจำนวนชิ้น แล้วลากชิ้นส่วนจากถาดด้านล่างขึ้นไปวางบนกระดาน วางตรงตำแหน่งชิ้นจะล็อกเข้าที่ วางที่อื่นชิ้นจะพักไว้บนกระดานให้ย้ายทีหลังได้</p>
+    </div>
+    <div id="resume" hidden>
+      <img id="resumeThumb" alt="รูปที่ต่อค้างไว้">
+      <div class="txt"><b>มีจิ๊กซอว์ที่ต่อค้างไว้</b><span id="resumeInfo"></span></div>
+      <button class="btn primary" id="resumeBtn">เล่นต่อ</button>
+    </div>
+    <div class="setup-grid">
+      <div class="prev-wrap" id="prevWrap"><canvas id="prev" aria-label="ตัวอย่างรูปพร้อมรอยตัดชิ้น"></canvas></div>
+      <div class="opts">
+        <div class="row">
+          <label class="btn primary" for="file">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>
+            เลือกรูปจากเครื่อง
+            <input type="file" id="file" accept="image/*" class="sr">
+          </label>
+          <button class="btn soft" id="sampleBtn">รูปตัวอย่าง</button>
+        </div>
+        <div class="lbl">จำนวนชิ้น</div>
+        <div class="chips" id="counts"></div>
+        <label class="custom" for="customN">หรือกรอกเอง <input type="number" id="customN" inputmode="numeric" min="4" max="500" placeholder="เช่น 60"> ชิ้น</label>
+        <div class="hint" id="gridHint"></div>
+        <label class="check"><input type="checkbox" id="ghostOpt"> แสดงภาพจาง ๆ บนกระดานช่วยดู</label>
+        <label class="check"><input type="checkbox" id="rotOpt"><span>ระดับยาก: ชิ้นส่วนหมุนมา<small>แตะชิ้นเพื่อหมุนทีละ 90° ต้องหมุนให้ตรงก่อนถึงจะล็อก</small></span></label>
+        <button class="btn primary big" id="startBtn">เริ่มต่อ</button>
+        <p class="note">รูปอยู่ในเครื่องนี้เท่านั้น ไม่ถูกอัปโหลดไปที่ไหน และระบบจำความคืบหน้าไว้ให้ ปิดแล้วกลับมาต่อได้</p>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section id="game" hidden>
+  <header class="bar">
+    <button class="back" id="backBtn" aria-label="กลับไปหน้าเลือกรูป">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="pill"><span class="n" id="prog">0 / 0</span> ชิ้น</div>
+    <div class="spacer"></div>
+    <div class="pill"><span class="n" id="time">00:00</span></div>
+  </header>
+  <main class="stage">
+    <div id="boardArea">
+      <div id="frame"><div id="board">
+        <img id="ghost" alt="">
+        <div id="placed"></div>
+        <div id="loose"></div>
+        <img id="full" alt="">
+        <div id="done" hidden>
+          <div class="done-card">
+            <div class="big">ต่อเสร็จแล้ว!</div>
+            <p id="doneInfo"></p>
+            <div class="row" style="justify-content:center">
+              <button class="btn primary" id="againBtn">ต่อรูปใหม่</button>
+              <button class="btn soft" id="viewBtn">ดูภาพเต็ม</button>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <div id="ref" hidden><img id="refImg" alt="ภาพต้นฉบับ"><span>แตะเพื่อปิด</span></div>
+    </div>
+    <nav id="tools" aria-label="เครื่องมือ">
+      <button class="tool" id="tRef" aria-pressed="false" aria-label="ดูภาพต้นฉบับ" title="ดูภาพต้นฉบับ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>
+      </button>
+      <button class="tool" id="tGhost" aria-pressed="false" aria-label="ภาพจางบนกระดาน" title="ภาพจางบนกระดาน">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button class="tool" id="tEdge" aria-pressed="false" aria-label="แสดงเฉพาะชิ้นขอบ" title="แสดงเฉพาะชิ้นขอบ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1" stroke-dasharray="2 2.5"/></svg>
+      </button>
+      <button class="tool" id="tGather" aria-label="เก็บชิ้นบนกระดานกลับถาด" title="เก็บชิ้นบนกระดานกลับถาด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M7 9l5 5 5-5"/><path d="M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2"/></svg>
+      </button>
+      <button class="tool" id="tShuffle" aria-label="สลับลำดับชิ้นในถาด" title="สลับลำดับชิ้นในถาด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+      </button>
+      <button class="tool" id="tSound" aria-pressed="true" aria-label="เสียง" title="เสียง">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path id="wave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+      </button>
+    </nav>
+  </main>
+  <footer class="shelf">
+    <button class="arrow" id="tl" aria-label="เลื่อนถาดไปซ้าย"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div id="tray"></div>
+    <button class="arrow" id="tr" aria-label="เลื่อนถาดไปขวา"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <span class="tray-count" id="trayCount"></span>
+  </footer>
+</section>
+<div id="dragLayer"></div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const KEY = 'jigsaw-table-v1';
+const COUNTS = [12, 24, 48, 80, 120, 180];
+const FRAME = 12, MAXN = 500;
+
+const board = $('#board'), placedEl = $('#placed'), looseEl = $('#loose'), tray = $('#tray'), dragLayer = $('#dragLayer');
+
+/* ---------- utilities ---------- */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function gridFor(n, ar){ const cols = Math.max(2, Math.round(Math.sqrt(n * ar))); const rows = Math.max(2, Math.round(n / cols)); return [cols, rows]; }
+
+/* ---------- jigsaw geometry: straight sides with a small round knob ---------- */
+const BASE = [[0,0],[.14,0],[.28,0],[.42,0],[.43,.04],[.38,.06],[.38,.13],[.38,.20],[.44,.25],[.50,.25],[.56,.25],[.62,.20],[.62,.13],[.62,.06],[.57,.04],[.58,0],[.72,0],[.86,0],[1,0]];
+function makeEdges(cols, rows){
+  const e = () => ({ s: Math.random() < .5 ? 1 : -1 });
+  const h = [], v = [];
+  for (let r = 0; r <= rows; r++){ h[r] = []; for (let c = 0; c < cols; c++) h[r][c] = (r > 0 && r < rows) ? e() : null; }
+  for (let r = 0; r < rows; r++){ v[r] = []; for (let c = 0; c <= cols; c++) v[r][c] = (c > 0 && c < cols) ? e() : null; }
+  return { h, v };
+}
+function edgePts(E, type, r, c, cw, ch){
+  const k = Math.min(cw, ch);
+  if (type === 'h'){
+    const e = E.h[r][c];
+    if (!e) return [[c * cw, r * ch], [(c + 1) * cw, r * ch]];
+    const L = cw, o = (L - k) / 2;
+    return BASE.map(([x, y]) => [c * cw + (x === 0 || x === 1 ? x * L : o + x * k), r * ch + e.s * y * k]);
+  }
+  const e = E.v[r][c];
+  if (!e) return [[c * cw, r * ch], [c * cw, (r + 1) * ch]];
+  const L = ch, o = (L - k) / 2;
+  return BASE.map(([x, y]) => [c * cw + e.s * y * k, r * ch + (x === 0 || x === 1 ? x * L : o + x * k)]);
+}
+function trace(g, pts, rev){
+  const a = rev ? pts.slice().reverse() : pts;
+  if (a.length === 2){ g.lineTo(a[1][0], a[1][1]); return; }
+  for (let i = 1; i < a.length; i += 3) g.bezierCurveTo(a[i][0], a[i][1], a[i+1][0], a[i+1][1], a[i+2][0], a[i+2][1]);
+}
+function piecePath(g, E, r, c, cw, ch){
+  g.beginPath(); g.moveTo(c * cw, r * ch);
+  trace(g, edgePts(E, 'h', r, c, cw, ch), false);
+  trace(g, edgePts(E, 'v', r, c + 1, cw, ch), false);
+  trace(g, edgePts(E, 'h', r + 1, c, cw, ch), true);
+  trace(g, edgePts(E, 'v', r, c, cw, ch), true);
+  g.closePath();
+}
+
+/* ---------- sample picture (drawn in code) ---------- */
+function paintSample(){
+  const W = 1200, H = 900, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'), R = rng(11);
+  const circ = (x, y, r) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); };
+  let gr = g.createLinearGradient(0, 0, 0, 530);
+  gr.addColorStop(0, '#565aa8'); gr.addColorStop(.42, '#ad8ad3'); gr.addColorStop(.78, '#ffad99'); gr.addColorStop(1, '#ffdca2');
+  g.fillStyle = gr; g.fillRect(0, 0, W, 530);
+  for (let i = 0; i < 60; i++){ g.fillStyle = `rgba(255,255,255,${.25 + R() * .55})`; circ(R() * W, R() * 190, .6 + R() * 1.8); }
+  const sg = g.createRadialGradient(840, 455, 10, 840, 455, 300);
+  sg.addColorStop(0, 'rgba(255,244,200,.95)'); sg.addColorStop(.35, 'rgba(255,214,165,.45)'); sg.addColorStop(1, 'rgba(255,200,170,0)');
+  g.fillStyle = sg; g.fillRect(0, 0, W, 530);
+  g.fillStyle = '#fff2c2'; circ(840, 462, 76);
+  const cloud = (x, y, s, col) => { g.fillStyle = col; [[0,0,46],[50,-22,56],[105,-4,48],[150,8,34],[-40,10,32]].forEach(([dx,dy,r]) => circ(x + dx*s, y + dy*s, r*s)); g.fillRect(x - 40*s, y + 4*s, 190*s, 38*s); };
+  cloud(150, 150, 1.1, 'rgba(255,226,242,.9)'); cloud(560, 95, .75, 'rgba(255,235,248,.85)');
+  cloud(990, 205, 1, 'rgba(255,214,226,.85)'); cloud(420, 300, .55, 'rgba(255,196,196,.7)');
+  const ridge = (base, amp, step, col) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, 540); for (let x = 0; x <= W + step; x += step) g.lineTo(x, base - R() * amp); g.lineTo(W, 540); g.closePath(); g.fill(); };
+  ridge(430, 150, 70, '#9a83c6'); ridge(475, 95, 55, '#7d69ad'); ridge(505, 45, 40, '#61589a');
+  g.fillStyle = '#4c8676'; g.beginPath(); g.moveTo(560, 540); g.quadraticCurveTo(820, 360, 1200, 395); g.lineTo(1200, 540); g.closePath(); g.fill();
+  const pine = (x, y, s, col) => { g.fillStyle = col; for (let i = 0; i < 3; i++){ const top = y - (70 - i * 18) * s, base = y - i * 16 * s; g.beginPath(); g.moveTo(x, top); g.lineTo(x - (26 - i * 4) * s, base); g.lineTo(x + (26 - i * 4) * s, base); g.closePath(); g.fill(); } g.fillRect(x - 3*s, y - 2*s, 6*s, 12*s); };
+  [[640,520,.8],[700,500,1],[760,480,.9],[1150,430,1.1],[1090,445,.9],[880,445,.8]].forEach(([x,y,s]) => pine(x, y, s, '#2f6458'));
+  g.fillStyle = '#f2d4ab'; g.fillRect(950, 380, 120, 78);
+  g.fillStyle = '#c75d4b'; g.beginPath(); g.moveTo(935, 384); g.lineTo(1010, 330); g.lineTo(1085, 384); g.closePath(); g.fill();
+  g.fillStyle = '#7a4a33'; g.fillRect(1030, 300, 14, 40); g.fillRect(1000, 412, 22, 46);
+  const wg = g.createRadialGradient(972, 410, 2, 972, 410, 40); wg.addColorStop(0, 'rgba(255,214,110,.8)'); wg.addColorStop(1, 'rgba(255,214,110,0)');
+  g.fillStyle = wg; circ(972, 410, 40); g.fillStyle = '#ffd36e'; g.fillRect(960, 398, 24, 22); g.fillRect(1040, 398, 20, 22);
+  gr = g.createLinearGradient(0, 530, 0, H);
+  gr.addColorStop(0, '#e6a9a3'); gr.addColorStop(.22, '#7d86c6'); gr.addColorStop(.6, '#43609f'); gr.addColorStop(1, '#2a417f');
+  g.fillStyle = gr; g.fillRect(0, 530, W, H - 530);
+  g.save(); g.globalAlpha = .28; g.translate(0, 1080); g.scale(1, -1);
+  g.fillStyle = '#2d5c55'; g.beginPath(); g.moveTo(560, 540); g.quadraticCurveTo(820, 360, 1200, 395); g.lineTo(1200, 540); g.closePath(); g.fill(); g.restore();
+  for (let i = 0; i < 20; i++){ const y = 540 + i * 17, w = 210 - i * 7 + R() * 50; g.fillStyle = `rgba(255,232,175,${Math.max(.08, .75 - i * .035)})`; g.fillRect(840 - w / 2 + (R() - .5) * 40, y, w, 5); }
+  for (let i = 0; i < 70; i++){ g.fillStyle = `rgba(255,255,255,${.12 + R() * .25})`; g.fillRect(R() * W, 560 + R() * 330, 14 + R() * 40, 2); }
+  gr = g.createLinearGradient(0, 700, 0, H); gr.addColorStop(0, '#6cb684'); gr.addColorStop(1, '#3b8462');
+  g.fillStyle = gr; g.beginPath(); g.moveTo(0, 690); g.quadraticCurveTo(260, 700, 470, 800); g.quadraticCurveTo(560, 860, 600, H); g.lineTo(0, H); g.closePath(); g.fill();
+  const fl = ['#ffd1e0', '#ffe48a', '#ffffff', '#f79ab4', '#c7b2ff'];
+  for (let i = 0; i < 140; i++){ const x = R() * 520, y = 720 + R() * 180; if (y < 690 + x * .35) continue; g.fillStyle = fl[i % fl.length]; circ(x, y, 3 + R() * 4); }
+  g.fillStyle = '#6e4428'; for (let x = 330; x <= 830; x += 70){ g.fillRect(x, 655, 12, 95); g.globalAlpha = .3; g.fillRect(x, 750, 12, 60); g.globalAlpha = 1; }
+  g.fillStyle = '#a86a3e'; g.fillRect(300, 640, 560, 30);
+  g.fillStyle = '#c98b55'; g.fillRect(300, 640, 560, 7);
+  g.strokeStyle = 'rgba(80,45,20,.45)'; g.lineWidth = 2; for (let x = 340; x < 860; x += 34){ g.beginPath(); g.moveTo(x, 641); g.lineTo(x, 669); g.stroke(); }
+  g.fillStyle = '#5c3820'; g.fillRect(844, 590, 10, 52);
+  const lg = g.createRadialGradient(849, 590, 2, 849, 590, 46); lg.addColorStop(0, 'rgba(255,220,130,.95)'); lg.addColorStop(1, 'rgba(255,220,130,0)');
+  g.fillStyle = lg; circ(849, 590, 46); g.fillStyle = '#ffe9a8'; circ(849, 588, 8);
+  g.strokeStyle = '#2f6a55'; g.lineWidth = 4; g.lineCap = 'round';
+  for (let i = 0; i < 26; i++){ const x = 1020 + R() * 180, h = 60 + R() * 90; g.beginPath(); g.moveTo(x, H); g.quadraticCurveTo(x + 8, H - h / 2, x + (R() - .5) * 30, H - h); g.stroke(); }
+  g.fillStyle = '#7b4b2c'; for (let i = 0; i < 6; i++){ const x = 1040 + R() * 150; g.beginPath(); g.ellipse(x, H - 120 - R() * 40, 5, 14, 0, 0, Math.PI * 2); g.fill(); }
+  g.strokeStyle = 'rgba(60,40,90,.7)'; g.lineWidth = 3;
+  [[300,250],[340,232],[372,262],[640,210]].forEach(([x,y]) => { g.beginPath(); g.moveTo(x - 12, y - 5); g.quadraticCurveTo(x - 5, y - 9, x, y); g.quadraticCurveTo(x + 5, y - 9, x + 12, y - 5); g.stroke(); });
+  return cv;
+}
+
+function toSrc(img){
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  let sx = 0, sy = 0, sw = w, sh = h; const ar = w / h;
+  if (ar > 2){ sw = h * 2; sx = (w - sw) / 2; } else if (ar < .5){ sh = w * 2; sy = (h - sh) / 2; }
+  const m = Math.min(1, 1800 / Math.max(sw, sh));
+  const c = document.createElement('canvas'); c.width = Math.round(sw * m); c.height = Math.round(sh * m);
+  c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return c;
+}
+
+/* ---------- sound ---------- */
+let ac = null, soundOn = true;
+function audioInit(){ if (!ac){ try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} } if (ac && ac.state === 'suspended') ac.resume(); }
+function tone(f, t0, dur, type, vol, f2){
+  if (!ac || !soundOn) return;
+  const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + t0;
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .02);
+}
+const sfxSnap = () => { tone(620, 0, .09, 'triangle', .22, 300); tone(1240, 0, .05, 'sine', .06); };
+const sfxPick = () => tone(420, 0, .05, 'sine', .07, 520);
+const sfxSet = () => tone(300, 0, .07, 'triangle', .1, 240);
+const sfxTurn = () => tone(760, 0, .05, 'sine', .07, 900);
+const sfxDone = () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * .11, .4, 'triangle', .16));
+
+/* ---------- state ---------- */
+const S = { game: false, running: false, pieces: [], W: 0, H: 0, elapsed: 0, filterEdges: false, ghost: false, rotate: false };
+
+/* ---------- setup screen ---------- */
+const pick = { src: null, count: 48, cols: 0, rows: 0, E: null };
+const prev = $('#prev');
+
+function refreshPick(){
+  const ar = pick.src.width / pick.src.height;
+  [pick.cols, pick.rows] = gridFor(pick.count, ar);
+  pick.E = makeEdges(pick.cols, pick.rows);
+  renderChips(); drawPreview();
+  const n = pick.cols * pick.rows;
+  $('#gridHint').textContent = `รูปนี้จะได้ ${pick.cols} × ${pick.rows} = ${n} ชิ้น` + (n !== pick.count ? ` (ปรับจาก ${pick.count} ให้ชิ้นออกมาเป็นสี่เหลี่ยมพอดีรูป)` : '');
+  $('#startBtn').textContent = `เริ่มต่อ · ${n} ชิ้น`;
+}
+function renderChips(){
+  const ar = pick.src.width / pick.src.height, box = $('#counts'); box.innerHTML = '';
+  COUNTS.forEach(n => {
+    const [c, r] = gridFor(n, ar), b = document.createElement('button');
+    b.className = 'chip'; b.setAttribute('aria-pressed', n === pick.count);
+    b.innerHTML = `<b>${c * r}</b><small>${c} × ${r}</small>`;
+    b.onclick = () => { pick.count = n; $('#customN').value = ''; refreshPick(); };
+    box.appendChild(b);
+  });
+}
+$('#customN').addEventListener('input', e => {
+  const n = parseInt(e.target.value, 10);
+  if (!n || n < 4) { $('#gridHint').textContent = 'ใส่อย่างน้อย 4 ชิ้น'; return; }
+  pick.count = Math.min(MAXN, n);
+  if (n > MAXN) e.target.value = MAXN;
+  refreshPick();
+});
+function drawPreview(){
+  if (!pick.src) return;
+  const wrap = $('#prevWrap'), maxW = Math.max(200, wrap.clientWidth - 16), maxH = Math.min(420, window.innerHeight * .46);
+  const ar = pick.src.width / pick.src.height;
+  let w = maxW, h = w / ar; if (h > maxH){ h = maxH; w = h * ar; }
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  prev.width = Math.round(w * dpr); prev.height = Math.round(h * dpr); prev.style.width = w + 'px'; prev.style.height = h + 'px';
+  const g = prev.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.drawImage(pick.src, 0, 0, w, h);
+  const cw = w / pick.cols, ch = h / pick.rows, E = pick.E;
+  const strokeAll = () => {
+    for (let r = 1; r < pick.rows; r++) for (let c = 0; c < pick.cols; c++){ const p = edgePts(E, 'h', r, c, cw, ch); g.beginPath(); g.moveTo(p[0][0], p[0][1]); trace(g, p, false); g.stroke(); }
+    for (let r = 0; r < pick.rows; r++) for (let c = 1; c < pick.cols; c++){ const p = edgePts(E, 'v', r, c, cw, ch); g.beginPath(); g.moveTo(p[0][0], p[0][1]); trace(g, p, false); g.stroke(); }
+  };
+  g.lineJoin = 'round'; g.strokeStyle = 'rgba(40,20,10,.35)'; g.lineWidth = 3; strokeAll();
+  g.strokeStyle = 'rgba(255,255,255,.92)'; g.lineWidth = 1.3; strokeAll();
+}
+function loadFile(file){
+  if (!file) return;
+  const url = URL.createObjectURL(file), img = new Image();
+  img.onload = () => { pick.src = toSrc(img); URL.revokeObjectURL(url); refreshPick(); };
+  img.onerror = () => { URL.revokeObjectURL(url); $('#gridHint').textContent = 'เปิดรูปนี้ไม่ได้ ลองเลือกรูปอื่น'; };
+  img.src = url;
+}
+$('#file').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
+$('#sampleBtn').onclick = () => { pick.src = paintSample(); refreshPick(); };
+$('#startBtn').onclick = () => {
+  audioInit();
+  startGame({ src: pick.src, cols: pick.cols, rows: pick.rows, E: pick.E, ghost: $('#ghostOpt').checked, rotate: $('#rotOpt').checked });
+};
+
+function readSave(){
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (!d) return null;
+    if (d.v === 1) return { ...d, v: 2, tray: (d.order || []).map(id => [id, 0]), loose: [], rotate: false };
+    return d.v === 2 ? d : null;
+  } catch(e){ return null; }
+}
+function showResume(){
+  const d = readSave(), box = $('#resume');
+  if (!d){ box.hidden = true; return; }
+  box.hidden = false; $('#resumeThumb').src = d.src;
+  $('#resumeInfo').textContent = `ต่อไปแล้ว ${d.locked.length} / ${d.cols * d.rows} ชิ้น · ใช้เวลา ${fmt(d.elapsed || 0)}` + (d.rotate ? ' · ระดับยาก' : '');
+}
+$('#resumeBtn').onclick = () => {
+  const d = readSave(); if (!d) return; audioInit();
+  const img = new Image();
+  img.onload = () => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img, 0, 0);
+    startGame({ src: c, cols: d.cols, rows: d.rows, E: d.E, dataURL: d.src, locked: d.locked, tray: d.tray, loose: d.loose, elapsed: d.elapsed, ghost: d.ghost, rotate: d.rotate }); };
+  img.src = d.src;
+};
+function showSetup(){ $('#game').hidden = true; $('#setup').hidden = false; showResume(); drawPreview(); }
+
+/* ---------- game ---------- */
+function startGame(o){
+  S.src = o.src; S.cols = o.cols; S.rows = o.rows; S.E = o.E; S.rotate = !!o.rotate;
+  S.dataURL = o.dataURL || o.src.toDataURL('image/jpeg', .86);
+  $('#ghost').src = $('#full').src = $('#refImg').src = S.dataURL;
+  placedEl.innerHTML = ''; looseEl.innerHTML = ''; tray.innerHTML = ''; $('#done').hidden = true; $('#full').classList.remove('show');
+  board.querySelectorAll('.conf').forEach(n => n.remove());
+  S.pieces = [];
+  for (let r = 0; r < S.rows; r++) for (let c = 0; c < S.cols; c++){
+    const id = r * S.cols + c, el = document.createElement('canvas'), slot = document.createElement('div'); el.dataset.id = id;
+    slot.className = 'slot'; slot.dataset.id = id;
+    S.pieces.push({ id, r, c, el, slot, where: 'tray', rot: 0, deg: 0, fx: 0, fy: 0,
+      edge: r === 0 || c === 0 || r === S.rows - 1 || c === S.cols - 1 });
+  }
+  const setRot = (p, rot) => { p.rot = ((rot % 4) + 4) % 4; p.deg = p.rot * 90; };
+  const seen = new Set();
+  (o.locked || []).forEach(id => { const p = S.pieces[id]; if (!p || seen.has(id)) return; seen.add(id); p.where = 'placed'; p.el.className = 'piece placed'; placedEl.appendChild(p.el); });
+  (o.loose || []).forEach(([id, fx, fy, rot]) => { const p = S.pieces[id]; if (!p || seen.has(id)) return; seen.add(id); p.where = 'loose'; p.fx = fx; p.fy = fy; setRot(p, S.rotate ? rot : 0); p.el.className = 'piece loose'; looseEl.appendChild(p.el); });
+  let trayList = (o.tray || []).filter(([id]) => S.pieces[id] && !seen.has(id));
+  trayList.forEach(([id]) => seen.add(id));
+  const rest = shuffle(S.pieces.filter(p => !seen.has(p.id)).map(p => [p.id, S.rotate ? Math.floor(Math.random() * 4) : 0]));
+  trayList = trayList.concat(rest);
+  trayList.forEach(([id, rot]) => { const p = S.pieces[id]; setRot(p, S.rotate ? rot : 0); p.el.className = 'piece'; p.slot.appendChild(p.el); tray.appendChild(p.slot); });
+  S.placedN = S.pieces.filter(p => p.where === 'placed').length;
+  S.elapsed = o.elapsed || 0; S.ghost = !!o.ghost; S.filterEdges = false;
+  S.game = true; S.running = true;
+  $('#setup').hidden = true; $('#game').hidden = false;
+  $('#time').textContent = fmt(S.elapsed);
+  setPressed('#tGhost', S.ghost); setPressed('#tEdge', false); setPressed('#tRef', false); $('#ref').hidden = true;
+  board.classList.toggle('ghost-on', S.ghost);
+  S.W = 0; layout(); applyFilter(); updateProg(); tray.scrollLeft = 0; save();
+  if (S.placedN === S.pieces.length) complete(true);
+}
+
+function layout(){
+  if (!S.game || $('#game').hidden) return;
+  const area = $('#boardArea'), aw = area.clientWidth - 2 * FRAME - 6, ah = area.clientHeight - 2 * FRAME - 6;
+  const ar = S.src.width / S.src.height;
+  let W = aw, H = W / ar; if (H > ah){ H = ah; W = H * ar; }
+  W = Math.max(120, Math.floor(W)); H = Math.max(90, Math.floor(H));
+  if (W === S.W && H === S.H) return;
+  S.W = W; S.H = H; S.cw = W / S.cols; S.ch = H / S.rows; S.pad = Math.ceil(Math.min(S.cw, S.ch) * .28);
+  board.style.width = W + 'px'; board.style.height = H + 'px';
+  const sq = Math.max(18, Math.round(Math.min(S.cw, S.ch) / 2)) * 2;
+  board.style.backgroundSize = sq + 'px ' + sq + 'px';
+  S.slotSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--slot')) || 76;
+  S.pieces.forEach(renderPiece);
+}
+
+function renderPiece(p){
+  const { cw, ch, pad } = S, pw = cw + 2 * pad, ph = ch + 2 * pad, dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cv = p.el; cv.width = Math.ceil(pw * dpr); cv.height = Math.ceil(ph * dpr);
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, pw, ph);
+  const ox = p.c * cw - pad, oy = p.r * ch - pad; g.translate(-ox, -oy);
+  g.save(); piecePath(g, S.E, p.r, p.c, cw, ch); g.clip();
+  const kx = S.src.width / S.W, ky = S.src.height / S.H;
+  const x0 = Math.max(0, ox), y0 = Math.max(0, oy), x1 = Math.min(S.W, ox + pw), y1 = Math.min(S.H, oy + ph);
+  g.drawImage(S.src, x0 * kx, y0 * ky, (x1 - x0) * kx, (y1 - y0) * ky, x0, y0, x1 - x0, y1 - y0);
+  const lw = Math.max(1.2, Math.min(cw, ch) * .022);
+  g.lineWidth = lw * 1.5; g.lineJoin = 'round';
+  g.save(); g.translate(lw * .6, lw * .6); piecePath(g, S.E, p.r, p.c, cw, ch); g.strokeStyle = 'rgba(255,255,255,.3)'; g.stroke(); g.restore();
+  g.save(); g.translate(-lw * .6, -lw * .6); piecePath(g, S.E, p.r, p.c, cw, ch); g.strokeStyle = 'rgba(40,20,10,.2)'; g.stroke(); g.restore();
+  g.restore();
+  p.pw = pw; p.ph = ph; p.tx = ox; p.ty = oy;
+  sizeFor(p);
+}
+function sizeFor(p){
+  const st = p.el.style;
+  if (p.where === 'tray'){
+    const f = (S.slotSize - 4) / Math.max(p.pw, p.ph);
+    st.width = p.pw * f + 'px'; st.height = p.ph * f + 'px'; st.left = st.top = ''; st.transform = `rotate(${p.deg}deg)`;
+  } else {
+    st.width = p.pw + 'px'; st.height = p.ph + 'px';
+    if (p.where === 'placed'){ st.left = p.tx + 'px'; st.top = p.ty + 'px'; }
+    if (p.where === 'loose'){ st.left = (p.fx * S.W - p.pw / 2) + 'px'; st.top = (p.fy * S.H - p.ph / 2) + 'px'; st.transform = `rotate(${p.deg}deg)`; }
+    if (p.where === 'drag'){ st.left = '0px'; st.top = '0px'; }
+  }
+}
+
+/* ---------- hit test for pieces resting on the board ---------- */
+function looseAt(x, y){
+  const br = board.getBoundingClientRect(), bx = x - br.left, by = y - br.top;
+  const kids = looseEl.children;
+  for (let i = kids.length - 1; i >= 0; i--){
+    const p = S.pieces[+kids[i].dataset.id];
+    const dx = bx - p.fx * S.W, dy = by - p.fy * S.H, a = -p.rot * Math.PI / 2;
+    const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+    if (Math.abs(lx) <= S.cw / 2 + S.pad * .6 && Math.abs(ly) <= S.ch / 2 + S.pad * .6) return p;
+  }
+  return null;
+}
+
+/* ---------- pointer input ---------- */
+let pend = null, drag = null;
+tray.addEventListener('pointerdown', e => {
+  const slot = e.target.closest('.slot'); if (!slot || drag || pend || e.button > 0) return;
+  audioInit();
+  pend = { p: S.pieces[+slot.dataset.id], from: 'tray', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
+  if (e.pointerType === 'mouse') e.preventDefault();
+});
+$('#boardArea').addEventListener('pointerdown', e => {
+  if (drag || pend || e.button > 0 || !S.running) return;
+  const p = looseAt(e.clientX, e.clientY); if (!p) return;
+  audioInit(); e.preventDefault();
+  pend = { p, from: 'loose', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
+});
+window.addEventListener('pointermove', e => {
+  if (drag && e.pointerId === drag.id){ drag.x = e.clientX; drag.y = e.clientY; place(); e.preventDefault(); return; }
+  if (pend && e.pointerId === pend.id){
+    const dx = e.clientX - pend.x0, dy = e.clientY - pend.y0;
+    if (Math.hypot(dx, dy) < 8) return;
+    if (pend.from === 'tray' && pend.type !== 'mouse' && Math.abs(dx) > Math.abs(dy) * 1.3){ pend = null; return; }
+    startDrag(e);
+  }
+}, { passive: false });
+window.addEventListener('pointerup', e => {
+  if (pend && e.pointerId === pend.id){ const p = pend.p; pend = null; if (S.rotate) turn(p); return; }
+  if (drag && e.pointerId === drag.id) drop();
+});
+window.addEventListener('pointercancel', e => { if (pend && e.pointerId === pend.id) pend = null; if (drag && e.pointerId === drag.id) cancelDrag(); });
+document.addEventListener('touchmove', e => {
+  if (drag){ e.preventDefault(); return; }
+  if (pend && e.touches[0]){ const t = e.touches[0]; if (pend.from === 'loose' || Math.abs(t.clientY - pend.y0) > Math.abs(t.clientX - pend.x0)) e.preventDefault(); }
+}, { passive: false });
+
+function turn(p){
+  if (p.where !== 'tray' && p.where !== 'loose') return;
+  p.rot = (p.rot + 1) % 4; p.deg += 90; sizeFor(p); sfxTurn();
+  if (p.where === 'loose') trySnapInPlace(p);
+  save();
+}
+
+/* a drag must always end: capture the pointer on the page itself, and settle any drag whose end event got lost */
+function settleDrag(){ if (drag) drop(); }
+document.documentElement.addEventListener('lostpointercapture', e => { if (drag && e.target === document.documentElement && e.pointerId === drag.id) settleDrag(); });
+document.addEventListener('touchend', e => { if (drag && e.touches.length === 0) settleDrag(); });
+document.addEventListener('touchcancel', e => { if (drag && e.touches.length === 0) settleDrag(); });
+window.addEventListener('blur', () => { if (drag) cancelDrag(); pend = null; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && drag) cancelDrag(); });
+document.addEventListener('pointerdown', e => { if (drag && e.pointerId !== drag.id) settleDrag(); }, true);
+
+function startDrag(e){
+  const p = pend.p, from = pend.from;
+  drag = { p, from, id: pend.id, x: e.clientX, y: e.clientY, gx: 0, gy: 0 };
+  if (from === 'tray'){
+    drag.gy = pend.type === 'mouse' ? 0 : Math.min(70, p.ph * .45);
+    drag.next = p.slot.nextSibling; p.slot.remove();
+  } else {
+    const br = board.getBoundingClientRect();
+    drag.gx = pend.x0 - (br.left + p.fx * S.W); drag.gy = pend.y0 - (br.top + p.fy * S.H);
+  }
+  pend = null;
+  p.where = 'drag'; p.el.className = 'piece dragging'; sizeFor(p); dragLayer.appendChild(p.el);
+  try { document.documentElement.setPointerCapture(drag.id); } catch(err){}
+  document.body.classList.add('is-dragging'); place(); sfxPick();
+}
+function place(){ const p = drag.p; p.el.style.transform = `translate3d(${drag.x - drag.gx - p.pw / 2}px, ${drag.y - drag.gy - p.ph / 2}px, 0) rotate(${p.deg}deg)`; }
+function finishDrag(){ drag = null; document.body.classList.remove('is-dragging'); }
+
+function drop(){
+  const p = drag.p, br = board.getBoundingClientRect(), shelf = $('.shelf').getBoundingClientRect();
+  if (drag.y > shelf.top + 4){ toTray(p, drag.from === 'tray' ? drag.next : tray.firstChild); finishDrag(); save(); updateProg(); return; }
+  const bx = drag.x - drag.gx - br.left, by = drag.y - drag.gy - br.top;
+  if (!snap(p, bx, by)){
+    p.fx = clamp(bx, 0, S.W) / S.W; p.fy = clamp(by, 0, S.H) / S.H;
+    p.where = 'loose'; p.el.className = 'piece loose'; p.el.dataset.id = p.id;
+    p.el.style.transition = 'none'; sizeFor(p); looseEl.appendChild(p.el); void p.el.offsetWidth; p.el.style.transition = '';
+    sfxSet();
+  }
+  finishDrag(); updateProg(); save();
+}
+function cancelDrag(){ const p = drag.p; if (drag.from === 'tray') toTray(p, drag.next); else { p.where = 'loose'; p.el.className = 'piece loose'; sizeFor(p); looseEl.appendChild(p.el); } finishDrag(); }
+
+function toTray(p, before){
+  p.where = 'tray'; p.el.className = 'piece'; p.slot.appendChild(p.el);
+  if (before && before.parentNode === tray) tray.insertBefore(p.slot, before); else tray.insertBefore(p.slot, tray.firstChild);
+  p.slot.hidden = S.filterEdges && !p.edge;
+  sizeFor(p);
+  p.slot.classList.remove('back'); void p.slot.offsetWidth; p.slot.classList.add('back');
+  const e = tray.querySelector('.tray-empty'); if (e) e.remove();
+}
+
+/* snap: center close to its home and rotated upright */
+function snap(p, bx, by){
+  if (p.rot !== 0) return false;
+  const hx = (p.c + .5) * S.cw, hy = (p.r + .5) * S.ch, thr = Math.max(18, Math.min(S.cw, S.ch) * .4);
+  if (Math.hypot(bx - hx, by - hy) >= thr) return false;
+  p.where = 'placed'; p.el.className = 'piece placed'; sizeFor(p);
+  p.el.style.transition = 'none'; p.el.style.transform = `translate(${bx - hx}px, ${by - hy}px)`; placedEl.appendChild(p.el);
+  void p.el.offsetWidth; p.el.style.transition = ''; p.el.style.transform = ''; p.el.classList.add('flash');
+  S.placedN++; sfxSnap();
+  if (S.placedN === S.pieces.length) setTimeout(() => complete(false), 150);
+  return true;
+}
+function trySnapInPlace(p){
+  if (snap(p, p.fx * S.W, p.fy * S.H)){ updateProg(); }
+}
+
+/* ---------- HUD, tools, tray ---------- */
+function updateProg(){
+  $('#prog').textContent = `${S.placedN} / ${S.pieces.length}`;
+  const inTray = tray.querySelectorAll('.slot').length, onBoard = looseEl.children.length;
+  $('#trayCount').textContent = `ในถาด ${inTray}` + (onBoard ? ` · พักบนกระดาน ${onBoard}` : '');
+  let empty = tray.querySelector('.tray-empty');
+  if (inTray === 0 && !empty){ empty = document.createElement('div'); empty.className = 'tray-empty'; tray.appendChild(empty); }
+  if (empty) empty.textContent = onBoard ? 'ถาดว่างแล้ว ที่เหลือพักอยู่บนกระดาน' : 'ถาดว่างแล้ว';
+}
+function applyFilter(){
+  let shown = 0;
+  tray.querySelectorAll('.slot').forEach(s => { const p = S.pieces[+s.dataset.id], hide = S.filterEdges && !p.edge; s.hidden = hide; if (!hide) shown++; });
+  if (S.filterEdges && shown === 0){ S.filterEdges = false; setPressed('#tEdge', false); applyFilter(); }
+}
+function setPressed(sel, v){ $(sel).setAttribute('aria-pressed', v ? 'true' : 'false'); }
+$('#tRef').onclick = () => { const r = $('#ref'); r.hidden = !r.hidden; setPressed('#tRef', !r.hidden); };
+$('#ref').onclick = () => { $('#ref').hidden = true; setPressed('#tRef', false); };
+$('#tGhost').onclick = () => { S.ghost = !S.ghost; board.classList.toggle('ghost-on', S.ghost); setPressed('#tGhost', S.ghost); save(); };
+$('#tEdge').onclick = () => { S.filterEdges = !S.filterEdges; setPressed('#tEdge', S.filterEdges); applyFilter(); tray.scrollLeft = 0; };
+$('#tGather').onclick = () => { [...looseEl.children].reverse().forEach(el => toTray(S.pieces[+el.dataset.id], tray.firstChild)); tray.scrollLeft = 0; updateProg(); save(); };
+$('#tShuffle').onclick = () => { const slots = shuffle([...tray.querySelectorAll('.slot')]); slots.forEach(s => tray.appendChild(s)); const e = tray.querySelector('.tray-empty'); if (e) tray.appendChild(e); tray.scrollLeft = 0; save(); };
+$('#tSound').onclick = () => { soundOn = !soundOn; setPressed('#tSound', soundOn); $('#wave').style.opacity = soundOn ? 1 : .15; if (soundOn){ audioInit(); sfxSnap(); } };
+$('#tl').onclick = () => tray.scrollBy({ left: -tray.clientWidth * .8, behavior: 'smooth' });
+$('#tr').onclick = () => tray.scrollBy({ left: tray.clientWidth * .8, behavior: 'smooth' });
+tray.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)){ tray.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+$('#backBtn').onclick = () => { if (drag) cancelDrag(); pend = null; saveNow(); S.running = false; showSetup(); };
+$('#againBtn').onclick = () => { S.game = false; showSetup(); };
+$('#viewBtn').onclick = () => { $('#done').hidden = true; };
+
+function complete(silent){
+  S.running = false;
+  try { localStorage.removeItem(KEY); } catch(e){}
+  $('#doneInfo').textContent = `${S.pieces.length} ชิ้น · ใช้เวลา ${fmt(S.elapsed)}` + (S.rotate ? ' · ระดับยาก' : '');
+  $('#done').hidden = false; $('#full').classList.add('show');
+  if (silent) return;
+  sfxDone();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols = ['#e8728c', '#38b2a6', '#ffd36e', '#a78bfa', '#fff'];
+  for (let i = 0; i < 46; i++){
+    const s = document.createElement('span'); s.className = 'conf';
+    s.style.left = Math.random() * 100 + '%'; s.style.background = cols[i % cols.length];
+    s.style.setProperty('--d', S.H + 30 + 'px'); s.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
+    s.style.animationDuration = 1.6 + Math.random() * 1.6 + 's'; s.style.animationDelay = Math.random() * .6 + 's';
+    board.appendChild(s);
+  }
+}
+
+/* ---------- timer + saving ---------- */
+setInterval(() => { if (S.game && S.running && !document.hidden){ S.elapsed++; $('#time').textContent = fmt(S.elapsed); if (S.elapsed % 10 === 0) save(); } }, 1000);
+let saveT = 0;
+function save(){ clearTimeout(saveT); saveT = setTimeout(saveNow, 300); }
+function saveNow(){
+  if (!S.game || !S.running) return;
+  try {
+    const trayL = [...tray.querySelectorAll('.slot')].map(s => { const p = S.pieces[+s.dataset.id]; return [p.id, p.rot]; });
+    const loose = [...looseEl.children].map(el => { const p = S.pieces[+el.dataset.id]; return [p.id, +p.fx.toFixed(4), +p.fy.toFixed(4), p.rot]; });
+    if (drag) trayL.push([drag.p.id, drag.p.rot]);
+    localStorage.setItem(KEY, JSON.stringify({ v: 2, src: S.dataURL, cols: S.cols, rows: S.rows, E: S.E,
+      locked: S.pieces.filter(p => p.where === 'placed').map(p => p.id), tray: trayL, loose, elapsed: S.elapsed, ghost: S.ghost, rotate: S.rotate }));
+  } catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+
+let rt = 0;
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (!$('#game').hidden) layout(); else drawPreview(); }, 120); });
+
+/* ---------- boot ---------- */
+pick.src = paintSample(); refreshPick(); showResume();
+document.fonts && document.fonts.ready.then(drawPreview);
+})();
+
+</script>
