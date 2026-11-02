@@ -1,6 +1,7 @@
 /* ---------- living room lobby ---------- */
 :root{ --chatH: 60px; --night: rgba(14,38,44,.62); }
-#app{position:fixed;inset:0;overflow:hidden;background:#1a3c43}
+/* absolute (not fixed): fixed would make #app its own stacking context and trap the chat/ticker/mini player under #game */
+#app{position:absolute;inset:0;overflow:hidden;background:#1a3c43}
 #room{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;touch-action:none;cursor:pointer}
 .topbar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;z-index:5;pointer-events:none;
   padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px, env(safe-area-inset-right,0px)) 0 max(12px, env(safe-area-inset-left,0px))}
@@ -54,6 +55,10 @@
   padding-top:env(safe-area-inset-top,0px);padding-left:max(12px, env(safe-area-inset-left,0px));padding-right:max(12px, env(safe-area-inset-right,0px))}
 body.puzzle-open .hint,body.puzzle-open .topbar{display:none}
 body.puzzle-open .mini{top:auto;bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px) + 120px)}
+/* while puzzling: keep chat above the tray so pieces stay reachable */
+body.puzzle-open .ticker,body.puzzle-open .chatlog{bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px) + 120px)}
+body.puzzle-open .chatlog{max-height:min(36vh,300px);width:min(340px, calc(100% - 24px))}
+body.puzzle-open .tk{background:rgba(255,250,241,.97)}
 
 /* sheets */
 .sheet-bg{position:fixed;inset:0;z-index:50;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;display:grid;place-items:center;background:rgba(14,38,44,.55);
