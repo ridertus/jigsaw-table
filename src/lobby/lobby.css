@@ -49,6 +49,15 @@
 .mini-btn svg{width:16px;height:16px}
 .mini-title{flex:1;min-width:0;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mini.small .mini-title{display:none}
+/* folded: only a round music button shows; the iframe keeps playing off-screen (never display:none, or YouTube may stop) */
+.mini-fab{display:none}
+.mini.folded{width:auto;padding:0;background:none;box-shadow:none}
+.mini.folded .mini-row{display:none}
+.mini.folded .yt-wrap{position:absolute;left:-10000px;top:0}
+.mini.folded .mini-fab{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#fff;color:var(--mint-ink);box-shadow:0 3px 0 #bfe3dd,0 8px 16px rgba(0,0,0,.3)}
+.mini.folded .mini-fab svg{width:24px;height:24px}
+.mini.folded.on .mini-fab{background:var(--mint);color:#fff;box-shadow:0 3px 0 var(--mint-ink),0 8px 16px rgba(0,0,0,.3);animation:fabBeat 1.6s ease-in-out infinite}
+@keyframes fabBeat{50%{transform:scale(1.07)}}
 
 /* puzzle overlay */
 #game{position:fixed;left:0;right:0;top:0;bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px));height:auto;z-index:30;background:var(--night);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);
