@@ -106,3 +106,25 @@ input[type=range]{width:100%;accent-color:var(--mint)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .seg .chip b{font-size:16px}
 #busy{z-index:90}
+
+/* quick emoji */
+.emo-bar{position:absolute;left:max(12px, env(safe-area-inset-left,0px));bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px) + 6px);z-index:39;display:flex;flex-wrap:wrap;gap:4px;padding:6px;max-width:calc(100% - 24px);
+  border-radius:18px;background:rgba(255,250,241,.97);box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.emo-b{width:44px;height:44px;border-radius:12px;font-size:26px;line-height:1;display:grid;place-items:center;transition:transform .1s}
+.emo-b:hover{background:var(--mint-soft)}
+.emo-b:active{transform:scale(1.25)}
+#emoLayer{position:fixed;left:0;bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px) + 130px);width:120px;height:0;z-index:40;pointer-events:none}
+.emo-float{position:absolute;bottom:0;font-size:36px;line-height:1;display:grid;justify-items:center;animation:emoUp 2.6s ease-out forwards;text-shadow:0 2px 6px rgba(0,0,0,.3)}
+.emo-float small{font-size:11px;font-weight:700;color:#fff;background:rgba(30,30,40,.6);border-radius:999px;padding:1px 6px;margin-top:2px;white-space:nowrap}
+@keyframes emoUp{0%{opacity:0;transform:translateY(10px) scale(.6)}12%{opacity:1;transform:translateY(0) scale(1.15)}75%{opacity:1}100%{opacity:0;transform:translateY(-150px) scale(1)}}
+/* window sheet */
+.lbl-sub{font-weight:500;font-size:12px;opacity:.8;margin-left:4px}
+.chip.wx{padding:10px 6px}
+.chip.wx .wx-ic{font-size:26px;line-height:1.2}
+.chip.wx small{font-size:13px;font-weight:600}
+.chip.wx[aria-pressed="true"]{background:var(--mint);color:#fff;box-shadow:0 2px 0 var(--mint-ink)}
+.mix-list{display:grid;gap:6px}
+.mix{display:grid;grid-template-columns:30px minmax(0,7.5em) minmax(0,1fr);align-items:center;gap:8px;padding:6px 10px;border-radius:12px;background:#f3e6d2;font-size:14px;font-weight:600}
+.mix.on{background:var(--mint-soft)}
+.mix-ic{font-size:22px;text-align:center}
+.mix input,.vol input{width:100%;accent-color:var(--mint);height:28px}

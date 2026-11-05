@@ -204,6 +204,7 @@ async function refreshLobby(){
     if (JSON.stringify(data.radio || {}) !== JSON.stringify(Radio.st)) Radio.apply(data.radio || {});
     if (data.puzzle !== L.puzzle) setPuzzle(data.puzzle, false);
     L.puzzleInfo = data.puzzle_info;
+    if (data.weather && data.weather !== L.weather) applyWeather(data.weather);
     Radio.render(); renderSettings();
   } catch(e){}
 }
@@ -391,6 +392,8 @@ function connect(){
     .on('broadcast', { event: 'radio' }, mine(st => Radio.apply(st)))
     .on('broadcast', { event: 'mode' }, mine(m => { L.mode = m.mode; Radio.render(); renderSettings(); }))
     .on('broadcast', { event: 'puzzle' }, mine(m => { if (m.code !== L.puzzle){ const open = !$('#game').hidden; setPuzzle(m.code, true, m.by).then(() => { if (open) openPuzzle(); }); } }))
+    .on('broadcast', { event: 'weather' }, mine(m => applyWeather(m.w, m.by)))
+    .on('broadcast', { event: 'emo' }, mine(onEmoji))
     .on('broadcast', { event: 'drag' }, mine(onDrag))
     .on('broadcast', { event: 'release' }, mine(onRelease))
     .on('presence', { event: 'sync' }, () => { if (S.chan === ch) syncPresence(); })
@@ -421,7 +424,7 @@ async function enterLobby(){
   Room.me.dir = 1;
   S.players = [{ key: ME.id, name: ME.name, color: ME.color, me: true }]; renderPlayers();
   if (L.pin){ try { const { data } = await sb.rpc('check_owner', { p_pin: L.pin }); L.isOwner = data === true; if (!L.isOwner){ L.pin = null; LS.set('jt-owner-pin', null); } } catch(e){} }
-  connect(); refreshLobby(); loadHistory();
+  followWeather(); connect(); refreshLobby(); loadHistory();
   setTimeout(() => $('#hint').classList.add('fade'), 9000);
 }
 window.addEventListener('resize', () => { clearTimeout(window.__rt); window.__rt = setTimeout(() => { if (!$('#game').hidden){ layout(); S.pieces.forEach(p => { if (p.where !== 'drag') sizeFor(p); posTag(p); }); } drawPreview(); }, 120); });

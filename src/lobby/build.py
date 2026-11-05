@@ -33,6 +33,7 @@ html = f'''<!doctype html>
 {r('art.js')}
 {r('puzzle.js')}
 {r('hud.js')}
+{r('ambient.js')}
 {r('lobby.js')}
 }})();
 </script>
