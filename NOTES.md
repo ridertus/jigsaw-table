@@ -35,6 +35,10 @@ build แค่ต่อไฟล์เข้าด้วยกัน (ไม่
 - `puzzle.js` เอนจินจิ๊กซอว์ร่วมกัน: ลาก/วาง/หมุน, `write` -> RPC `move_piece`, รับ `drag`/`release`, `refetch` ทุก 10 วิ
 - `hud.js` แถบความคืบหน้า เครื่องมือ (ภาพจาง ชิ้นขอบ เก็บกลับถาด สลับถาด) จอต่อเสร็จ
 - `ambient.js` สภาพอากาศ (แชร์ทั้งห้อง: `L.weather`, RPC `set_weather`, broadcast `weather`), วาดหน้าต่าง/แสงห้อง/ฟ้าแลบ, มิกเซอร์เสียงบรรยากาศสังเคราะห์ด้วย Web Audio (ไม่มีไฟล์เสียง, ตั้งค่าต่อเครื่องใน localStorage `jt-amb`), อีโมจิด่วน (broadcast `emo`)
+- `board.js` กระดานวาดร่วมกัน (เปิดจากกระดานบนผนังในห้อง หรือ `openBoard()`): กระดาษไม่สิ้นสุด เลื่อน/ซูม (สองนิ้ว, ล้อเมาส์, Ctrl+ล้อ = ซูม, Space+ลาก),
+  เครื่องมือ มือ (เลื่อน + ลากโน้ต/ข้อความ, แตะสองครั้งแก้) ปากกา ปากกาเน้น ยางลบ (ลบทั้งเส้น) ข้อความ โน้ตแปะ, undo/redo (เฉพาะของตัวเอง ย้อนการล้างกระดานได้)
+  ถ้าเคยใช้ Apple Pencil นิ้วเดียวจะกลายเป็นเลื่อนกระดานแทน, ภาพย่อกระดานโชว์บนผนังห้อง (`drawWallBoard`)
+- `board.css` สไตล์กระดาน (โหลดหลัง lobby.css)
 - `lobby.js` แชท, วิทยุ (`Radio` + YouTube IFrame API), โต๊ะ/รูปใหม่, ตั้งค่าเจ้าของบ้าน, presence, channel `lobby:main`, `enterLobby`
 
 ## Supabase
@@ -48,12 +52,16 @@ build แค่ต่อไฟล์เข้าด้วยกัน (ไม่
 - `pieces` (room, id) state = tray/loose/placed, fx, fy (0–1 ของกระดาน), rot 0–3
 - `lobby` แถวเดียว id `main`: puzzle (รหัสห้องที่อยู่บนโต๊ะ), radio (jsonb), radio_mode all/owner, owner_hash, weather (sun/sunset/night/drizzle/rain/storm)
 - `messages` แชท เก็บล่าสุด 300 ข้อความ (anon อ่านได้)
+- `board_items` กระดานวาด (id สร้างจากฝั่งเครื่อง, kind pen/text/note, data jsonb) anon อ่านได้ เก็บสูงสุด 4000 ชิ้น (เกินแล้วลบเก่าสุด)
+  pen: `{c,w,hl?,p:[x,y,...]}` พิกัดโลก, text: `{x,y,t,s,c}`, note: `{x,y,t,bg,by}` ขนาด 180
 
 RPC: `create_room`, `open_room`, `list_rooms`, `move_piece` (ชิ้นที่ placed แล้วย้ายไม่ได้อีก), `gather_loose`,
-`get_lobby` (คืนเวลาเซิร์ฟเวอร์ด้วยเพื่อ sync วิทยุ), `set_radio`, `set_radio_mode`, `claim_owner`, `check_owner`, `set_puzzle`, `send_message`, `set_weather`
+`get_lobby` (คืนเวลาเซิร์ฟเวอร์ด้วยเพื่อ sync วิทยุ), `set_radio`, `set_radio_mode`, `claim_owner`, `check_owner`, `set_puzzle`, `send_message`, `set_weather`,
+`board_add(p_items jsonb[])` (upsert), `board_del(p_ids)`, `board_clear()`
 
 ### Realtime (สำคัญ: เคยพังเพราะเรื่องนี้)
-- ใช้ channel เดียว `lobby:main` เป็น broadcast ล้วน: `pos` `chat` `radio` `mode` `puzzle` `drag` `release` `weather` `emo`
+- ใช้ channel เดียว `lobby:main` เป็น broadcast ล้วน: `pos` `chat` `radio` `mode` `puzzle` `drag` `release` `weather` `emo` `bd`
+- `bd` = กระดาน: op `ink` (จุดของเส้นที่กำลังวาด ส่งทุก 100ms) `add` `del` `clear` `reload` (ของเยอะเกิน broadcast ให้โหลดจากฐานข้อมูลใหม่)
 - **ไม่ใช้ postgres_changes** และ **track presence ครั้งเดียวตอนเข้าห้อง** เท่านั้น
   เคยเรียก `track()` ทุกครั้งที่หยิบชิ้น -> โดน `ClientPresenceRateLimitReached` -> ค้าง "กำลังเชื่อมต่อ…"
 - ชิ้นที่เพื่อนถืออยู่รู้จาก broadcast `drag` + heartbeat ทุก 1.5 วิ หมดอายุ 5 วิ
@@ -64,6 +72,7 @@ RPC: `create_room`, `open_room`, `list_rooms`, `move_piece` (ชิ้นที�
 ## ทดสอบ
 - เครื่องที่ Claude ทำงานเข้า supabase.co ไม่ได้ (proxy บล็อก) ทดสอบด้วย mock แทน:
   ทำ `window.supabase.createClient` ปลอม (เก็บข้อมูลใน localStorage + BroadcastChannel) แล้วเปิดสองแท็บด้วย Playwright
+  (สองแท็บใช้ localStorage ร่วมกัน -> `jt-me` ต้องแยกเป็น sessionStorage ตอนเทสต์ ไม่งั้น ME.id ซ้ำ และเพื่อนจะมองไม่เห็นกัน)
 - ทดสอบของจริงต้องให้เจ้าของเปิดบนมือถือ+คอมพร้อมกัน แล้วดู log ของ Supabase
 
 ## ข้อตกลงกับเจ้าของงาน (RiDerTus)
@@ -78,7 +87,7 @@ RPC: `create_room`, `open_room`, `list_rooms`, `move_piece` (ชิ้นที�
 - ชื่อ `S.ch` ชนกับความสูงช่อง -> channel ใช้ `S.chan`
 
 ## ไอเดียที่ค้างไว้
-- กระดานวาดร่วมกันแบบ Jamboard (กระดาษไม่สิ้นสุด ปากกา ยางลบ ข้อความ undo) เจ้าของอยากได้ ทำรอบถัดไป
+- กระดานวาด: ทำแล้ว (6 พ.ย. 2026) ต่อยอดได้ เช่น แทรกรูป, รูปทรง, เลือกหลายชิ้นแล้วย้าย, หลายหน้ากระดาน
 - ถ้าเสียงสังเคราะห์ไม่ถูกใจ เปลี่ยนเป็นไฟล์เสียงจริง CC0 ทีละเสียงได้ (เจ้าของต้องโหลดมาให้ เครื่อง Claude โหลดเว็บไม่ได้)
 - ฟีเจอร์ต่อด้วยกัน: เห็นจุดนิ้วเพื่อน, นับว่าใครวางกี่ชิ้น, แตะค้างเพื่อชี้จุด, อีโมจิ
 - ป้ายสถานะการเชื่อมต่อแบบกดดูรายละเอียดได้

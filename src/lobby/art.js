@@ -60,6 +60,9 @@ function paintRoom(){
   obox(g, 145, 9, 9, 9, P.white); R(149, 11, 1, 4, P.out); R(149, 14, 3, 1, P.out);
   R(145, 22, 9, 16, P.woodD); R(147, 24, 5, 12, '#c9a24a'); R(149, 30, 1, 5, P.gold); obox(g, 147, 34, 5, 4, P.gold);
   R(141, 42, 17, 3, P.woodD);
+  // whiteboard on the wall (drawing preview is painted live by drawWallBoard)
+  obox(g, 158, 6, 20, 15, P.trimD); R(159, 7, 18, 13, P.trim); R(160, 8, 16, 11, P.white); R(160, 8, 16, 1, '#ffffff');
+  R(160, 21, 16, 2, P.metalD); R(161, 20, 3, 1, P.red); R(165, 20, 3, 1, P.blue); R(169, 20, 2, 1, P.leaf);
   // standing lamp (blue shade)
   R(233, 22, 1, 20, P.metalD); obox(g, 228, 41, 11, 4, P.metal);
   obox(g, 226, 8, 15, 14, P.blue); R(227, 9, 13, 3, P.blueL); R(234, 12, 5, 9, P.blueD); R(226, 21, 15, 1, P.out);

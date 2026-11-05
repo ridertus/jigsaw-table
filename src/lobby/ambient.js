@@ -291,7 +291,7 @@ Room.emos = [];
 function showEmoji(k, e){
   const now = Date.now();
   Room.emos.push({ k, e, t0: now, dx: Math.random() * 16 - 8 }); if (Room.emos.length > 30) Room.emos.shift();
-  if (document.body.classList.contains('puzzle-open')){
+  if (document.body.matches('.puzzle-open,.draw-open')){
     const el = document.createElement('div'); el.className = 'emo-float'; el.textContent = e;
     const a = k === ME.id ? Room.me : Room.others.get(k), who = document.createElement('small');
     who.textContent = k === ME.id ? ME.name : (a && a.name) || 'เพื่อน'; el.appendChild(who);

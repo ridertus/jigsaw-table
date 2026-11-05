@@ -20,6 +20,7 @@ html = f'''<!doctype html>
 {r('base.css')}
 {r('extra.css')}
 {r('lobby.css')}
+{r('board.css')}
 </style>
 </head>
 <body>
@@ -34,6 +35,7 @@ html = f'''<!doctype html>
 {r('puzzle.js')}
 {r('hud.js')}
 {r('ambient.js')}
+{r('board.js')}
 {r('lobby.js')}
 }})();
 </script>

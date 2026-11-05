@@ -1,5 +1,5 @@
 <div id="app">
-  <canvas id="room" aria-label="ห้องนั่งเล่น แตะที่พื้นเพื่อเดิน แตะโต๊ะเพื่อต่อจิ๊กซอว์ แตะวิทยุเพื่อเปิดรายการ แตะหน้าต่างเพื่อเปลี่ยนสภาพอากาศและเสียงบรรยากาศ"></canvas>
+  <canvas id="room" aria-label="ห้องนั่งเล่น แตะที่พื้นเพื่อเดิน แตะโต๊ะเพื่อต่อจิ๊กซอว์ แตะวิทยุเพื่อเปิดรายการ แตะหน้าต่างเพื่อเปลี่ยนสภาพอากาศและเสียงบรรยากาศ แตะกระดานบนผนังเพื่อวาดรูปด้วยกัน"></canvas>
 
   <header class="topbar">
     <div class="brand">โต๊ะจิ๊กซอว์</div>
@@ -13,7 +13,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
   </header>
-  <p class="hint" id="hint">แตะพื้นเพื่อเดิน · แตะโต๊ะต่อจิ๊กซอว์ · แตะวิทยุ · แตะหน้าต่างเปลี่ยนอากาศ</p>
+  <p class="hint" id="hint">แตะพื้นเพื่อเดิน · แตะโต๊ะต่อจิ๊กซอว์ · แตะวิทยุ · แตะหน้าต่างเปลี่ยนอากาศ · แตะกระดานวาดรูป</p>
 
   <!-- radio mini player: the YouTube iframe lives here for the whole session and is never moved -->
   <div class="mini" id="mini" hidden>
@@ -111,6 +111,32 @@
     <button class="arrow" id="tr" aria-label="เลื่อนถาดไปขวา"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
     <span class="tray-count" id="trayCount"></span>
   </footer>
+</section>
+
+<!-- shared drawing board -->
+<section id="draw" hidden>
+  <canvas id="drawCv" aria-label="กระดานวาดร่วมกัน ใช้สองนิ้วเลื่อนและซูม"></canvas>
+  <textarea id="bdText" hidden aria-label="พิมพ์ข้อความบนกระดาน" spellcheck="false"></textarea>
+  <header class="bd-top">
+    <button class="round" id="bdBack" aria-label="กลับไปที่ห้อง" title="กลับไปที่ห้อง"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bd-title">กระดาน</div>
+    <div class="spacer"></div>
+    <button class="round" id="bdUndo" aria-label="ย้อนกลับ" title="ย้อนกลับ (Ctrl+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+    <button class="round" id="bdRedo" aria-label="ทำซ้ำ" title="ทำซ้ำ (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+    <button class="round" id="bdFit" aria-label="ดูทั้งกระดาน" title="ดูทั้งกระดาน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <button class="round" id="bdClear" aria-label="ล้างกระดาน" title="ล้างกระดาน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+  </header>
+  <div class="bd-dock">
+    <div class="bd-opts" id="bdOpts" hidden></div>
+    <nav class="bd-tools" id="bdTools" aria-label="เครื่องมือวาด"></nav>
+  </div>
+</section>
+<section id="bdAsk" class="sheet-bg" hidden>
+  <div class="ib" role="dialog" aria-labelledby="bdAskT">
+    <h2 id="bdAskT">ล้างกระดานทั้งหมด?</h2>
+    <p class="note">ทุกคนจะเห็นกระดานว่าง ถ้าเผลอกด กดปุ่มย้อนกลับเพื่อเอาคืนได้</p>
+    <div class="row"><button class="btn soft" id="bdAskNo">ยกเลิก</button><button class="btn primary" id="bdAskYes" style="flex:1">ล้างกระดาน</button></div>
+  </div>
 </section>
 
 <!-- enter -->

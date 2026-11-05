@@ -12,6 +12,7 @@ const FURN = [
   { id: 'sofa', x: 1, y: 7, w: 2, h: 3, block: [[1, 7], [2, 7], [1, 8], [2, 8], [1, 9], [2, 9]] },
   { id: 'win1', x: 4, y: 0, w: 3, h: 2, block: [[4, 2], [5, 2], [6, 2]], act: 'window' },
   { id: 'win2', x: 8, y: 0, w: 3, h: 2, block: [[8, 2], [9, 2], [10, 2]], act: 'window' },
+  { id: 'board', x: 13, y: 0, w: 2, h: 2, block: [[13, 2], [14, 2]], act: 'board' },
   { id: 'arm', x: 16, y: 8, w: 2, h: 2, block: [[16, 8], [17, 8], [16, 9], [17, 9]] }
 ];
 const blocked = Array.from({ length: MR }, (_, r) => Array.from({ length: MC }, () => r < 3));
@@ -100,6 +101,7 @@ function useFurn(f){
   if (f.act === 'table') tableTapped();
   if (f.act === 'radio') Radio.openPanel();
   if (f.act === 'window') openWindowSheet();
+  if (f.act === 'board') openBoard();
 }
 
 /* ----- frame ----- */
@@ -125,7 +127,7 @@ function frame(t){
   const g = rg; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingEnabled = false;
   g.fillStyle = '#10292d'; g.fillRect(0, 0, W, H);
   g.save(); g.translate(Math.round(Room.ox), Math.round(Room.oy)); g.scale(s, s);
-  g.drawImage(bg, -PAD, -PAD); drawWindows(g, t); drawSunbeams(g); drawTable(g, t); drawRadio(g, t);
+  g.drawImage(bg, -PAD, -PAD); drawWindows(g, t); drawSunbeams(g); drawTable(g, t); drawRadio(g, t); drawWallBoard(g);
   const all = [...Room.others.values()]; if (Room.me) all.push(Room.me);
   all.sort((a, b) => a.y - b.y).forEach(a => drawAvatar(g, a));
   drawRoomLight(g);

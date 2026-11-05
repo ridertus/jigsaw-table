@@ -13,7 +13,7 @@ function addMsg(m, fresh){
   if (!fresh) return;
   const a = m.k === ME.id ? Room.me : Room.others.get(m.k);
   if (a) a.bubble = { text: m.body, until: Date.now() + 7000 };
-  if (document.body.classList.contains('puzzle-open') || !a) ticker(m);
+  if (document.body.matches('.puzzle-open,.draw-open') || !a) ticker(m);
   if (m.k !== ME.id) tone(880, 0, .06, 'sine', .05);
 }
 function ticker(m){
@@ -394,6 +394,7 @@ function connect(){
     .on('broadcast', { event: 'puzzle' }, mine(m => { if (m.code !== L.puzzle){ const open = !$('#game').hidden; setPuzzle(m.code, true, m.by).then(() => { if (open) openPuzzle(); }); } }))
     .on('broadcast', { event: 'weather' }, mine(m => applyWeather(m.w, m.by)))
     .on('broadcast', { event: 'emo' }, mine(onEmoji))
+    .on('broadcast', { event: 'bd' }, mine(onBoard))
     .on('broadcast', { event: 'drag' }, mine(onDrag))
     .on('broadcast', { event: 'release' }, mine(onRelease))
     .on('presence', { event: 'sync' }, () => { if (S.chan === ch) syncPresence(); })
@@ -403,7 +404,7 @@ function connect(){
       if (status === 'SUBSCRIBED'){
         S.connected = true; retry = 0; clearTimeout(joinTimer); $('#conn').hidden = true;
         ch.track({ name: ME.name, color: ME.color }).catch(() => {});
-        sendPos(true); refreshLobby(); if (!$('#game').hidden) refetch();
+        sendPos(true); refreshLobby(); if (!$('#game').hidden) refetch(); if (Board.open) loadBoard();
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'){
         S.connected = false; $('#conn').hidden = false; scheduleReconnect();
       }
@@ -424,7 +425,7 @@ async function enterLobby(){
   Room.me.dir = 1;
   S.players = [{ key: ME.id, name: ME.name, color: ME.color, me: true }]; renderPlayers();
   if (L.pin){ try { const { data } = await sb.rpc('check_owner', { p_pin: L.pin }); L.isOwner = data === true; if (!L.isOwner){ L.pin = null; LS.set('jt-owner-pin', null); } } catch(e){} }
-  followWeather(); connect(); refreshLobby(); loadHistory();
+  followWeather(); connect(); refreshLobby(); loadHistory(); loadBoard();
   setTimeout(() => $('#hint').classList.add('fade'), 9000);
 }
 window.addEventListener('resize', () => { clearTimeout(window.__rt); window.__rt = setTimeout(() => { if (!$('#game').hidden){ layout(); S.pieces.forEach(p => { if (p.where !== 'drag') sizeFor(p); posTag(p); }); } drawPreview(); }, 120); });
