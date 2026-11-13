@@ -110,59 +110,87 @@ function looseAt(x, y){
 
 /* ---------- pointer input ---------- */
 let pend = null, drag = null;
+
+/* Capture on the stable interaction container before the piece is moved to dragLayer. */
+function capturePointer(e){
+  const target = e.currentTarget;
+  try { target.setPointerCapture(e.pointerId); return target; }
+  catch(err){ console.warn('[puzzle] setPointerCapture failed; using global pointer events.', err); return null; }
+}
+function releasePointer(state){
+  const target = state && state.captureTarget;
+  if (!target || typeof target.hasPointerCapture !== 'function') return;
+  try { if (target.hasPointerCapture(state.id)) target.releasePointerCapture(state.id); }
+  catch(err){ console.warn('[puzzle] releasePointerCapture failed.', err); }
+}
+function clearPending(){ const current = pend; pend = null; releasePointer(current); }
+
 tray.addEventListener('pointerdown', e => {
   const slot = e.target.closest('.slot'); if (!slot || drag || pend || e.button > 0) return;
   const p = S.pieces[+slot.dataset.id];
   if (p.srv.state !== 'tray') return;
   audioInit();
   if (p.holder){ toast(`${p.holder.name || 'เพื่อน'} กำลังถือชิ้นนี้อยู่`); return; }
-  pend = { p, from: 'tray', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
+  const captureTarget = capturePointer(e);
+  pend = { p, from: 'tray', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType, captureTarget };
   if (e.pointerType === 'mouse') e.preventDefault();
 });
 $('#boardArea').addEventListener('pointerdown', e => {
   if (drag || pend || e.button > 0 || !S.game || S.doneShown) return;
   const p = looseAt(e.clientX, e.clientY); if (!p) return;
   audioInit(); e.preventDefault();
-  pend = { p, from: 'loose', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
+  const captureTarget = capturePointer(e);
+  pend = { p, from: 'loose', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType, captureTarget };
 });
 window.addEventListener('pointermove', e => {
   if (drag && e.pointerId === drag.id){ drag.x = e.clientX; drag.y = e.clientY; place(); sendDrag(); e.preventDefault(); return; }
   if (pend && e.pointerId === pend.id){
     const dx = e.clientX - pend.x0, dy = e.clientY - pend.y0;
     if (Math.hypot(dx, dy) < 8) return;
-    if (pend.from === 'tray' && pend.type !== 'mouse' && Math.abs(dx) > Math.abs(dy) * 1.3){ pend = null; return; }
-    if (pend.p.holder){ pend = null; return; }
+    if (pend.p.holder){ clearPending(); return; }
     startDrag(e);
   }
-}, { passive: false });
+}, { passive: false, capture: true });
 window.addEventListener('pointerup', e => {
-  if (pend && e.pointerId === pend.id){ const p = pend.p; pend = null; if (S.rotate) turn(p); return; }
-  if (drag && e.pointerId === drag.id) drop();
+  if (pend && e.pointerId === pend.id){ const p = pend.p; clearPending(); if (S.rotate) turn(p); return; }
+  if (drag && e.pointerId === drag.id){ drag.x = e.clientX; drag.y = e.clientY; place(); dropPuzzle(); }
+}, true);
+window.addEventListener('pointercancel', e => {
+  if (pend && e.pointerId === pend.id) clearPending();
+  if (drag && e.pointerId === drag.id) cancelDrag(false);
+}, true);
+document.addEventListener('lostpointercapture', e => {
+  if (pend && e.pointerId === pend.id && e.target === pend.captureTarget) clearPending();
+  else if (drag && e.pointerId === drag.id && e.target === drag.captureTarget) cancelDrag(false);
 });
-window.addEventListener('pointercancel', e => { if (pend && e.pointerId === pend.id) pend = null; if (drag && e.pointerId === drag.id) cancelDrag(false); });
 document.addEventListener('touchmove', e => {
   if (drag){ e.preventDefault(); return; }
-  if (pend && e.touches[0]){ const t = e.touches[0]; if (pend.from === 'loose' || Math.abs(t.clientY - pend.y0) > Math.abs(t.clientX - pend.x0)) e.preventDefault(); }
+  if (pend && e.touches[0]){ const t = e.touches[0]; if (pend.from === 'loose' || Math.abs(t.clientY - pend.y0) > 8) e.preventDefault(); }
 }, { passive: false });
 
-/* a drag must always end: capture the pointer on the page itself, and settle any drag whose end event got lost */
-function settleDrag(){ if (drag) drop(); }
-document.documentElement.addEventListener('lostpointercapture', e => { if (drag && e.target === document.documentElement && e.pointerId === drag.id) settleDrag(); });
-document.addEventListener('touchend', e => { if (drag && e.touches.length === 0) settleDrag(); });
-document.addEventListener('touchcancel', e => { if (drag && e.touches.length === 0) settleDrag(); });
-window.addEventListener('blur', () => { if (drag) cancelDrag(false); pend = null; });
-document.addEventListener('visibilitychange', () => { if (document.hidden && drag) cancelDrag(false); });
+/* Pointer Events are primary; touchend is a fallback for Safari versions that omit pointerup. */
+function settleDrag(){ if (drag && !drag.finishing) dropPuzzle(); }
+document.addEventListener('touchend', e => { if (drag && e.touches.length === 0) settleDrag(); }, { passive: true });
+document.addEventListener('touchcancel', e => {
+  if (drag && e.touches.length === 0) cancelDrag(false);
+  else if (pend && e.touches.length === 0) clearPending();
+}, { passive: true });
+window.addEventListener('blur', () => { if (drag) cancelDrag(false); clearPending(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden){ if (drag) cancelDrag(false); clearPending(); } });
 document.addEventListener('pointerdown', e => { if (drag && e.pointerId !== drag.id) settleDrag(); }, true);
 
 function startDrag(e){
-  const p = pend.p, from = pend.from;
-  drag = { p, from, id: pend.id, x: e.clientX, y: e.clientY, gx: 0, gy: 0, sent: 0 };
-  if (from === 'tray') drag.gy = pend.type === 'mouse' ? 0 : Math.min(70, p.ph * .45);
-  else { const br = board.getBoundingClientRect(); drag.gx = pend.x0 - (br.left + p.srv.fx * S.W); drag.gy = pend.y0 - (br.top + p.srv.fy * S.H); }
+  if (!pend || drag) return;
+  const pending = pend, p = pending.p, from = pending.from;
+  const rect = p.el.getBoundingClientRect();
+  drag = { p, from, id: pending.id, captureTarget: pending.captureTarget, x: e.clientX, y: e.clientY, gx: 0, gy: 0, sent: 0, finishing: false };
+  if (from === 'tray'){
+    drag.gx = pending.x0 - (rect.left + rect.width / 2);
+    drag.gy = pending.y0 - (rect.top + rect.height / 2);
+  } else { const br = board.getBoundingClientRect(); drag.gx = pending.x0 - (br.left + p.srv.fx * S.W); drag.gy = pending.y0 - (br.top + p.srv.fy * S.H); }
   pend = null;
   p.where = 'drag'; p.el.className = 'piece dragging'; sizeFor(p); dragLayer.appendChild(p.el);
   p.slot.classList.add('gone');
-  try { document.documentElement.setPointerCapture(drag.id); } catch(err){}
   document.body.classList.add('is-dragging'); place(); sfxPick();
   setHold(p.id); sendDrag(true);
 }
@@ -177,13 +205,29 @@ function sendDrag(now){
   const { bx, by } = dragPos(), p = drag.p;
   S.chan.send({ type: 'broadcast', event: 'drag', payload: { r: S.code, id: p.id, fx: +(bx / S.W).toFixed(4), fy: +(by / S.H).toFixed(4), rot: p.srv.rot, k: ME.id, name: ME.name, color: ME_COLOR } });
 }
-function endDrag(){ clearTimeout(dragTimer); drag = null; document.body.classList.remove('is-dragging'); setHold(null); }
+function endDrag(){
+  const current = drag;
+  clearTimeout(dragTimer); drag = null;
+  document.body.classList.remove('is-dragging'); setHold(null);
+  releasePointer(current);
+}
 
-function drop(){
-  const p = drag.p, shelf = $('.shelf').getBoundingClientRect();
+function dropPuzzle(){
+  const active = drag;
+  if (!active || active.finishing) return;
+  active.finishing = true;
+  const p = active.p, shelf = $('.shelf').getBoundingClientRect();
   const { bx, by } = dragPos();
+  console.log('[JIGSAW DROP CHECK]', {
+  pointerY: active.y,
+  shelfTop: shelf.top,
+  bx,
+  by,
+  boardWidth: S.W,
+  boardHeight: S.H
+  });
   let res, snapped = false;
-  if (drag.y > shelf.top + 4) res = { ...p.srv, state: 'tray' };
+  if (active.y > shelf.top + 4) res = { ...p.srv, state: 'tray' };
   else {
     const hx = (p.c + .5) * S.cw, hy = (p.r + .5) * S.ch, thr = Math.max(18, Math.min(S.cw, S.ch) * .4);
     if (p.srv.rot === 0 && Math.hypot(bx - hx, by - hy) < thr){ res = { state: 'placed', fx: hx / S.W, fy: hy / S.H, rot: 0 }; snapped = true; }
@@ -204,7 +248,10 @@ function drop(){
   sendRelease(p); write(p); updateProg(); checkDone();
 }
 function cancelDrag(conflict){
-  const p = drag.p; endDrag(); show(p);
+  const active = drag;
+  if (!active || active.finishing) return;
+  active.finishing = true;
+  const p = active.p; endDrag(); show(p); sendRelease(p);
   if (conflict) toast('เพื่อนหยิบชิ้นนี้ไปก่อนแล้ว');
 }
 function turn(p){
@@ -227,6 +274,12 @@ async function write(p){
   try {
     const { data, error } = await sb.rpc('move_piece', { p_room: code, p_pass: S.pass, p_id: p.id, p_state: s.state, p_fx: s.fx, p_fy: s.fy, p_rot: s.rot });
     ok = !error && data === true;
+    console.log('[JIGSAW RPC]', {
+      requestedState: s.state,
+      data,
+      error,
+      accepted: ok
+    });
     if (error) toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต');
   } catch(e){ toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต'); }
   p.inflight--;

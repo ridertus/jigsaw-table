@@ -95,7 +95,7 @@ button:focus-visible,.btn:focus-within{outline:3px solid var(--wood-hi);outline-
 #resume .txt span{font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 
 /* ---------- game ---------- */
-#game{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;touch-action:none}
+#game{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;touch-action:auto}
 #game>*{min-width:0}
 .bar{display:flex;align-items:center;gap:10px;padding-block:10px 6px}
 .back{width:58px;height:44px;border-radius:14px;background:rgba(255,255,255,.88);color:#5d6f73;display:grid;place-items:center;box-shadow:0 3px 0 rgba(0,0,0,.18)}
@@ -104,7 +104,7 @@ button:focus-visible,.btn:focus-within{outline:3px solid var(--wood-hi);outline-
 .pill .n{font-family:var(--display);font-weight:600;font-size:19px}
 .spacer{flex:1}
 .stage{display:flex;gap:12px;min-height:0}
-#boardArea{flex:1;min-width:0;min-height:0;display:grid;place-items:center;position:relative}
+#boardArea{flex:1;min-width:0;min-height:0;display:grid;place-items:center;position:relative;touch-action:none}
 #frame{padding:12px;border-radius:12px;
   background:
     repeating-linear-gradient(100deg, rgba(120,70,20,.07) 0 3px, transparent 3px 11px),
@@ -148,7 +148,7 @@ button:focus-visible,.btn:focus-within{outline:3px solid var(--wood-hi);outline-
 .arrow svg{width:20px;height:20px}
 #tray{position:relative;flex:1;min-width:0;display:flex;gap:4px;align-items:center;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;
   height:calc(var(--slot) + 16px);padding:0 4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.35) transparent}
-.slot{flex:none;width:var(--slot);height:var(--slot);display:grid;place-items:center;touch-action:pan-x;cursor:grab;border-radius:10px}
+.slot{flex:none;width:var(--slot);height:var(--slot);display:grid;place-items:center;touch-action:none;cursor:grab;border-radius:10px}
 .slot:hover{background:rgba(255,255,255,.08)}
 .slot.gone{display:none}
 .slot.back{animation:pop .35s ease-out}
@@ -383,8 +383,27 @@ body.draw-open .chatlog{max-height:min(36vh,300px);width:min(340px, calc(100% - 
 .bd-top .spacer{flex:1;pointer-events:none}
 .bd-top .round:disabled{opacity:.45;box-shadow:0 2px 0 #bfe3dd}
 .bd-title{font-family:var(--display);font-weight:700;font-size:17px;color:var(--ink);background:rgba(255,250,241,.9);padding:6px 14px;border-radius:999px;box-shadow:0 2px 8px rgba(60,40,20,.12);white-space:nowrap}
-.bd-dock{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;display:grid;justify-items:center;gap:8px;width:max-content;max-width:calc(100% - 20px);pointer-events:none}
+.bd-dock{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;display:grid;justify-items:center;gap:8px;width:max-content;max-width:calc(100% - 20px);pointer-events:none;z-index:15;box-sizing:border-box}
 .bd-dock > *{pointer-events:auto}
+.bd-dock[hidden]{display:none!important}
+.bd-dock.is-dragging{transition:none!important;filter:drop-shadow(0 8px 18px rgba(30,25,18,.25))}
+.bd-dock-head{display:flex;align-items:center;justify-content:center;gap:6px;min-height:30px;padding:3px 7px;border-radius:999px;background:rgba(255,250,241,.94);box-shadow:0 2px 8px rgba(60,40,20,.12);pointer-events:auto}
+.bd-drag-handle{width:34px;height:28px;border-radius:9px;background:#eee1cd;color:var(--ink);font-size:20px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.bd-drag-handle:active{cursor:grabbing}
+.bd-dock-caption{font:600 11px var(--display);color:var(--ink-soft);white-space:nowrap}
+.bd-dock-action{min-width:30px;height:27px;padding:0 7px;border-radius:9px;background:#f0e5d4;color:var(--ink);font:600 11px var(--display)}
+.bd-dock-action[aria-pressed="true"]{background:var(--mint-soft);color:var(--mint-ink)}
+.bd-toolbox-toggle[hidden]{display:none!important}
+.bd-toolbox-toggle{position:absolute;z-index:24;width:48px;height:48px;display:grid;place-items:center;border:2px solid rgba(255,255,255,.9);border-radius:50%;background:var(--paper);color:var(--ink);box-shadow:0 4px 14px rgba(50,35,20,.24);touch-action:manipulation}
+.bd-toolbox-toggle-mark{font-size:21px;line-height:1}
+.bd-toolbox-toggle-dot{position:absolute;right:5px;top:5px;width:12px;height:12px;border:2px solid var(--paper);border-radius:50%}
+.bd-dock[data-dock-side="left"],.bd-dock[data-dock-side="right"]{display:flex;flex-direction:column;align-items:center;width:min(270px,calc(100% - 16px));max-width:none;max-height:calc(100% - 16px);overflow-y:auto;overscroll-behavior:contain;gap:7px}
+.bd-dock[data-dock-side="left"] .bd-tools,.bd-dock[data-dock-side="right"] .bd-tools{flex-direction:column;border-radius:24px;padding:7px}
+.bd-dock[data-dock-side="left"] .bd-opts,.bd-dock[data-dock-side="right"] .bd-opts{width:100%;max-width:100%;box-sizing:border-box;justify-content:flex-start;border-radius:18px}
+.bd-dock[data-dock-side="left"] .bd-palette-bar,.bd-dock[data-dock-side="right"] .bd-palette-bar{flex-wrap:wrap}
+.bd-dock[data-dock-side="left"] .bd-palette-swatches,.bd-dock[data-dock-side="right"] .bd-palette-swatches{flex-basis:100%;max-width:100%}
+.bd-dock[data-dock-side="left"] .bd-recent-row,.bd-dock[data-dock-side="right"] .bd-recent-row{flex-wrap:wrap}
+
 .bd-tools,.bd-opts{display:flex;align-items:center;gap:4px;padding:6px;border-radius:999px;background:var(--paper);box-shadow:0 3px 0 #d9c6a8,0 8px 20px rgba(60,40,20,.18)}
 .bd-opts{flex-wrap:wrap;justify-content:center;border-radius:22px;gap:6px;padding:6px 10px}
 .bd-tool{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink);flex:none}
@@ -393,6 +412,60 @@ body.draw-open .chatlog{max-height:min(36vh,300px);width:min(340px, calc(100% - 
 .bd-sw{width:28px;height:28px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(59,43,32,.25);flex:none}
 .bd-sw.sq{border-radius:6px}
 .bd-sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--mint)}
+
+/* Procreate-inspired local palette library */
+.bd-palette-bar{display:flex;align-items:center;gap:6px;width:100%;min-width:0}
+.bd-palette-select{height:36px;max-width:150px;min-width:112px;padding:0 28px 0 10px;border:1px solid #e2d3bb;border-radius:12px;background:#fffaf1;color:var(--ink);font:600 12px var(--body);flex:none}
+.bd-palette-swatches{display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow-x:auto;overscroll-behavior-x:contain;padding:5px 3px;scrollbar-width:thin}
+.bd-palette-empty{font-size:12px;color:var(--ink-soft);white-space:nowrap;padding:0 6px}
+.bd-color-add,.bd-palette-add,.bd-palette-manage{width:30px;height:30px;display:grid;place-items:center;flex:none;border:0;border-radius:50%;cursor:pointer}
+.bd-palette-add{background:var(--mint-soft);color:var(--mint-ink);font-size:21px;font-weight:700;box-shadow:inset 0 0 0 1px rgba(31,140,130,.25)}
+.bd-palette-manage{background:#f3e6d2;color:var(--ink);font-size:17px}
+.bd-recent-row{display:flex;align-items:center;gap:6px;width:100%;padding-top:5px;border-top:1px solid #eadfce}
+.bd-recent-label{font-size:11px;color:var(--ink-soft);white-space:nowrap;padding:0 4px}
+.bd-opts .bd-sep{flex:none}
+.bd-palette-manager[hidden]{display:none!important}
+.bd-palette-manager{position:absolute;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;padding:0;background:rgba(20,35,35,.18);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);touch-action:pan-y}
+.bd-palette-card{display:grid;align-content:start;gap:12px;width:min(620px,100%);max-height:min(72vh,640px);overflow:auto;padding:8px 16px calc(16px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:var(--paper);color:var(--ink);box-shadow:0 -10px 36px rgba(0,0,0,.2);overscroll-behavior:contain;transition:max-height .18s ease,transform .16s ease}
+.bd-palette-card.is-expanded{max-height:min(90vh,820px)}
+.bd-sheet-grip{position:relative;width:52px;height:24px;margin:0 auto -8px;touch-action:none;cursor:ns-resize;outline:none}
+.bd-sheet-grip::before{content:"";position:absolute;left:4px;right:4px;top:9px;height:5px;border-radius:999px;background:#c9b99f}
+.bd-sheet-grip:focus-visible{box-shadow:0 0 0 3px var(--mint-soft)}
+.bd-manager-head,.bd-manager-subhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bd-manager-head strong{font:700 19px var(--display)}
+.bd-manager-close{width:34px;height:34px;border-radius:50%;background:#f0e5d4;color:var(--ink);font-size:24px;line-height:1}
+.bd-manager-row{display:flex;align-items:center;gap:8px}
+.bd-manager-row input,.bd-manager-select{min-width:0;flex:1;height:40px;padding:0 11px;border:1px solid #d9c9ad;border-radius:11px;background:#fff;color:var(--ink);font:500 14px var(--body)}
+.bd-manager-label{display:grid;gap:5px;font-size:12px;color:var(--ink-soft)}
+.bd-manager-actions{display:flex;gap:8px;flex-wrap:wrap}
+.bd-manager-btn{min-height:36px;padding:0 12px;border-radius:10px;background:#f0e5d4;color:var(--ink);font:600 12px var(--body)}
+.bd-manager-btn.primary{background:var(--mint);color:#fff}
+.bd-manager-btn.danger,.bd-manager-icon.danger{background:#fae1df;color:#9b3029}
+.bd-manager-subhead{padding-top:4px;border-top:1px solid #e7dac5}
+.bd-manager-subhead strong{font-size:13px}
+.bd-manager-colors{display:grid;gap:6px;max-height:30vh;overflow:auto;overscroll-behavior:contain}
+.bd-manager-color{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:11px;background:#f5ecdf}
+.bd-manager-swatch{width:28px;height:28px;flex:none;border:1px solid rgba(0,0,0,.16);border-radius:50%}
+.bd-manager-color code{flex:1;font-size:12px;color:var(--ink-soft)}
+.bd-manager-icon{width:30px;height:30px;flex:none;border-radius:8px;background:#fffaf1;color:var(--ink);font-size:17px}
+.bd-manager-icon:disabled{opacity:.3}
+.bd-manager-empty,.bd-manager-hint{margin:0;font-size:12px;line-height:1.5;color:var(--ink-soft)}
+@media (max-width:560px){
+  .bd-dock{width:calc(100% - 16px);max-width:none}
+  .bd-dock-head{min-height:28px}
+  .bd-dock[data-dock-side="left"],.bd-dock[data-dock-side="right"]{width:min(250px,calc(100% - 16px))}
+  .bd-opts{width:100%;max-width:100%;justify-content:flex-start}
+  .bd-palette-bar{gap:5px}
+  .bd-palette-select{max-width:118px;min-width:92px;font-size:11px}
+  .bd-palette-swatches{gap:5px}
+  .bd-manager-row{align-items:stretch}
+  .bd-manager-btn{padding:0 9px}
+}
+
+.bd-color-add{position:relative;width:28px;height:28px;display:grid;place-items:center;flex:none;border-radius:50%;
+  background:conic-gradient(#f87171,#facc15,#4ade80,#38bdf8,#818cf8,#e879f9,#f87171);box-shadow:inset 0 0 0 2px var(--paper),0 0 0 1px rgba(59,43,32,.25);cursor:pointer;overflow:hidden}
+.bd-color-add span{font-size:21px;line-height:1;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.65);pointer-events:none}
+.bd-color-add input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
 .bd-sep{width:1px;height:22px;background:#e2d3bb;margin:0 2px}
 .bd-size{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none}
 .bd-size i{display:block;border-radius:50%;background:var(--ink)}
@@ -1355,59 +1428,87 @@ function looseAt(x, y){
 
 /* ---------- pointer input ---------- */
 let pend = null, drag = null;
+
+/* Capture on the stable interaction container before the piece is moved to dragLayer. */
+function capturePointer(e){
+  const target = e.currentTarget;
+  try { target.setPointerCapture(e.pointerId); return target; }
+  catch(err){ console.warn('[puzzle] setPointerCapture failed; using global pointer events.', err); return null; }
+}
+function releasePointer(state){
+  const target = state && state.captureTarget;
+  if (!target || typeof target.hasPointerCapture !== 'function') return;
+  try { if (target.hasPointerCapture(state.id)) target.releasePointerCapture(state.id); }
+  catch(err){ console.warn('[puzzle] releasePointerCapture failed.', err); }
+}
+function clearPending(){ const current = pend; pend = null; releasePointer(current); }
+
 tray.addEventListener('pointerdown', e => {
   const slot = e.target.closest('.slot'); if (!slot || drag || pend || e.button > 0) return;
   const p = S.pieces[+slot.dataset.id];
   if (p.srv.state !== 'tray') return;
   audioInit();
   if (p.holder){ toast(`${p.holder.name || 'เพื่อน'} กำลังถือชิ้นนี้อยู่`); return; }
-  pend = { p, from: 'tray', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
+  const captureTarget = capturePointer(e);
+  pend = { p, from: 'tray', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType, captureTarget };
   if (e.pointerType === 'mouse') e.preventDefault();
 });
 $('#boardArea').addEventListener('pointerdown', e => {
   if (drag || pend || e.button > 0 || !S.game || S.doneShown) return;
   const p = looseAt(e.clientX, e.clientY); if (!p) return;
   audioInit(); e.preventDefault();
-  pend = { p, from: 'loose', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType };
+  const captureTarget = capturePointer(e);
+  pend = { p, from: 'loose', id: e.pointerId, x0: e.clientX, y0: e.clientY, type: e.pointerType, captureTarget };
 });
 window.addEventListener('pointermove', e => {
   if (drag && e.pointerId === drag.id){ drag.x = e.clientX; drag.y = e.clientY; place(); sendDrag(); e.preventDefault(); return; }
   if (pend && e.pointerId === pend.id){
     const dx = e.clientX - pend.x0, dy = e.clientY - pend.y0;
     if (Math.hypot(dx, dy) < 8) return;
-    if (pend.from === 'tray' && pend.type !== 'mouse' && Math.abs(dx) > Math.abs(dy) * 1.3){ pend = null; return; }
-    if (pend.p.holder){ pend = null; return; }
+    if (pend.p.holder){ clearPending(); return; }
     startDrag(e);
   }
-}, { passive: false });
+}, { passive: false, capture: true });
 window.addEventListener('pointerup', e => {
-  if (pend && e.pointerId === pend.id){ const p = pend.p; pend = null; if (S.rotate) turn(p); return; }
-  if (drag && e.pointerId === drag.id) drop();
+  if (pend && e.pointerId === pend.id){ const p = pend.p; clearPending(); if (S.rotate) turn(p); return; }
+  if (drag && e.pointerId === drag.id){ drag.x = e.clientX; drag.y = e.clientY; place(); dropPuzzle(); }
+}, true);
+window.addEventListener('pointercancel', e => {
+  if (pend && e.pointerId === pend.id) clearPending();
+  if (drag && e.pointerId === drag.id) cancelDrag(false);
+}, true);
+document.addEventListener('lostpointercapture', e => {
+  if (pend && e.pointerId === pend.id && e.target === pend.captureTarget) clearPending();
+  else if (drag && e.pointerId === drag.id && e.target === drag.captureTarget) cancelDrag(false);
 });
-window.addEventListener('pointercancel', e => { if (pend && e.pointerId === pend.id) pend = null; if (drag && e.pointerId === drag.id) cancelDrag(false); });
 document.addEventListener('touchmove', e => {
   if (drag){ e.preventDefault(); return; }
-  if (pend && e.touches[0]){ const t = e.touches[0]; if (pend.from === 'loose' || Math.abs(t.clientY - pend.y0) > Math.abs(t.clientX - pend.x0)) e.preventDefault(); }
+  if (pend && e.touches[0]){ const t = e.touches[0]; if (pend.from === 'loose' || Math.abs(t.clientY - pend.y0) > 8) e.preventDefault(); }
 }, { passive: false });
 
-/* a drag must always end: capture the pointer on the page itself, and settle any drag whose end event got lost */
-function settleDrag(){ if (drag) drop(); }
-document.documentElement.addEventListener('lostpointercapture', e => { if (drag && e.target === document.documentElement && e.pointerId === drag.id) settleDrag(); });
-document.addEventListener('touchend', e => { if (drag && e.touches.length === 0) settleDrag(); });
-document.addEventListener('touchcancel', e => { if (drag && e.touches.length === 0) settleDrag(); });
-window.addEventListener('blur', () => { if (drag) cancelDrag(false); pend = null; });
-document.addEventListener('visibilitychange', () => { if (document.hidden && drag) cancelDrag(false); });
+/* Pointer Events are primary; touchend is a fallback for Safari versions that omit pointerup. */
+function settleDrag(){ if (drag && !drag.finishing) dropPuzzle(); }
+document.addEventListener('touchend', e => { if (drag && e.touches.length === 0) settleDrag(); }, { passive: true });
+document.addEventListener('touchcancel', e => {
+  if (drag && e.touches.length === 0) cancelDrag(false);
+  else if (pend && e.touches.length === 0) clearPending();
+}, { passive: true });
+window.addEventListener('blur', () => { if (drag) cancelDrag(false); clearPending(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden){ if (drag) cancelDrag(false); clearPending(); } });
 document.addEventListener('pointerdown', e => { if (drag && e.pointerId !== drag.id) settleDrag(); }, true);
 
 function startDrag(e){
-  const p = pend.p, from = pend.from;
-  drag = { p, from, id: pend.id, x: e.clientX, y: e.clientY, gx: 0, gy: 0, sent: 0 };
-  if (from === 'tray') drag.gy = pend.type === 'mouse' ? 0 : Math.min(70, p.ph * .45);
-  else { const br = board.getBoundingClientRect(); drag.gx = pend.x0 - (br.left + p.srv.fx * S.W); drag.gy = pend.y0 - (br.top + p.srv.fy * S.H); }
+  if (!pend || drag) return;
+  const pending = pend, p = pending.p, from = pending.from;
+  const rect = p.el.getBoundingClientRect();
+  drag = { p, from, id: pending.id, captureTarget: pending.captureTarget, x: e.clientX, y: e.clientY, gx: 0, gy: 0, sent: 0, finishing: false };
+  if (from === 'tray'){
+    drag.gx = pending.x0 - (rect.left + rect.width / 2);
+    drag.gy = pending.y0 - (rect.top + rect.height / 2);
+  } else { const br = board.getBoundingClientRect(); drag.gx = pending.x0 - (br.left + p.srv.fx * S.W); drag.gy = pending.y0 - (br.top + p.srv.fy * S.H); }
   pend = null;
   p.where = 'drag'; p.el.className = 'piece dragging'; sizeFor(p); dragLayer.appendChild(p.el);
   p.slot.classList.add('gone');
-  try { document.documentElement.setPointerCapture(drag.id); } catch(err){}
   document.body.classList.add('is-dragging'); place(); sfxPick();
   setHold(p.id); sendDrag(true);
 }
@@ -1422,13 +1523,29 @@ function sendDrag(now){
   const { bx, by } = dragPos(), p = drag.p;
   S.chan.send({ type: 'broadcast', event: 'drag', payload: { r: S.code, id: p.id, fx: +(bx / S.W).toFixed(4), fy: +(by / S.H).toFixed(4), rot: p.srv.rot, k: ME.id, name: ME.name, color: ME_COLOR } });
 }
-function endDrag(){ clearTimeout(dragTimer); drag = null; document.body.classList.remove('is-dragging'); setHold(null); }
+function endDrag(){
+  const current = drag;
+  clearTimeout(dragTimer); drag = null;
+  document.body.classList.remove('is-dragging'); setHold(null);
+  releasePointer(current);
+}
 
-function drop(){
-  const p = drag.p, shelf = $('.shelf').getBoundingClientRect();
+function dropPuzzle(){
+  const active = drag;
+  if (!active || active.finishing) return;
+  active.finishing = true;
+  const p = active.p, shelf = $('.shelf').getBoundingClientRect();
   const { bx, by } = dragPos();
+  console.log('[JIGSAW DROP CHECK]', {
+  pointerY: active.y,
+  shelfTop: shelf.top,
+  bx,
+  by,
+  boardWidth: S.W,
+  boardHeight: S.H
+  });
   let res, snapped = false;
-  if (drag.y > shelf.top + 4) res = { ...p.srv, state: 'tray' };
+  if (active.y > shelf.top + 4) res = { ...p.srv, state: 'tray' };
   else {
     const hx = (p.c + .5) * S.cw, hy = (p.r + .5) * S.ch, thr = Math.max(18, Math.min(S.cw, S.ch) * .4);
     if (p.srv.rot === 0 && Math.hypot(bx - hx, by - hy) < thr){ res = { state: 'placed', fx: hx / S.W, fy: hy / S.H, rot: 0 }; snapped = true; }
@@ -1449,7 +1566,10 @@ function drop(){
   sendRelease(p); write(p); updateProg(); checkDone();
 }
 function cancelDrag(conflict){
-  const p = drag.p; endDrag(); show(p);
+  const active = drag;
+  if (!active || active.finishing) return;
+  active.finishing = true;
+  const p = active.p; endDrag(); show(p); sendRelease(p);
   if (conflict) toast('เพื่อนหยิบชิ้นนี้ไปก่อนแล้ว');
 }
 function turn(p){
@@ -1472,6 +1592,12 @@ async function write(p){
   try {
     const { data, error } = await sb.rpc('move_piece', { p_room: code, p_pass: S.pass, p_id: p.id, p_state: s.state, p_fx: s.fx, p_fy: s.fy, p_rot: s.rot });
     ok = !error && data === true;
+    console.log('[JIGSAW RPC]', {
+      requestedState: s.state,
+      data,
+      error,
+      accepted: ok
+    });
     if (error) toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต');
   } catch(e){ toast('บันทึกชิ้นนี้ไม่สำเร็จ ลองเช็กอินเทอร์เน็ต'); }
   p.inflight--;
@@ -1930,13 +2056,63 @@ function onEmoji(m){ if (!m || m.k === ME.id || !EMOJI.includes(m.e)) return; sh
 const INK = ['#2a1c16', '#d9574a', '#e8932c', '#4fae55', '#2fa79b', '#3f92d8', '#7c6cf0', '#e8728c', '#ffffff'];
 const NOTE_BG = ['#ffe58a', '#ffc2cf', '#bfe3ff', '#c8f0b8', '#e3d4ff'];
 const SIZES = [2, 5, 10, 22];
+const isHexColor = value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+const MAX_PALETTES = 30, MAX_SWATCHES = 64;
+const DEFAULT_PALETTES = [
+  { id: 'basic', name: 'Basic Colors', colors: [...INK] },
+  { id: 'pastel', name: 'Pastel', colors: ['#F7CAD0', '#F4ACB7', '#F9E2AE', '#CDEAC0', '#B8E0D2', '#BDE0FE', '#CDB4DB', '#E8C2CA', '#FFF1E6', '#A9DEF9'] },
+  { id: 'warm', name: 'Warm', colors: ['#4A2522', '#7D3C2F', '#B84A36', '#D96C40', '#E8932C', '#F2B66D', '#F6D6A8', '#A64B2A', '#D9574A'] },
+  { id: 'cool', name: 'Cool', colors: ['#14213D', '#1D3557', '#457B9D', '#3F92D8', '#2FA79B', '#70C1B3', '#A8DADC', '#BDE0FE', '#E0FBFC'] },
+  { id: 'nature', name: 'Nature', colors: ['#283618', '#414833', '#606C38', '#7F8F45', '#A7C957', '#B6D8A8', '#DDA15E', '#BC6C25', '#E9C46A'] },
+  { id: 'monochrome', name: 'Monochrome', colors: ['#111111', '#333333', '#555555', '#777777', '#999999', '#BBBBBB', '#DDDDDD', '#FFFFFF'] }
+];
 const NOTE = 180, NOTE_FS = 22;
+
+function createPaletteId(){
+  return 'palette-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+}
+function normalizePalettes(value){
+  if (!Array.isArray(value) || !value.length) return DEFAULT_PALETTES.map(p => ({ ...p, colors: [...p.colors] }));
+  const ids = new Set();
+  const palettes = [];
+  for (const item of value.slice(0, MAX_PALETTES)){
+    if (!item || typeof item !== 'object') continue;
+    let id = typeof item.id === 'string' && item.id.trim() ? item.id.trim().slice(0, 80) : createPaletteId();
+    if (ids.has(id)) id = createPaletteId();
+    ids.add(id);
+    const name = String(item.name || 'Untitled Palette').trim().slice(0, 32) || 'Untitled Palette';
+    const colors = Array.isArray(item.colors)
+      ? [...new Set(item.colors.filter(isHexColor).map(c => c.toLowerCase()))].slice(0, MAX_SWATCHES)
+      : [];
+    palettes.push({ id, name, colors });
+  }
+  return palettes.length ? palettes : DEFAULT_PALETTES.map(p => ({ ...p, colors: [...p.colors] }));
+}
+
 const Board = {
   items: new Map(), live: new Map(), undo: [], redo: [], open: false, dirty: true, thumbDirty: true, loaded: false,
   tool: LS.get('jt-bd-tool', 'pen'), color: LS.get('jt-bd-color', INK[0]), size: LS.get('jt-bd-size', 5), noteBg: LS.get('jt-bd-note', NOTE_BG[0]),
+  recentColors: LS.get('jt-bd-recent-colors', []),
+  palettes: normalizePalettes(LS.get('jt-bd-palettes', null)),
+  activePaletteId: LS.get('jt-bd-active-palette', 'basic'),
+  ui: LS.get('jt-bd-ui', null),
   view: LS.get('jt-bd-view', null), pendAdd: new Map(), pendDel: new Set(), penSeen: false, editing: null, cursor: null
 };
-if (!INK.includes(Board.color)) Board.color = INK[0];
+if (!isHexColor(Board.color)) Board.color = INK[0];
+Board.color = Board.color.toLowerCase();
+Board.recentColors = Array.isArray(Board.recentColors)
+  ? [...new Set(Board.recentColors.filter(isHexColor).map(c => c.toLowerCase()))].slice(0, 8)
+  : [];
+if (!Board.palettes.some(p => p.id === Board.activePaletteId)) Board.activePaletteId = Board.palettes[0].id;
+Board.ui = Board.ui && typeof Board.ui === 'object' ? Board.ui : {};
+Board.ui.side = ['left', 'right', 'top', 'bottom'].includes(Board.ui.side) ? Board.ui.side : 'bottom';
+Board.ui.along = Number.isFinite(Number(Board.ui.along)) ? clamp(Number(Board.ui.along), 0, 1) : .5;
+Board.ui.collapsed = Board.ui.collapsed === true;
+Board.ui.autoHide = Board.ui.autoHide !== false;
+LS.set('jt-bd-ui', Board.ui);
+LS.set('jt-bd-palettes', Board.palettes);
+LS.set('jt-bd-active-palette', Board.activePaletteId);
+LS.set('jt-bd-recent-colors', Board.recentColors);
 if (!SIZES.includes(Board.size)) Board.size = 5;
 if (!['hand', 'pen', 'hl', 'eraser', 'text', 'note'].includes(Board.tool)) Board.tool = 'pen';
 const bdCv = $('#drawCv'), bdG = bdCv.getContext('2d'), measureG = document.createElement('canvas').getContext('2d');
@@ -2242,9 +2418,10 @@ bdCv.addEventListener('pointerdown', e => {
   if (Board.tool === 'pen' || Board.tool === 'hl'){
     const hl = Board.tool === 'hl';
     cur = { type: 'draw', id: bdId(), c: Board.color, w: hl ? Board.size * 3 + 6 : Board.size, hl, p: [r1(wx), r1(wy)], sentN: 0, sent: false };
+    if (Board.ui.autoHide) setToolboxCollapsed(true);
     bdDirty(); return;
   }
-  if (Board.tool === 'eraser'){ cur = { type: 'erase', gone: [] }; Board.cursor = [x, y]; eraseAt(wx, wy); bdDirty(); return; }
+  if (Board.tool === 'eraser'){ cur = { type: 'erase', gone: [] }; Board.cursor = [x, y]; eraseAt(wx, wy); if (Board.ui.autoHide) setToolboxCollapsed(true); bdDirty(); return; }
   cur = { type: 'tap', sx: x, sy: y, wx, wy, vx: Board.view.x, vy: Board.view.y };
 });
 bdCv.addEventListener('pointermove', e => {
@@ -2380,7 +2557,469 @@ const TOOLS = [
   ['note', 'โน้ตแปะ', '<path d="M4 4h16v11l-5 5H4z"/><path d="M15 20v-5h5"/>']
 ];
 function setTool(t){ commitText(); Board.tool = t; LS.set('jt-bd-tool', t); Board.cursor = null; renderBdTools(); bdDirty(); }
+function activePalette(){
+  return Board.palettes.find(p => p.id === Board.activePaletteId) || Board.palettes[0];
+}
+function savePaletteLibrary(){
+  LS.set('jt-bd-palettes', Board.palettes);
+  LS.set('jt-bd-active-palette', Board.activePaletteId);
+}
+function setActivePalette(id){
+  if (!Board.palettes.some(p => p.id === id)) return;
+  Board.activePaletteId = id;
+  savePaletteLibrary();
+  renderBdTools();
+}
+function setBoardColor(color){
+  if (!isHexColor(color)) return;
+  color = color.toLowerCase();
+  if (Board.tool === 'text' && color === '#ffffff'){ toast('ข้อความไม่สามารถใช้สีขาวได้'); return; }
+  Board.color = color;
+  Board.recentColors = [color, ...Board.recentColors.filter(c => c !== color)].slice(0, 8);
+  LS.set('jt-bd-recent-colors', Board.recentColors);
+  LS.set('jt-bd-color', color);
+  renderBdTools();
+}
+function addColorToPalette(color){
+  const p = activePalette();
+  if (!p || !isHexColor(color)) return;
+  color = color.toLowerCase();
+  if (p.colors.includes(color)){ toast('สีนี้อยู่ในชุดนี้แล้ว'); return; }
+  if (p.colors.length >= MAX_SWATCHES){ toast(`หนึ่งชุดสีเพิ่มได้สูงสุด ${MAX_SWATCHES} สี`); return; }
+  p.colors.push(color);
+  savePaletteLibrary();
+  renderBdTools();
+  if (paletteManager && !paletteManager.hidden) renderPaletteManager();
+  toast('เพิ่มสีลงใน ' + p.name + ' แล้ว');
+}
+function paletteButton(label, title, className, onClick){
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = className; b.textContent = label; b.title = title;
+  b.setAttribute('aria-label', title); b.addEventListener('click', onClick);
+  return b;
+}
+let paletteManager = null;
+let boardDock = null, toolboxToggle = null;
+let toolboxDrag = null, toolboxToggleDrag = null, suppressToolboxToggleClickUntil = 0;
+function saveBoardUi(){ LS.set('jt-bd-ui', Board.ui); }
+function getBoardDock(){
+  if (!boardDock || !boardDock.isConnected){
+    const tools = $('#bdTools');
+    boardDock = document.querySelector('.bd-dock') || (tools && tools.parentElement);
+  }
+  return boardDock;
+}
+function startToolboxToggleDrag(e){
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const toggle = ensureToolboxToggle();
+  const r = toggle.getBoundingClientRect();
+  toolboxToggleDrag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false };
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  e.stopPropagation();
+}
+function moveToolboxToggleDrag(e){
+  if (!toolboxToggleDrag || toolboxToggleDrag.id !== e.pointerId) return;
+  const toggle = ensureToolboxToggle(), host = $('#draw');
+  if (!toggle || !host) return;
+  if (!toolboxToggleDrag.moved && Math.hypot(e.clientX - toolboxToggleDrag.sx, e.clientY - toolboxToggleDrag.sy) < 5) return;
+  toolboxToggleDrag.moved = true;
+  const hr = host.getBoundingClientRect(), w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+  const left = clamp(e.clientX - hr.left - toolboxToggleDrag.ox, 8, Math.max(8, w - 56));
+  const top = clamp(e.clientY - hr.top - toolboxToggleDrag.oy, 8, Math.max(8, h - 56));
+  toggle.style.left = Math.round(left) + 'px';
+  toggle.style.top = Math.round(top) + 'px';
+  toggle.dataset.dockSide = 'free';
+  e.preventDefault(); e.stopPropagation();
+}
+function endToolboxToggleDrag(e){
+  if (!toolboxToggleDrag || toolboxToggleDrag.id !== e.pointerId) return;
+  const drag = toolboxToggleDrag; toolboxToggleDrag = null;
+  if (!drag.moved) return;
+  const toggle = ensureToolboxToggle(), host = $('#draw'), hr = host.getBoundingClientRect();
+  const w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+  const r = toggle.getBoundingClientRect();
+  const left = clamp(r.left - hr.left, 8, Math.max(8, w - 56));
+  const top = clamp(r.top - hr.top, 8, Math.max(8, h - 56));
+  Board.ui.toggleX = (left - 8) / Math.max(1, w - 64);
+  Board.ui.toggleY = (top - 8) / Math.max(1, h - 64);
+  saveBoardUi();
+  toggle.style.left = Math.round(left) + 'px';
+  toggle.style.top = Math.round(top) + 'px';
+  toggle.dataset.dockSide = 'free';
+  suppressToolboxToggleClickUntil = Date.now() + 350;
+  e.preventDefault(); e.stopPropagation();
+}
+function ensureToolboxToggle(){
+  if (toolboxToggle && toolboxToggle.isConnected) return toolboxToggle;
+  toolboxToggle = document.createElement('button');
+  toolboxToggle.type = 'button';
+  toolboxToggle.className = 'bd-toolbox-toggle';
+  toolboxToggle.setAttribute('aria-label', 'แสดงแถบเครื่องมือวาด');
+  toolboxToggle.title = 'ลากเพื่อย้าย หรือแตะเพื่อเปิดเครื่องมือวาด';
+  toolboxToggle.style.touchAction = 'none';
+  toolboxToggle.style.userSelect = 'none';
+  toolboxToggle.style.webkitUserSelect = 'none';
+  toolboxToggle.style.cursor = 'grab';
+  toolboxToggle.innerHTML = '<span class="bd-toolbox-toggle-dot"></span><span class="bd-toolbox-toggle-mark">✎</span>';
+  toolboxToggle.addEventListener('pointerdown', startToolboxToggleDrag);
+  toolboxToggle.addEventListener('pointermove', moveToolboxToggleDrag);
+  toolboxToggle.addEventListener('pointerup', endToolboxToggleDrag);
+  toolboxToggle.addEventListener('pointercancel', endToolboxToggleDrag);
+  toolboxToggle.addEventListener('lostpointercapture', e => { if (toolboxToggleDrag && toolboxToggleDrag.id === e.pointerId) toolboxToggleDrag = null; });
+  toolboxToggle.addEventListener('click', e => {
+    if (e.detail && Date.now() < suppressToolboxToggleClickUntil){ suppressToolboxToggleClickUntil = 0; e.preventDefault(); e.stopPropagation(); return; }
+    suppressToolboxToggleClickUntil = 0;
+    e.preventDefault(); e.stopPropagation(); setToolboxCollapsed(false);
+  });
+  $('#draw').appendChild(toolboxToggle);
+  return toolboxToggle;
+}
+function placeToolboxToggle(){
+  const toggle = ensureToolboxToggle(), host = $('#draw');
+  if (!toggle || !host) return;
+  const w = host.clientWidth || window.innerWidth, h = host.clientHeight || window.innerHeight;
+  const side = Board.ui.side, along = clamp(Board.ui.along, 0, 1);
+  const tw = 48, th = 48, pad = 8;
+  let left = (w - tw) * along, top = (h - th) * along;
+  const hasCustomPosition = Number.isFinite(Board.ui.toggleX) && Number.isFinite(Board.ui.toggleY);
+  if (hasCustomPosition){
+    left = pad + clamp(Board.ui.toggleX, 0, 1) * Math.max(0, w - tw - pad * 2);
+    top = pad + clamp(Board.ui.toggleY, 0, 1) * Math.max(0, h - th - pad * 2);
+  } else {
+    if (side === 'left') left = pad;
+    else if (side === 'right') left = w - tw - pad;
+    else left = clamp(left, pad, Math.max(pad, w - tw - pad));
+    if (side === 'top') top = pad;
+    else if (side === 'bottom') top = h - th - pad;
+    else top = clamp(top, pad, Math.max(pad, h - th - pad));
+  }
+  toggle.style.left = Math.round(left) + 'px';
+  toggle.style.top = Math.round(top) + 'px';
+  toggle.dataset.dockSide = side;
+  const dot = toggle.querySelector('.bd-toolbox-toggle-dot');
+  if (dot) dot.style.background = Board.color;
+}
+function applyToolboxPosition(){
+  const dock = getBoardDock();
+  if (!dock) return;
+  dock.dataset.dockSide = Board.ui.side;
+  dock.style.transform = 'none';
+  dock.style.right = 'auto'; dock.style.bottom = 'auto';
+  if (Board.ui.collapsed){
+    dock.hidden = true;
+    placeToolboxToggle();
+    ensureToolboxToggle().hidden = false;
+    return;
+  }
+  dock.hidden = false;
+  const host = $('#draw'), w = host.clientWidth || window.innerWidth, h = host.clientHeight || window.innerHeight;
+  const r = dock.getBoundingClientRect(), dw = r.width || dock.offsetWidth || 280, dh = r.height || dock.offsetHeight || 100;
+  const side = Board.ui.side, along = clamp(Board.ui.along, 0, 1), pad = 8;
+  let left = pad, top = pad;
+  if (side === 'left' || side === 'right'){
+    left = side === 'left' ? pad : Math.max(pad, w - dw - pad);
+    top = clamp((h - dh) * along, pad, Math.max(pad, h - dh - pad));
+  } else {
+    left = clamp((w - dw) * along, pad, Math.max(pad, w - dw - pad));
+    top = side === 'top' ? pad : Math.max(pad, h - dh - pad);
+  }
+  dock.style.left = Math.round(left) + 'px';
+  dock.style.top = Math.round(top) + 'px';
+  const toggle = ensureToolboxToggle(); toggle.hidden = true;
+}
+function setToolboxCollapsed(collapsed){
+  Board.ui.collapsed = !!collapsed;
+  saveBoardUi();
+  applyToolboxPosition();
+}
+function setToolboxAutoHide(enabled){
+  Board.ui.autoHide = !!enabled;
+  saveBoardUi();
+  const button = document.querySelector('.bd-auto-hide');
+  if (button){
+    button.textContent = Board.ui.autoHide ? 'A✓' : 'A–';
+    button.setAttribute('aria-pressed', String(Board.ui.autoHide));
+    button.title = Board.ui.autoHide ? 'ซ่อนแถบเครื่องมืออัตโนมัติขณะวาด (เปิด)' : 'ซ่อนแถบเครื่องมืออัตโนมัติขณะวาด (ปิด)';
+    button.setAttribute('aria-label', button.title);
+  }
+}
+function snapToolboxToSide(side, along){
+  Board.ui.side = side;
+  Board.ui.along = clamp(along, 0, 1);
+  saveBoardUi();
+  const dock = getBoardDock();
+  if (dock){ dock.classList.remove('is-dragging'); dock.dataset.dockSide = side; }
+  applyToolboxPosition();
+}
+function startToolboxDrag(e){
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const dock = getBoardDock();
+  if (!dock || Board.ui.collapsed) return;
+  const host = $('#draw'), r = dock.getBoundingClientRect();
+  toolboxDrag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false };
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  e.preventDefault(); e.stopPropagation();
+}
+function moveToolboxDrag(e){
+  if (!toolboxDrag || toolboxDrag.id !== e.pointerId) return;
+  const dock = getBoardDock(), host = $('#draw'); if (!dock || !host) return;
+  e.preventDefault(); e.stopPropagation();
+  if (!toolboxDrag.moved && Math.hypot(e.clientX - toolboxDrag.sx, e.clientY - toolboxDrag.sy) < 5) return;
+  toolboxDrag.moved = true;
+  dock.classList.add('is-dragging'); dock.dataset.dockSide = 'free';
+  dock.style.transform = 'none'; dock.style.right = 'auto'; dock.style.bottom = 'auto';
+  const hr = host.getBoundingClientRect(), dw = dock.offsetWidth, dh = dock.offsetHeight;
+  const left = clamp(e.clientX - hr.left - toolboxDrag.ox, 4, Math.max(4, hr.width - dw - 4));
+  const top = clamp(e.clientY - hr.top - toolboxDrag.oy, 4, Math.max(4, hr.height - dh - 4));
+  dock.style.left = Math.round(left) + 'px'; dock.style.top = Math.round(top) + 'px';
+}
+function endToolboxDrag(e){
+  if (!toolboxDrag || toolboxDrag.id !== e.pointerId) return;
+  const drag = toolboxDrag; toolboxDrag = null;
+  e.preventDefault(); e.stopPropagation();
+  const dock = getBoardDock(); if (!dock) return;
+  if (!drag.moved){ dock.classList.remove('is-dragging'); return; }
+  const hostRect = $('#draw').getBoundingClientRect(), r = dock.getBoundingClientRect();
+  const distances = [
+    ['left', r.left - hostRect.left],
+    ['right', hostRect.right - r.right],
+    ['top', r.top - hostRect.top],
+    ['bottom', hostRect.bottom - r.bottom]
+  ].sort((a, b) => a[1] - b[1]);
+  const side = distances[0][0];
+  const along = side === 'left' || side === 'right'
+    ? (e.clientY - hostRect.top) / Math.max(1, hostRect.height)
+    : (e.clientX - hostRect.left) / Math.max(1, hostRect.width);
+  snapToolboxToSide(side, along);
+}
+function ensureToolboxControls(){
+  const dock = getBoardDock();
+  if (!dock) return;
+  let head = dock.querySelector('.bd-dock-head');
+  if (!head){
+    head = document.createElement('div'); head.className = 'bd-dock-head';
+    const drag = document.createElement('button'); drag.type = 'button'; drag.className = 'bd-drag-handle';
+    drag.textContent = '⠿'; drag.title = 'ลากเพื่อย้ายแถบเครื่องมือ'; drag.setAttribute('aria-label', 'ลากเพื่อย้ายแถบเครื่องมือ');
+    drag.addEventListener('pointerdown', startToolboxDrag);
+    drag.addEventListener('pointermove', moveToolboxDrag);
+    drag.addEventListener('pointerup', endToolboxDrag);
+    drag.addEventListener('pointercancel', endToolboxDrag);
+    const label = document.createElement('span'); label.className = 'bd-dock-caption'; label.textContent = 'เครื่องมือวาด';
+    const auto = paletteButton(Board.ui.autoHide ? 'A✓' : 'A–', 'ซ่อนแถบเครื่องมืออัตโนมัติขณะวาด', 'bd-dock-action bd-auto-hide', () => setToolboxAutoHide(!Board.ui.autoHide));
+    auto.setAttribute('aria-pressed', String(Board.ui.autoHide));
+    const collapse = paletteButton('−', 'ย่อแถบเครื่องมือ', 'bd-dock-action bd-collapse', () => setToolboxCollapsed(true));
+    head.append(drag, label, auto, collapse);
+    dock.insertBefore(head, dock.firstChild);
+  }
+  ensureToolboxToggle();
+  setToolboxAutoHide(Board.ui.autoHide);
+  applyToolboxPosition();
+}
+
+// Allow the folded YouTube mini-player bubble to move independently of the drawing toolbox.
+function installMiniFabDrag(){
+  const mini = $('#mini'), fab = $('#miniFab'), host = $('#app');
+  if (!mini || !fab || !host || fab.dataset.dragReady === '1') return;
+  fab.dataset.dragReady = '1';
+  fab.style.touchAction = 'none';
+  fab.style.userSelect = 'none';
+  fab.style.webkitUserSelect = 'none';
+  fab.style.cursor = 'grab';
+  let drag = null, suppressClickUntil = 0;
+  const positionKey = 'jt-mini-fab-pos';
+  const place = () => {
+    if (!mini.classList.contains('folded')){
+      mini.style.left = ''; mini.style.top = ''; mini.style.right = ''; mini.style.bottom = '';
+      return;
+    }
+    const pos = LS.get(positionKey, null);
+    if (!pos || !Number.isFinite(Number(pos.x)) || !Number.isFinite(Number(pos.y))) return;
+    const pad = 8, size = 52, w = host.clientWidth || window.innerWidth, h = host.clientHeight || window.innerHeight;
+    const maxLeft = Math.max(pad, w - size - pad), maxTop = Math.max(pad, h - size - pad);
+    const left = pad + clamp(Number(pos.x), 0, 1) * Math.max(0, maxLeft - pad);
+    const top = pad + clamp(Number(pos.y), 0, 1) * Math.max(0, maxTop - pad);
+    mini.style.left = Math.round(left) + 'px';
+    mini.style.top = Math.round(top) + 'px';
+    mini.style.right = 'auto'; mini.style.bottom = 'auto';
+  };
+  fab.addEventListener('pointerdown', e => {
+    if (!mini.classList.contains('folded') || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const r = mini.getBoundingClientRect();
+    drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false };
+    fab.style.cursor = 'grabbing';
+    try { fab.setPointerCapture(e.pointerId); } catch (_) {}
+    e.stopPropagation();
+  });
+  fab.addEventListener('pointermove', e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 5) return;
+    drag.moved = true;
+    const hr = host.getBoundingClientRect(), w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+    const left = clamp(e.clientX - hr.left - drag.ox, 8, Math.max(8, w - 60));
+    const top = clamp(e.clientY - hr.top - drag.oy, 8, Math.max(8, h - 60));
+    mini.style.left = Math.round(left) + 'px'; mini.style.top = Math.round(top) + 'px';
+    mini.style.right = 'auto'; mini.style.bottom = 'auto';
+    e.preventDefault(); e.stopPropagation();
+  });
+  const finish = e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const done = drag; drag = null; fab.style.cursor = 'grab';
+    if (!done.moved) return;
+    const hr = host.getBoundingClientRect(), w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+    const r = mini.getBoundingClientRect(), maxLeft = Math.max(8, w - 60), maxTop = Math.max(8, h - 60);
+    const left = clamp(r.left - hr.left, 8, maxLeft), top = clamp(r.top - hr.top, 8, maxTop);
+    LS.set(positionKey, { x: (left - 8) / Math.max(1, maxLeft - 8), y: (top - 8) / Math.max(1, maxTop - 8) });
+    suppressClickUntil = Date.now() + 350;
+    e.preventDefault(); e.stopPropagation();
+  };
+  fab.addEventListener('pointerup', finish);
+  fab.addEventListener('pointercancel', finish);
+  fab.addEventListener('lostpointercapture', e => { if (drag && drag.id === e.pointerId){ drag = null; fab.style.cursor = 'grab'; } });
+  fab.addEventListener('click', e => {
+    if (e.detail && Date.now() < suppressClickUntil){
+      suppressClickUntil = 0; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    }
+  }, true);
+  const observer = new MutationObserver(place);
+  observer.observe(mini, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('resize', place);
+  place();
+}
+installMiniFabDrag();
+
+function closePaletteManager(){
+  if (paletteManager) paletteManager.hidden = true;
+}
+function movePaletteColor(index, delta){
+  const p = activePalette(), next = index + delta;
+  if (!p || next < 0 || next >= p.colors.length) return;
+  [p.colors[index], p.colors[next]] = [p.colors[next], p.colors[index]];
+  savePaletteLibrary(); renderBdTools(); renderPaletteManager();
+}
+function removePaletteColor(index){
+  const p = activePalette();
+  if (!p) return;
+  p.colors.splice(index, 1);
+  savePaletteLibrary(); renderBdTools(); renderPaletteManager();
+}
+function createPalette(name, colors){
+  const cleanName = String(name || '').trim().slice(0, 32);
+  if (!cleanName){ toast('กรุณาตั้งชื่อชุดสี'); return false; }
+  if (Board.palettes.length >= MAX_PALETTES){ toast(`สร้างชุดสีได้สูงสุด ${MAX_PALETTES} ชุด`); return false; }
+  const p = { id: createPaletteId(), name: cleanName, colors: (colors || []).filter(isHexColor).map(c => c.toLowerCase()).slice(0, MAX_SWATCHES) };
+  Board.palettes.push(p); Board.activePaletteId = p.id;
+  savePaletteLibrary(); renderBdTools();
+  return true;
+}
+function ensurePaletteManager(){
+  if (paletteManager) return;
+  paletteManager = document.createElement('div');
+  paletteManager.className = 'bd-palette-manager';
+  paletteManager.hidden = true;
+  paletteManager.addEventListener('click', e => { if (e.target === paletteManager) closePaletteManager(); });
+  paletteManager.addEventListener('keydown', e => { if (e.key === 'Escape'){ e.preventDefault(); closePaletteManager(); } });
+  $('#draw').appendChild(paletteManager);
+}
+function renderPaletteManager(){
+  ensurePaletteManager();
+  const p = activePalette();
+  paletteManager.replaceChildren();
+
+  const card = document.createElement('div');
+  card.className = 'bd-palette-card';
+  card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true');
+  card.setAttribute('aria-label', 'จัดการชุดสี');
+
+  const sheetGrip = document.createElement('div'); sheetGrip.className = 'bd-sheet-grip';
+  sheetGrip.setAttribute('role', 'button'); sheetGrip.setAttribute('tabindex', '0');
+  sheetGrip.setAttribute('aria-label', 'ลากลงเพื่อปิด หรือแตะเพื่อขยายหน้าจัดการชุดสี');
+  let sheetDrag = null;
+  sheetGrip.addEventListener('pointerdown', e => { sheetDrag = { id: e.pointerId, y: e.clientY }; try { sheetGrip.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); e.stopPropagation(); });
+  sheetGrip.addEventListener('pointermove', e => { if (!sheetDrag || sheetDrag.id !== e.pointerId) return; e.preventDefault(); e.stopPropagation(); const dy = e.clientY - sheetDrag.y; if (dy > 0) card.style.transform = `translateY(${Math.min(dy, 260)}px)`; });
+  const finishSheetDrag = e => { if (!sheetDrag || sheetDrag.id !== e.pointerId) return; const dy = e.clientY - sheetDrag.y; sheetDrag = null; card.style.transform = ''; if (dy > 90) closePaletteManager(); else if (dy < -45) card.classList.add('is-expanded'); e.preventDefault(); e.stopPropagation(); };
+  sheetGrip.addEventListener('pointerup', finishSheetDrag);
+  sheetGrip.addEventListener('pointercancel', finishSheetDrag);
+  sheetGrip.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.classList.toggle('is-expanded'); } });
+  const head = document.createElement('div'); head.className = 'bd-manager-head';
+  const title = document.createElement('strong'); title.textContent = 'จัดการชุดสี';
+  const close = paletteButton('×', 'ปิดหน้าจัดการชุดสี', 'bd-manager-close', closePaletteManager);
+  head.append(title, close); card.append(sheetGrip, head);
+
+  const createRow = document.createElement('div'); createRow.className = 'bd-manager-row';
+  const createInput = document.createElement('input'); createInput.type = 'text'; createInput.maxLength = 32;
+  createInput.placeholder = 'ชื่อชุดสีใหม่'; createInput.setAttribute('aria-label', 'ชื่อชุดสีใหม่');
+  const createBtn = paletteButton('สร้างชุดสี', 'สร้างชุดสีใหม่', 'bd-manager-btn primary', () => {
+    if (createPalette(createInput.value)){ renderPaletteManager(); }
+  });
+  createRow.append(createInput, createBtn); card.appendChild(createRow);
+
+  const selectLabel = document.createElement('label'); selectLabel.className = 'bd-manager-label';
+  selectLabel.textContent = 'ชุดสีที่กำลังจัดการ';
+  const select = document.createElement('select'); select.className = 'bd-manager-select';
+  Board.palettes.forEach(item => {
+    const option = document.createElement('option'); option.value = item.id; option.textContent = item.name;
+    option.selected = item.id === Board.activePaletteId; select.appendChild(option);
+  });
+  select.addEventListener('change', () => { setActivePalette(select.value); renderPaletteManager(); });
+  selectLabel.appendChild(select); card.appendChild(selectLabel);
+
+  const renameRow = document.createElement('div'); renameRow.className = 'bd-manager-row';
+  const renameInput = document.createElement('input'); renameInput.type = 'text'; renameInput.maxLength = 32;
+  renameInput.value = p.name; renameInput.setAttribute('aria-label', 'ชื่อชุดสี');
+  const renameBtn = paletteButton('เปลี่ยนชื่อ', 'บันทึกชื่อชุดสี', 'bd-manager-btn', () => {
+    const name = renameInput.value.trim().slice(0, 32);
+    if (!name){ toast('ชื่อชุดสีห้ามว่าง'); return; }
+    p.name = name; savePaletteLibrary(); renderBdTools(); renderPaletteManager(); toast('เปลี่ยนชื่อชุดสีแล้ว');
+  });
+  renameRow.append(renameInput, renameBtn); card.appendChild(renameRow);
+
+  const actions = document.createElement('div'); actions.className = 'bd-manager-actions';
+  const duplicateBtn = paletteButton('ทำสำเนา', 'ทำสำเนาชุดสีนี้', 'bd-manager-btn', () => {
+    if (createPalette(p.name + ' Copy', [...p.colors])){ renderPaletteManager(); toast('ทำสำเนาชุดสีแล้ว'); }
+  });
+  const deleteBtn = paletteButton('ลบชุดสี', 'ลบชุดสีนี้', 'bd-manager-btn danger', () => {
+    if (Board.palettes.length <= 1){ toast('ต้องเหลือชุดสีอย่างน้อย 1 ชุด'); return; }
+    if (!window.confirm(`ต้องการลบชุดสี "${p.name}" ใช่หรือไม่?`)) return;
+    Board.palettes = Board.palettes.filter(item => item.id !== p.id);
+    Board.activePaletteId = Board.palettes[0].id;
+    savePaletteLibrary(); renderBdTools(); renderPaletteManager(); toast('ลบชุดสีแล้ว');
+  });
+  actions.append(duplicateBtn, deleteBtn); card.appendChild(actions);
+
+  const swatchHead = document.createElement('div'); swatchHead.className = 'bd-manager-subhead';
+  const swatchTitle = document.createElement('strong'); swatchTitle.textContent = `สีในชุดนี้ (${p.colors.length}/${MAX_SWATCHES})`;
+  const addCurrent = paletteButton('+ สีปัจจุบัน', 'เพิ่มสีปัจจุบันลงในชุดสี', 'bd-manager-btn primary', () => addColorToPalette(Board.color));
+  swatchHead.append(swatchTitle, addCurrent); card.appendChild(swatchHead);
+
+  const colorList = document.createElement('div'); colorList.className = 'bd-manager-colors';
+  if (!p.colors.length){
+    const empty = document.createElement('p'); empty.className = 'bd-manager-empty'; empty.textContent = 'ยังไม่มีสีในชุดนี้ เลือกสีจากแถบเครื่องมือแล้วกด + สีปัจจุบัน'; colorList.appendChild(empty);
+  }
+  p.colors.forEach((color, index) => {
+    const row = document.createElement('div'); row.className = 'bd-manager-color';
+    const swatch = document.createElement('button'); swatch.type = 'button'; swatch.className = 'bd-manager-swatch';
+    swatch.style.background = color; swatch.title = 'เลือก ' + color.toUpperCase();
+    swatch.setAttribute('aria-label', 'เลือกสี ' + color);
+    swatch.addEventListener('click', () => setBoardColor(color));
+    const hex = document.createElement('code'); hex.textContent = color.toUpperCase();
+    const up = paletteButton('↑', 'เลื่อนสีขึ้น', 'bd-manager-icon', () => movePaletteColor(index, -1)); up.disabled = index === 0;
+    const down = paletteButton('↓', 'เลื่อนสีลง', 'bd-manager-icon', () => movePaletteColor(index, 1)); down.disabled = index === p.colors.length - 1;
+    const remove = paletteButton('×', 'ลบสีนี้ออกจากชุดสี', 'bd-manager-icon danger', () => {
+      if (window.confirm(`ลบสี ${color.toUpperCase()} ออกจากชุดนี้?`)) removePaletteColor(index);
+    });
+    row.append(swatch, hex, up, down, remove); colorList.appendChild(row);
+  });
+  card.appendChild(colorList);
+
+  const hint = document.createElement('p'); hint.className = 'bd-manager-hint';
+  hint.textContent = 'ชุดสีและสีที่บันทึกเป็นข้อมูลส่วนตัวในอุปกรณ์นี้ ส่วนสีบนเส้นวาดจะยังแชร์ให้เพื่อนผ่านกระดานร่วมกัน';
+  card.appendChild(hint);
+  paletteManager.appendChild(card);
+  paletteManager.hidden = false;
+  card.classList.remove('is-expanded');
+}
 function renderBdTools(){
+  ensureToolboxControls();
   const box = $('#bdTools'); if (!box.children.length){
     TOOLS.forEach(([id, label, svg]) => { const b = document.createElement('button'); b.className = 'bd-tool'; b.dataset.t = id; b.title = label; b.setAttribute('aria-label', label); b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>`; b.onclick = () => setTool(id); box.appendChild(b); });
   }
@@ -2388,7 +3027,52 @@ function renderBdTools(){
   const opts = $('#bdOpts'); opts.innerHTML = '';
   const t = Board.tool;
   if (['pen', 'hl', 'text'].includes(t)){
-    INK.forEach(c => { if (t === 'text' && c === '#ffffff') return; const b = document.createElement('button'); b.className = 'bd-sw'; b.style.background = c; b.setAttribute('aria-label', 'สี'); b.setAttribute('aria-pressed', c === Board.color); b.onclick = () => { Board.color = c; LS.set('jt-bd-color', c); renderBdTools(); }; opts.appendChild(b); });
+    const paletteBar = document.createElement('div'); paletteBar.className = 'bd-palette-bar';
+    const paletteSelect = document.createElement('select'); paletteSelect.className = 'bd-palette-select';
+    paletteSelect.setAttribute('aria-label', 'เลือกชุดสี');
+    Board.palettes.forEach(item => {
+      const option = document.createElement('option'); option.value = item.id; option.textContent = item.name;
+      option.selected = item.id === Board.activePaletteId; paletteSelect.appendChild(option);
+    });
+    paletteSelect.addEventListener('change', () => setActivePalette(paletteSelect.value));
+    paletteBar.appendChild(paletteSelect);
+
+    const swatches = document.createElement('div'); swatches.className = 'bd-palette-swatches';
+    const palette = activePalette();
+    palette.colors.forEach(color => {
+      if (t === 'text' && color === '#ffffff') return;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'bd-sw';
+      b.style.background = color; b.title = color.toUpperCase(); b.setAttribute('aria-label', `เลือกสี ${color}`);
+      b.setAttribute('aria-pressed', color === Board.color);
+      b.addEventListener('click', () => setBoardColor(color)); swatches.appendChild(b);
+    });
+    if (!swatches.children.length){
+      const empty = document.createElement('span'); empty.className = 'bd-palette-empty'; empty.textContent = 'ยังไม่มีสี'; swatches.appendChild(empty);
+    }
+    paletteBar.appendChild(swatches);
+
+    const picker = document.createElement('label'); picker.className = 'bd-color-add'; picker.title = 'เลือกสีใหม่';
+    const input = document.createElement('input'); input.type = 'color'; input.value = t === 'text' && Board.color === '#ffffff' ? INK[0] : Board.color;
+    input.setAttribute('aria-label', 'เลือกสีใหม่'); input.addEventListener('change', () => setBoardColor(input.value));
+    const plus = document.createElement('span'); plus.textContent = '+'; plus.setAttribute('aria-hidden', 'true');
+    picker.append(input, plus); paletteBar.appendChild(picker);
+    paletteBar.appendChild(paletteButton('+', 'เพิ่มสีปัจจุบันลงในชุดสี', 'bd-palette-add', () => addColorToPalette(Board.color)));
+    paletteBar.appendChild(paletteButton('⚙', 'จัดการชุดสี', 'bd-palette-manage', renderPaletteManager));
+    opts.appendChild(paletteBar);
+
+    if (Board.recentColors.length){
+      const recentRow = document.createElement('div'); recentRow.className = 'bd-recent-row';
+      const label = document.createElement('span'); label.className = 'bd-recent-label'; label.textContent = 'ล่าสุด';
+      recentRow.appendChild(label);
+      Board.recentColors.forEach(color => {
+        if (t === 'text' && color === '#ffffff') return;
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'bd-sw';
+        b.style.background = color; b.title = `สีล่าสุด ${color.toUpperCase()}`; b.setAttribute('aria-label', `เลือกสีล่าสุด ${color}`);
+        b.setAttribute('aria-pressed', color === Board.color); b.addEventListener('click', () => setBoardColor(color));
+        recentRow.appendChild(b);
+      });
+      opts.appendChild(recentRow);
+    }
   }
   if (t === 'note'){
     NOTE_BG.forEach(c => { const b = document.createElement('button'); b.className = 'bd-sw sq'; b.style.background = c; b.setAttribute('aria-label', 'สีโน้ต'); b.setAttribute('aria-pressed', c === Board.noteBg); b.onclick = () => { Board.noteBg = c; LS.set('jt-bd-note', c); renderBdTools(); }; opts.appendChild(b); });
@@ -2400,6 +3084,9 @@ function renderBdTools(){
   opts.hidden = !opts.children.length;
   $('#bdUndo').disabled = !Board.undo.length; $('#bdRedo').disabled = !Board.redo.length;
   bdCv.dataset.tool = t;
+  const toggleDot = document.querySelector('.bd-toolbox-toggle-dot');
+  if (toggleDot) toggleDot.style.background = Board.color;
+  applyToolboxPosition();
 }
 $('#bdUndo').onclick = undo;
 $('#bdRedo').onclick = redo;
@@ -2418,13 +3105,13 @@ $('#bdAskYes').onclick = async () => {
 
 function openBoard(){
   Board.open = true; $('#draw').hidden = false; document.body.classList.add('draw-open');
-  renderBdTools(); ensureView(); bdDirty(); loadBoard();
+  renderBdTools(); ensureToolboxControls(); applyToolboxPosition(); ensureView(); bdDirty(); loadBoard();
 }
 function closeBoard(){
   commitText(); if (cur) endGesture(true); ptrs.clear();
   Board.open = false; $('#draw').hidden = true; document.body.classList.remove('draw-open'); saveView(); flush();
 }
-window.addEventListener('resize', () => { if (Board.open){ placeText(); bdDirty(); } });
+window.addEventListener('resize', () => { if (Board.open){ applyToolboxPosition(); if (Board.ui.collapsed) placeToolboxToggle(); placeText(); bdDirty(); } });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && Board.open) loadBoard(); });
 
 /* ---------- chat ---------- */
