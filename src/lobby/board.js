@@ -4,13 +4,63 @@
 const INK = ['#2a1c16', '#d9574a', '#e8932c', '#4fae55', '#2fa79b', '#3f92d8', '#7c6cf0', '#e8728c', '#ffffff'];
 const NOTE_BG = ['#ffe58a', '#ffc2cf', '#bfe3ff', '#c8f0b8', '#e3d4ff'];
 const SIZES = [2, 5, 10, 22];
+const isHexColor = value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+const MAX_PALETTES = 30, MAX_SWATCHES = 64;
+const DEFAULT_PALETTES = [
+  { id: 'basic', name: 'Basic Colors', colors: [...INK] },
+  { id: 'pastel', name: 'Pastel', colors: ['#F7CAD0', '#F4ACB7', '#F9E2AE', '#CDEAC0', '#B8E0D2', '#BDE0FE', '#CDB4DB', '#E8C2CA', '#FFF1E6', '#A9DEF9'] },
+  { id: 'warm', name: 'Warm', colors: ['#4A2522', '#7D3C2F', '#B84A36', '#D96C40', '#E8932C', '#F2B66D', '#F6D6A8', '#A64B2A', '#D9574A'] },
+  { id: 'cool', name: 'Cool', colors: ['#14213D', '#1D3557', '#457B9D', '#3F92D8', '#2FA79B', '#70C1B3', '#A8DADC', '#BDE0FE', '#E0FBFC'] },
+  { id: 'nature', name: 'Nature', colors: ['#283618', '#414833', '#606C38', '#7F8F45', '#A7C957', '#B6D8A8', '#DDA15E', '#BC6C25', '#E9C46A'] },
+  { id: 'monochrome', name: 'Monochrome', colors: ['#111111', '#333333', '#555555', '#777777', '#999999', '#BBBBBB', '#DDDDDD', '#FFFFFF'] }
+];
 const NOTE = 180, NOTE_FS = 22;
+
+function createPaletteId(){
+  return 'palette-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+}
+function normalizePalettes(value){
+  if (!Array.isArray(value) || !value.length) return DEFAULT_PALETTES.map(p => ({ ...p, colors: [...p.colors] }));
+  const ids = new Set();
+  const palettes = [];
+  for (const item of value.slice(0, MAX_PALETTES)){
+    if (!item || typeof item !== 'object') continue;
+    let id = typeof item.id === 'string' && item.id.trim() ? item.id.trim().slice(0, 80) : createPaletteId();
+    if (ids.has(id)) id = createPaletteId();
+    ids.add(id);
+    const name = String(item.name || 'Untitled Palette').trim().slice(0, 32) || 'Untitled Palette';
+    const colors = Array.isArray(item.colors)
+      ? [...new Set(item.colors.filter(isHexColor).map(c => c.toLowerCase()))].slice(0, MAX_SWATCHES)
+      : [];
+    palettes.push({ id, name, colors });
+  }
+  return palettes.length ? palettes : DEFAULT_PALETTES.map(p => ({ ...p, colors: [...p.colors] }));
+}
+
 const Board = {
   items: new Map(), live: new Map(), undo: [], redo: [], open: false, dirty: true, thumbDirty: true, loaded: false,
   tool: LS.get('jt-bd-tool', 'pen'), color: LS.get('jt-bd-color', INK[0]), size: LS.get('jt-bd-size', 5), noteBg: LS.get('jt-bd-note', NOTE_BG[0]),
+  recentColors: LS.get('jt-bd-recent-colors', []),
+  palettes: normalizePalettes(LS.get('jt-bd-palettes', null)),
+  activePaletteId: LS.get('jt-bd-active-palette', 'basic'),
+  ui: LS.get('jt-bd-ui', null),
   view: LS.get('jt-bd-view', null), pendAdd: new Map(), pendDel: new Set(), penSeen: false, editing: null, cursor: null
 };
-if (!INK.includes(Board.color)) Board.color = INK[0];
+if (!isHexColor(Board.color)) Board.color = INK[0];
+Board.color = Board.color.toLowerCase();
+Board.recentColors = Array.isArray(Board.recentColors)
+  ? [...new Set(Board.recentColors.filter(isHexColor).map(c => c.toLowerCase()))].slice(0, 8)
+  : [];
+if (!Board.palettes.some(p => p.id === Board.activePaletteId)) Board.activePaletteId = Board.palettes[0].id;
+Board.ui = Board.ui && typeof Board.ui === 'object' ? Board.ui : {};
+Board.ui.side = ['left', 'right', 'top', 'bottom'].includes(Board.ui.side) ? Board.ui.side : 'bottom';
+Board.ui.along = Number.isFinite(Number(Board.ui.along)) ? clamp(Number(Board.ui.along), 0, 1) : .5;
+Board.ui.collapsed = Board.ui.collapsed === true;
+Board.ui.autoHide = Board.ui.autoHide !== false;
+LS.set('jt-bd-ui', Board.ui);
+LS.set('jt-bd-palettes', Board.palettes);
+LS.set('jt-bd-active-palette', Board.activePaletteId);
+LS.set('jt-bd-recent-colors', Board.recentColors);
 if (!SIZES.includes(Board.size)) Board.size = 5;
 if (!['hand', 'pen', 'hl', 'eraser', 'text', 'note'].includes(Board.tool)) Board.tool = 'pen';
 const bdCv = $('#drawCv'), bdG = bdCv.getContext('2d'), measureG = document.createElement('canvas').getContext('2d');
@@ -316,9 +366,10 @@ bdCv.addEventListener('pointerdown', e => {
   if (Board.tool === 'pen' || Board.tool === 'hl'){
     const hl = Board.tool === 'hl';
     cur = { type: 'draw', id: bdId(), c: Board.color, w: hl ? Board.size * 3 + 6 : Board.size, hl, p: [r1(wx), r1(wy)], sentN: 0, sent: false };
+    if (Board.ui.autoHide) setToolboxCollapsed(true);
     bdDirty(); return;
   }
-  if (Board.tool === 'eraser'){ cur = { type: 'erase', gone: [] }; Board.cursor = [x, y]; eraseAt(wx, wy); bdDirty(); return; }
+  if (Board.tool === 'eraser'){ cur = { type: 'erase', gone: [] }; Board.cursor = [x, y]; eraseAt(wx, wy); if (Board.ui.autoHide) setToolboxCollapsed(true); bdDirty(); return; }
   cur = { type: 'tap', sx: x, sy: y, wx, wy, vx: Board.view.x, vy: Board.view.y };
 });
 bdCv.addEventListener('pointermove', e => {
@@ -454,7 +505,469 @@ const TOOLS = [
   ['note', 'โน้ตแปะ', '<path d="M4 4h16v11l-5 5H4z"/><path d="M15 20v-5h5"/>']
 ];
 function setTool(t){ commitText(); Board.tool = t; LS.set('jt-bd-tool', t); Board.cursor = null; renderBdTools(); bdDirty(); }
+function activePalette(){
+  return Board.palettes.find(p => p.id === Board.activePaletteId) || Board.palettes[0];
+}
+function savePaletteLibrary(){
+  LS.set('jt-bd-palettes', Board.palettes);
+  LS.set('jt-bd-active-palette', Board.activePaletteId);
+}
+function setActivePalette(id){
+  if (!Board.palettes.some(p => p.id === id)) return;
+  Board.activePaletteId = id;
+  savePaletteLibrary();
+  renderBdTools();
+}
+function setBoardColor(color){
+  if (!isHexColor(color)) return;
+  color = color.toLowerCase();
+  if (Board.tool === 'text' && color === '#ffffff'){ toast('ข้อความไม่สามารถใช้สีขาวได้'); return; }
+  Board.color = color;
+  Board.recentColors = [color, ...Board.recentColors.filter(c => c !== color)].slice(0, 8);
+  LS.set('jt-bd-recent-colors', Board.recentColors);
+  LS.set('jt-bd-color', color);
+  renderBdTools();
+}
+function addColorToPalette(color){
+  const p = activePalette();
+  if (!p || !isHexColor(color)) return;
+  color = color.toLowerCase();
+  if (p.colors.includes(color)){ toast('สีนี้อยู่ในชุดนี้แล้ว'); return; }
+  if (p.colors.length >= MAX_SWATCHES){ toast(`หนึ่งชุดสีเพิ่มได้สูงสุด ${MAX_SWATCHES} สี`); return; }
+  p.colors.push(color);
+  savePaletteLibrary();
+  renderBdTools();
+  if (paletteManager && !paletteManager.hidden) renderPaletteManager();
+  toast('เพิ่มสีลงใน ' + p.name + ' แล้ว');
+}
+function paletteButton(label, title, className, onClick){
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = className; b.textContent = label; b.title = title;
+  b.setAttribute('aria-label', title); b.addEventListener('click', onClick);
+  return b;
+}
+let paletteManager = null;
+let boardDock = null, toolboxToggle = null;
+let toolboxDrag = null, toolboxToggleDrag = null, suppressToolboxToggleClickUntil = 0;
+function saveBoardUi(){ LS.set('jt-bd-ui', Board.ui); }
+function getBoardDock(){
+  if (!boardDock || !boardDock.isConnected){
+    const tools = $('#bdTools');
+    boardDock = document.querySelector('.bd-dock') || (tools && tools.parentElement);
+  }
+  return boardDock;
+}
+function startToolboxToggleDrag(e){
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const toggle = ensureToolboxToggle();
+  const r = toggle.getBoundingClientRect();
+  toolboxToggleDrag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false };
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  e.stopPropagation();
+}
+function moveToolboxToggleDrag(e){
+  if (!toolboxToggleDrag || toolboxToggleDrag.id !== e.pointerId) return;
+  const toggle = ensureToolboxToggle(), host = $('#draw');
+  if (!toggle || !host) return;
+  if (!toolboxToggleDrag.moved && Math.hypot(e.clientX - toolboxToggleDrag.sx, e.clientY - toolboxToggleDrag.sy) < 5) return;
+  toolboxToggleDrag.moved = true;
+  const hr = host.getBoundingClientRect(), w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+  const left = clamp(e.clientX - hr.left - toolboxToggleDrag.ox, 8, Math.max(8, w - 56));
+  const top = clamp(e.clientY - hr.top - toolboxToggleDrag.oy, 8, Math.max(8, h - 56));
+  toggle.style.left = Math.round(left) + 'px';
+  toggle.style.top = Math.round(top) + 'px';
+  toggle.dataset.dockSide = 'free';
+  e.preventDefault(); e.stopPropagation();
+}
+function endToolboxToggleDrag(e){
+  if (!toolboxToggleDrag || toolboxToggleDrag.id !== e.pointerId) return;
+  const drag = toolboxToggleDrag; toolboxToggleDrag = null;
+  if (!drag.moved) return;
+  const toggle = ensureToolboxToggle(), host = $('#draw'), hr = host.getBoundingClientRect();
+  const w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+  const r = toggle.getBoundingClientRect();
+  const left = clamp(r.left - hr.left, 8, Math.max(8, w - 56));
+  const top = clamp(r.top - hr.top, 8, Math.max(8, h - 56));
+  Board.ui.toggleX = (left - 8) / Math.max(1, w - 64);
+  Board.ui.toggleY = (top - 8) / Math.max(1, h - 64);
+  saveBoardUi();
+  toggle.style.left = Math.round(left) + 'px';
+  toggle.style.top = Math.round(top) + 'px';
+  toggle.dataset.dockSide = 'free';
+  suppressToolboxToggleClickUntil = Date.now() + 350;
+  e.preventDefault(); e.stopPropagation();
+}
+function ensureToolboxToggle(){
+  if (toolboxToggle && toolboxToggle.isConnected) return toolboxToggle;
+  toolboxToggle = document.createElement('button');
+  toolboxToggle.type = 'button';
+  toolboxToggle.className = 'bd-toolbox-toggle';
+  toolboxToggle.setAttribute('aria-label', 'แสดงแถบเครื่องมือวาด');
+  toolboxToggle.title = 'ลากเพื่อย้าย หรือแตะเพื่อเปิดเครื่องมือวาด';
+  toolboxToggle.style.touchAction = 'none';
+  toolboxToggle.style.userSelect = 'none';
+  toolboxToggle.style.webkitUserSelect = 'none';
+  toolboxToggle.style.cursor = 'grab';
+  toolboxToggle.innerHTML = '<span class="bd-toolbox-toggle-dot"></span><span class="bd-toolbox-toggle-mark">✎</span>';
+  toolboxToggle.addEventListener('pointerdown', startToolboxToggleDrag);
+  toolboxToggle.addEventListener('pointermove', moveToolboxToggleDrag);
+  toolboxToggle.addEventListener('pointerup', endToolboxToggleDrag);
+  toolboxToggle.addEventListener('pointercancel', endToolboxToggleDrag);
+  toolboxToggle.addEventListener('lostpointercapture', e => { if (toolboxToggleDrag && toolboxToggleDrag.id === e.pointerId) toolboxToggleDrag = null; });
+  toolboxToggle.addEventListener('click', e => {
+    if (e.detail && Date.now() < suppressToolboxToggleClickUntil){ suppressToolboxToggleClickUntil = 0; e.preventDefault(); e.stopPropagation(); return; }
+    suppressToolboxToggleClickUntil = 0;
+    e.preventDefault(); e.stopPropagation(); setToolboxCollapsed(false);
+  });
+  $('#draw').appendChild(toolboxToggle);
+  return toolboxToggle;
+}
+function placeToolboxToggle(){
+  const toggle = ensureToolboxToggle(), host = $('#draw');
+  if (!toggle || !host) return;
+  const w = host.clientWidth || window.innerWidth, h = host.clientHeight || window.innerHeight;
+  const side = Board.ui.side, along = clamp(Board.ui.along, 0, 1);
+  const tw = 48, th = 48, pad = 8;
+  let left = (w - tw) * along, top = (h - th) * along;
+  const hasCustomPosition = Number.isFinite(Board.ui.toggleX) && Number.isFinite(Board.ui.toggleY);
+  if (hasCustomPosition){
+    left = pad + clamp(Board.ui.toggleX, 0, 1) * Math.max(0, w - tw - pad * 2);
+    top = pad + clamp(Board.ui.toggleY, 0, 1) * Math.max(0, h - th - pad * 2);
+  } else {
+    if (side === 'left') left = pad;
+    else if (side === 'right') left = w - tw - pad;
+    else left = clamp(left, pad, Math.max(pad, w - tw - pad));
+    if (side === 'top') top = pad;
+    else if (side === 'bottom') top = h - th - pad;
+    else top = clamp(top, pad, Math.max(pad, h - th - pad));
+  }
+  toggle.style.left = Math.round(left) + 'px';
+  toggle.style.top = Math.round(top) + 'px';
+  toggle.dataset.dockSide = side;
+  const dot = toggle.querySelector('.bd-toolbox-toggle-dot');
+  if (dot) dot.style.background = Board.color;
+}
+function applyToolboxPosition(){
+  const dock = getBoardDock();
+  if (!dock) return;
+  dock.dataset.dockSide = Board.ui.side;
+  dock.style.transform = 'none';
+  dock.style.right = 'auto'; dock.style.bottom = 'auto';
+  if (Board.ui.collapsed){
+    dock.hidden = true;
+    placeToolboxToggle();
+    ensureToolboxToggle().hidden = false;
+    return;
+  }
+  dock.hidden = false;
+  const host = $('#draw'), w = host.clientWidth || window.innerWidth, h = host.clientHeight || window.innerHeight;
+  const r = dock.getBoundingClientRect(), dw = r.width || dock.offsetWidth || 280, dh = r.height || dock.offsetHeight || 100;
+  const side = Board.ui.side, along = clamp(Board.ui.along, 0, 1), pad = 8;
+  let left = pad, top = pad;
+  if (side === 'left' || side === 'right'){
+    left = side === 'left' ? pad : Math.max(pad, w - dw - pad);
+    top = clamp((h - dh) * along, pad, Math.max(pad, h - dh - pad));
+  } else {
+    left = clamp((w - dw) * along, pad, Math.max(pad, w - dw - pad));
+    top = side === 'top' ? pad : Math.max(pad, h - dh - pad);
+  }
+  dock.style.left = Math.round(left) + 'px';
+  dock.style.top = Math.round(top) + 'px';
+  const toggle = ensureToolboxToggle(); toggle.hidden = true;
+}
+function setToolboxCollapsed(collapsed){
+  Board.ui.collapsed = !!collapsed;
+  saveBoardUi();
+  applyToolboxPosition();
+}
+function setToolboxAutoHide(enabled){
+  Board.ui.autoHide = !!enabled;
+  saveBoardUi();
+  const button = document.querySelector('.bd-auto-hide');
+  if (button){
+    button.textContent = Board.ui.autoHide ? 'A✓' : 'A–';
+    button.setAttribute('aria-pressed', String(Board.ui.autoHide));
+    button.title = Board.ui.autoHide ? 'ซ่อนแถบเครื่องมืออัตโนมัติขณะวาด (เปิด)' : 'ซ่อนแถบเครื่องมืออัตโนมัติขณะวาด (ปิด)';
+    button.setAttribute('aria-label', button.title);
+  }
+}
+function snapToolboxToSide(side, along){
+  Board.ui.side = side;
+  Board.ui.along = clamp(along, 0, 1);
+  saveBoardUi();
+  const dock = getBoardDock();
+  if (dock){ dock.classList.remove('is-dragging'); dock.dataset.dockSide = side; }
+  applyToolboxPosition();
+}
+function startToolboxDrag(e){
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const dock = getBoardDock();
+  if (!dock || Board.ui.collapsed) return;
+  const host = $('#draw'), r = dock.getBoundingClientRect();
+  toolboxDrag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false };
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  e.preventDefault(); e.stopPropagation();
+}
+function moveToolboxDrag(e){
+  if (!toolboxDrag || toolboxDrag.id !== e.pointerId) return;
+  const dock = getBoardDock(), host = $('#draw'); if (!dock || !host) return;
+  e.preventDefault(); e.stopPropagation();
+  if (!toolboxDrag.moved && Math.hypot(e.clientX - toolboxDrag.sx, e.clientY - toolboxDrag.sy) < 5) return;
+  toolboxDrag.moved = true;
+  dock.classList.add('is-dragging'); dock.dataset.dockSide = 'free';
+  dock.style.transform = 'none'; dock.style.right = 'auto'; dock.style.bottom = 'auto';
+  const hr = host.getBoundingClientRect(), dw = dock.offsetWidth, dh = dock.offsetHeight;
+  const left = clamp(e.clientX - hr.left - toolboxDrag.ox, 4, Math.max(4, hr.width - dw - 4));
+  const top = clamp(e.clientY - hr.top - toolboxDrag.oy, 4, Math.max(4, hr.height - dh - 4));
+  dock.style.left = Math.round(left) + 'px'; dock.style.top = Math.round(top) + 'px';
+}
+function endToolboxDrag(e){
+  if (!toolboxDrag || toolboxDrag.id !== e.pointerId) return;
+  const drag = toolboxDrag; toolboxDrag = null;
+  e.preventDefault(); e.stopPropagation();
+  const dock = getBoardDock(); if (!dock) return;
+  if (!drag.moved){ dock.classList.remove('is-dragging'); return; }
+  const hostRect = $('#draw').getBoundingClientRect(), r = dock.getBoundingClientRect();
+  const distances = [
+    ['left', r.left - hostRect.left],
+    ['right', hostRect.right - r.right],
+    ['top', r.top - hostRect.top],
+    ['bottom', hostRect.bottom - r.bottom]
+  ].sort((a, b) => a[1] - b[1]);
+  const side = distances[0][0];
+  const along = side === 'left' || side === 'right'
+    ? (e.clientY - hostRect.top) / Math.max(1, hostRect.height)
+    : (e.clientX - hostRect.left) / Math.max(1, hostRect.width);
+  snapToolboxToSide(side, along);
+}
+function ensureToolboxControls(){
+  const dock = getBoardDock();
+  if (!dock) return;
+  let head = dock.querySelector('.bd-dock-head');
+  if (!head){
+    head = document.createElement('div'); head.className = 'bd-dock-head';
+    const drag = document.createElement('button'); drag.type = 'button'; drag.className = 'bd-drag-handle';
+    drag.textContent = '⠿'; drag.title = 'ลากเพื่อย้ายแถบเครื่องมือ'; drag.setAttribute('aria-label', 'ลากเพื่อย้ายแถบเครื่องมือ');
+    drag.addEventListener('pointerdown', startToolboxDrag);
+    drag.addEventListener('pointermove', moveToolboxDrag);
+    drag.addEventListener('pointerup', endToolboxDrag);
+    drag.addEventListener('pointercancel', endToolboxDrag);
+    const label = document.createElement('span'); label.className = 'bd-dock-caption'; label.textContent = 'เครื่องมือวาด';
+    const auto = paletteButton(Board.ui.autoHide ? 'A✓' : 'A–', 'ซ่อนแถบเครื่องมืออัตโนมัติขณะวาด', 'bd-dock-action bd-auto-hide', () => setToolboxAutoHide(!Board.ui.autoHide));
+    auto.setAttribute('aria-pressed', String(Board.ui.autoHide));
+    const collapse = paletteButton('−', 'ย่อแถบเครื่องมือ', 'bd-dock-action bd-collapse', () => setToolboxCollapsed(true));
+    head.append(drag, label, auto, collapse);
+    dock.insertBefore(head, dock.firstChild);
+  }
+  ensureToolboxToggle();
+  setToolboxAutoHide(Board.ui.autoHide);
+  applyToolboxPosition();
+}
+
+// Allow the folded YouTube mini-player bubble to move independently of the drawing toolbox.
+function installMiniFabDrag(){
+  const mini = $('#mini'), fab = $('#miniFab'), host = $('#app');
+  if (!mini || !fab || !host || fab.dataset.dragReady === '1') return;
+  fab.dataset.dragReady = '1';
+  fab.style.touchAction = 'none';
+  fab.style.userSelect = 'none';
+  fab.style.webkitUserSelect = 'none';
+  fab.style.cursor = 'grab';
+  let drag = null, suppressClickUntil = 0;
+  const positionKey = 'jt-mini-fab-pos';
+  const place = () => {
+    if (!mini.classList.contains('folded')){
+      mini.style.left = ''; mini.style.top = ''; mini.style.right = ''; mini.style.bottom = '';
+      return;
+    }
+    const pos = LS.get(positionKey, null);
+    if (!pos || !Number.isFinite(Number(pos.x)) || !Number.isFinite(Number(pos.y))) return;
+    const pad = 8, size = 52, w = host.clientWidth || window.innerWidth, h = host.clientHeight || window.innerHeight;
+    const maxLeft = Math.max(pad, w - size - pad), maxTop = Math.max(pad, h - size - pad);
+    const left = pad + clamp(Number(pos.x), 0, 1) * Math.max(0, maxLeft - pad);
+    const top = pad + clamp(Number(pos.y), 0, 1) * Math.max(0, maxTop - pad);
+    mini.style.left = Math.round(left) + 'px';
+    mini.style.top = Math.round(top) + 'px';
+    mini.style.right = 'auto'; mini.style.bottom = 'auto';
+  };
+  fab.addEventListener('pointerdown', e => {
+    if (!mini.classList.contains('folded') || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const r = mini.getBoundingClientRect();
+    drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, moved: false };
+    fab.style.cursor = 'grabbing';
+    try { fab.setPointerCapture(e.pointerId); } catch (_) {}
+    e.stopPropagation();
+  });
+  fab.addEventListener('pointermove', e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 5) return;
+    drag.moved = true;
+    const hr = host.getBoundingClientRect(), w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+    const left = clamp(e.clientX - hr.left - drag.ox, 8, Math.max(8, w - 60));
+    const top = clamp(e.clientY - hr.top - drag.oy, 8, Math.max(8, h - 60));
+    mini.style.left = Math.round(left) + 'px'; mini.style.top = Math.round(top) + 'px';
+    mini.style.right = 'auto'; mini.style.bottom = 'auto';
+    e.preventDefault(); e.stopPropagation();
+  });
+  const finish = e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const done = drag; drag = null; fab.style.cursor = 'grab';
+    if (!done.moved) return;
+    const hr = host.getBoundingClientRect(), w = host.clientWidth || hr.width, h = host.clientHeight || hr.height;
+    const r = mini.getBoundingClientRect(), maxLeft = Math.max(8, w - 60), maxTop = Math.max(8, h - 60);
+    const left = clamp(r.left - hr.left, 8, maxLeft), top = clamp(r.top - hr.top, 8, maxTop);
+    LS.set(positionKey, { x: (left - 8) / Math.max(1, maxLeft - 8), y: (top - 8) / Math.max(1, maxTop - 8) });
+    suppressClickUntil = Date.now() + 350;
+    e.preventDefault(); e.stopPropagation();
+  };
+  fab.addEventListener('pointerup', finish);
+  fab.addEventListener('pointercancel', finish);
+  fab.addEventListener('lostpointercapture', e => { if (drag && drag.id === e.pointerId){ drag = null; fab.style.cursor = 'grab'; } });
+  fab.addEventListener('click', e => {
+    if (e.detail && Date.now() < suppressClickUntil){
+      suppressClickUntil = 0; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    }
+  }, true);
+  const observer = new MutationObserver(place);
+  observer.observe(mini, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('resize', place);
+  place();
+}
+installMiniFabDrag();
+
+function closePaletteManager(){
+  if (paletteManager) paletteManager.hidden = true;
+}
+function movePaletteColor(index, delta){
+  const p = activePalette(), next = index + delta;
+  if (!p || next < 0 || next >= p.colors.length) return;
+  [p.colors[index], p.colors[next]] = [p.colors[next], p.colors[index]];
+  savePaletteLibrary(); renderBdTools(); renderPaletteManager();
+}
+function removePaletteColor(index){
+  const p = activePalette();
+  if (!p) return;
+  p.colors.splice(index, 1);
+  savePaletteLibrary(); renderBdTools(); renderPaletteManager();
+}
+function createPalette(name, colors){
+  const cleanName = String(name || '').trim().slice(0, 32);
+  if (!cleanName){ toast('กรุณาตั้งชื่อชุดสี'); return false; }
+  if (Board.palettes.length >= MAX_PALETTES){ toast(`สร้างชุดสีได้สูงสุด ${MAX_PALETTES} ชุด`); return false; }
+  const p = { id: createPaletteId(), name: cleanName, colors: (colors || []).filter(isHexColor).map(c => c.toLowerCase()).slice(0, MAX_SWATCHES) };
+  Board.palettes.push(p); Board.activePaletteId = p.id;
+  savePaletteLibrary(); renderBdTools();
+  return true;
+}
+function ensurePaletteManager(){
+  if (paletteManager) return;
+  paletteManager = document.createElement('div');
+  paletteManager.className = 'bd-palette-manager';
+  paletteManager.hidden = true;
+  paletteManager.addEventListener('click', e => { if (e.target === paletteManager) closePaletteManager(); });
+  paletteManager.addEventListener('keydown', e => { if (e.key === 'Escape'){ e.preventDefault(); closePaletteManager(); } });
+  $('#draw').appendChild(paletteManager);
+}
+function renderPaletteManager(){
+  ensurePaletteManager();
+  const p = activePalette();
+  paletteManager.replaceChildren();
+
+  const card = document.createElement('div');
+  card.className = 'bd-palette-card';
+  card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true');
+  card.setAttribute('aria-label', 'จัดการชุดสี');
+
+  const sheetGrip = document.createElement('div'); sheetGrip.className = 'bd-sheet-grip';
+  sheetGrip.setAttribute('role', 'button'); sheetGrip.setAttribute('tabindex', '0');
+  sheetGrip.setAttribute('aria-label', 'ลากลงเพื่อปิด หรือแตะเพื่อขยายหน้าจัดการชุดสี');
+  let sheetDrag = null;
+  sheetGrip.addEventListener('pointerdown', e => { sheetDrag = { id: e.pointerId, y: e.clientY }; try { sheetGrip.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); e.stopPropagation(); });
+  sheetGrip.addEventListener('pointermove', e => { if (!sheetDrag || sheetDrag.id !== e.pointerId) return; e.preventDefault(); e.stopPropagation(); const dy = e.clientY - sheetDrag.y; if (dy > 0) card.style.transform = `translateY(${Math.min(dy, 260)}px)`; });
+  const finishSheetDrag = e => { if (!sheetDrag || sheetDrag.id !== e.pointerId) return; const dy = e.clientY - sheetDrag.y; sheetDrag = null; card.style.transform = ''; if (dy > 90) closePaletteManager(); else if (dy < -45) card.classList.add('is-expanded'); e.preventDefault(); e.stopPropagation(); };
+  sheetGrip.addEventListener('pointerup', finishSheetDrag);
+  sheetGrip.addEventListener('pointercancel', finishSheetDrag);
+  sheetGrip.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.classList.toggle('is-expanded'); } });
+  const head = document.createElement('div'); head.className = 'bd-manager-head';
+  const title = document.createElement('strong'); title.textContent = 'จัดการชุดสี';
+  const close = paletteButton('×', 'ปิดหน้าจัดการชุดสี', 'bd-manager-close', closePaletteManager);
+  head.append(title, close); card.append(sheetGrip, head);
+
+  const createRow = document.createElement('div'); createRow.className = 'bd-manager-row';
+  const createInput = document.createElement('input'); createInput.type = 'text'; createInput.maxLength = 32;
+  createInput.placeholder = 'ชื่อชุดสีใหม่'; createInput.setAttribute('aria-label', 'ชื่อชุดสีใหม่');
+  const createBtn = paletteButton('สร้างชุดสี', 'สร้างชุดสีใหม่', 'bd-manager-btn primary', () => {
+    if (createPalette(createInput.value)){ renderPaletteManager(); }
+  });
+  createRow.append(createInput, createBtn); card.appendChild(createRow);
+
+  const selectLabel = document.createElement('label'); selectLabel.className = 'bd-manager-label';
+  selectLabel.textContent = 'ชุดสีที่กำลังจัดการ';
+  const select = document.createElement('select'); select.className = 'bd-manager-select';
+  Board.palettes.forEach(item => {
+    const option = document.createElement('option'); option.value = item.id; option.textContent = item.name;
+    option.selected = item.id === Board.activePaletteId; select.appendChild(option);
+  });
+  select.addEventListener('change', () => { setActivePalette(select.value); renderPaletteManager(); });
+  selectLabel.appendChild(select); card.appendChild(selectLabel);
+
+  const renameRow = document.createElement('div'); renameRow.className = 'bd-manager-row';
+  const renameInput = document.createElement('input'); renameInput.type = 'text'; renameInput.maxLength = 32;
+  renameInput.value = p.name; renameInput.setAttribute('aria-label', 'ชื่อชุดสี');
+  const renameBtn = paletteButton('เปลี่ยนชื่อ', 'บันทึกชื่อชุดสี', 'bd-manager-btn', () => {
+    const name = renameInput.value.trim().slice(0, 32);
+    if (!name){ toast('ชื่อชุดสีห้ามว่าง'); return; }
+    p.name = name; savePaletteLibrary(); renderBdTools(); renderPaletteManager(); toast('เปลี่ยนชื่อชุดสีแล้ว');
+  });
+  renameRow.append(renameInput, renameBtn); card.appendChild(renameRow);
+
+  const actions = document.createElement('div'); actions.className = 'bd-manager-actions';
+  const duplicateBtn = paletteButton('ทำสำเนา', 'ทำสำเนาชุดสีนี้', 'bd-manager-btn', () => {
+    if (createPalette(p.name + ' Copy', [...p.colors])){ renderPaletteManager(); toast('ทำสำเนาชุดสีแล้ว'); }
+  });
+  const deleteBtn = paletteButton('ลบชุดสี', 'ลบชุดสีนี้', 'bd-manager-btn danger', () => {
+    if (Board.palettes.length <= 1){ toast('ต้องเหลือชุดสีอย่างน้อย 1 ชุด'); return; }
+    if (!window.confirm(`ต้องการลบชุดสี "${p.name}" ใช่หรือไม่?`)) return;
+    Board.palettes = Board.palettes.filter(item => item.id !== p.id);
+    Board.activePaletteId = Board.palettes[0].id;
+    savePaletteLibrary(); renderBdTools(); renderPaletteManager(); toast('ลบชุดสีแล้ว');
+  });
+  actions.append(duplicateBtn, deleteBtn); card.appendChild(actions);
+
+  const swatchHead = document.createElement('div'); swatchHead.className = 'bd-manager-subhead';
+  const swatchTitle = document.createElement('strong'); swatchTitle.textContent = `สีในชุดนี้ (${p.colors.length}/${MAX_SWATCHES})`;
+  const addCurrent = paletteButton('+ สีปัจจุบัน', 'เพิ่มสีปัจจุบันลงในชุดสี', 'bd-manager-btn primary', () => addColorToPalette(Board.color));
+  swatchHead.append(swatchTitle, addCurrent); card.appendChild(swatchHead);
+
+  const colorList = document.createElement('div'); colorList.className = 'bd-manager-colors';
+  if (!p.colors.length){
+    const empty = document.createElement('p'); empty.className = 'bd-manager-empty'; empty.textContent = 'ยังไม่มีสีในชุดนี้ เลือกสีจากแถบเครื่องมือแล้วกด + สีปัจจุบัน'; colorList.appendChild(empty);
+  }
+  p.colors.forEach((color, index) => {
+    const row = document.createElement('div'); row.className = 'bd-manager-color';
+    const swatch = document.createElement('button'); swatch.type = 'button'; swatch.className = 'bd-manager-swatch';
+    swatch.style.background = color; swatch.title = 'เลือก ' + color.toUpperCase();
+    swatch.setAttribute('aria-label', 'เลือกสี ' + color);
+    swatch.addEventListener('click', () => setBoardColor(color));
+    const hex = document.createElement('code'); hex.textContent = color.toUpperCase();
+    const up = paletteButton('↑', 'เลื่อนสีขึ้น', 'bd-manager-icon', () => movePaletteColor(index, -1)); up.disabled = index === 0;
+    const down = paletteButton('↓', 'เลื่อนสีลง', 'bd-manager-icon', () => movePaletteColor(index, 1)); down.disabled = index === p.colors.length - 1;
+    const remove = paletteButton('×', 'ลบสีนี้ออกจากชุดสี', 'bd-manager-icon danger', () => {
+      if (window.confirm(`ลบสี ${color.toUpperCase()} ออกจากชุดนี้?`)) removePaletteColor(index);
+    });
+    row.append(swatch, hex, up, down, remove); colorList.appendChild(row);
+  });
+  card.appendChild(colorList);
+
+  const hint = document.createElement('p'); hint.className = 'bd-manager-hint';
+  hint.textContent = 'ชุดสีและสีที่บันทึกเป็นข้อมูลส่วนตัวในอุปกรณ์นี้ ส่วนสีบนเส้นวาดจะยังแชร์ให้เพื่อนผ่านกระดานร่วมกัน';
+  card.appendChild(hint);
+  paletteManager.appendChild(card);
+  paletteManager.hidden = false;
+  card.classList.remove('is-expanded');
+}
 function renderBdTools(){
+  ensureToolboxControls();
   const box = $('#bdTools'); if (!box.children.length){
     TOOLS.forEach(([id, label, svg]) => { const b = document.createElement('button'); b.className = 'bd-tool'; b.dataset.t = id; b.title = label; b.setAttribute('aria-label', label); b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>`; b.onclick = () => setTool(id); box.appendChild(b); });
   }
@@ -462,7 +975,52 @@ function renderBdTools(){
   const opts = $('#bdOpts'); opts.innerHTML = '';
   const t = Board.tool;
   if (['pen', 'hl', 'text'].includes(t)){
-    INK.forEach(c => { if (t === 'text' && c === '#ffffff') return; const b = document.createElement('button'); b.className = 'bd-sw'; b.style.background = c; b.setAttribute('aria-label', 'สี'); b.setAttribute('aria-pressed', c === Board.color); b.onclick = () => { Board.color = c; LS.set('jt-bd-color', c); renderBdTools(); }; opts.appendChild(b); });
+    const paletteBar = document.createElement('div'); paletteBar.className = 'bd-palette-bar';
+    const paletteSelect = document.createElement('select'); paletteSelect.className = 'bd-palette-select';
+    paletteSelect.setAttribute('aria-label', 'เลือกชุดสี');
+    Board.palettes.forEach(item => {
+      const option = document.createElement('option'); option.value = item.id; option.textContent = item.name;
+      option.selected = item.id === Board.activePaletteId; paletteSelect.appendChild(option);
+    });
+    paletteSelect.addEventListener('change', () => setActivePalette(paletteSelect.value));
+    paletteBar.appendChild(paletteSelect);
+
+    const swatches = document.createElement('div'); swatches.className = 'bd-palette-swatches';
+    const palette = activePalette();
+    palette.colors.forEach(color => {
+      if (t === 'text' && color === '#ffffff') return;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'bd-sw';
+      b.style.background = color; b.title = color.toUpperCase(); b.setAttribute('aria-label', `เลือกสี ${color}`);
+      b.setAttribute('aria-pressed', color === Board.color);
+      b.addEventListener('click', () => setBoardColor(color)); swatches.appendChild(b);
+    });
+    if (!swatches.children.length){
+      const empty = document.createElement('span'); empty.className = 'bd-palette-empty'; empty.textContent = 'ยังไม่มีสี'; swatches.appendChild(empty);
+    }
+    paletteBar.appendChild(swatches);
+
+    const picker = document.createElement('label'); picker.className = 'bd-color-add'; picker.title = 'เลือกสีใหม่';
+    const input = document.createElement('input'); input.type = 'color'; input.value = t === 'text' && Board.color === '#ffffff' ? INK[0] : Board.color;
+    input.setAttribute('aria-label', 'เลือกสีใหม่'); input.addEventListener('change', () => setBoardColor(input.value));
+    const plus = document.createElement('span'); plus.textContent = '+'; plus.setAttribute('aria-hidden', 'true');
+    picker.append(input, plus); paletteBar.appendChild(picker);
+    paletteBar.appendChild(paletteButton('+', 'เพิ่มสีปัจจุบันลงในชุดสี', 'bd-palette-add', () => addColorToPalette(Board.color)));
+    paletteBar.appendChild(paletteButton('⚙', 'จัดการชุดสี', 'bd-palette-manage', renderPaletteManager));
+    opts.appendChild(paletteBar);
+
+    if (Board.recentColors.length){
+      const recentRow = document.createElement('div'); recentRow.className = 'bd-recent-row';
+      const label = document.createElement('span'); label.className = 'bd-recent-label'; label.textContent = 'ล่าสุด';
+      recentRow.appendChild(label);
+      Board.recentColors.forEach(color => {
+        if (t === 'text' && color === '#ffffff') return;
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'bd-sw';
+        b.style.background = color; b.title = `สีล่าสุด ${color.toUpperCase()}`; b.setAttribute('aria-label', `เลือกสีล่าสุด ${color}`);
+        b.setAttribute('aria-pressed', color === Board.color); b.addEventListener('click', () => setBoardColor(color));
+        recentRow.appendChild(b);
+      });
+      opts.appendChild(recentRow);
+    }
   }
   if (t === 'note'){
     NOTE_BG.forEach(c => { const b = document.createElement('button'); b.className = 'bd-sw sq'; b.style.background = c; b.setAttribute('aria-label', 'สีโน้ต'); b.setAttribute('aria-pressed', c === Board.noteBg); b.onclick = () => { Board.noteBg = c; LS.set('jt-bd-note', c); renderBdTools(); }; opts.appendChild(b); });
@@ -474,6 +1032,9 @@ function renderBdTools(){
   opts.hidden = !opts.children.length;
   $('#bdUndo').disabled = !Board.undo.length; $('#bdRedo').disabled = !Board.redo.length;
   bdCv.dataset.tool = t;
+  const toggleDot = document.querySelector('.bd-toolbox-toggle-dot');
+  if (toggleDot) toggleDot.style.background = Board.color;
+  applyToolboxPosition();
 }
 $('#bdUndo').onclick = undo;
 $('#bdRedo').onclick = redo;
@@ -492,11 +1053,11 @@ $('#bdAskYes').onclick = async () => {
 
 function openBoard(){
   Board.open = true; $('#draw').hidden = false; document.body.classList.add('draw-open');
-  renderBdTools(); ensureView(); bdDirty(); loadBoard();
+  renderBdTools(); ensureToolboxControls(); applyToolboxPosition(); ensureView(); bdDirty(); loadBoard();
 }
 function closeBoard(){
   commitText(); if (cur) endGesture(true); ptrs.clear();
   Board.open = false; $('#draw').hidden = true; document.body.classList.remove('draw-open'); saveView(); flush();
 }
-window.addEventListener('resize', () => { if (Board.open){ placeText(); bdDirty(); } });
+window.addEventListener('resize', () => { if (Board.open){ applyToolboxPosition(); if (Board.ui.collapsed) placeToolboxToggle(); placeText(); bdDirty(); } });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && Board.open) loadBoard(); });

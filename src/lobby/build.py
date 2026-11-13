@@ -1,6 +1,6 @@
 import pathlib
 d = pathlib.Path(__file__).parent
-r = lambda n: (d / n).read_text()
+r = lambda n: (d / n).read_text(encoding="utf-8-sig")
 html = f'''<!doctype html>
 <html lang="th">
 <head>
@@ -42,4 +42,4 @@ html = f'''<!doctype html>
 </body>
 </html>
 '''
-(pathlib.Path(__file__).parent.parent.parent / 'lobby.html').write_text(html)
+(pathlib.Path(__file__).parent.parent.parent / 'lobby.html').write_text(html, encoding="utf-8")
