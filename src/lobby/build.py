@@ -21,6 +21,7 @@ html = f'''<!doctype html>
 {r('extra.css')}
 {r('lobby.css')}
 {r('board.css')}
+{r('draw-guess.css')}
 </style>
 </head>
 <body>
@@ -36,6 +37,7 @@ html = f'''<!doctype html>
 {r('hud.js')}
 {r('ambient.js')}
 {r('board.js')}
+{r('draw-guess.js')}
 {r('lobby.js')}
 }})();
 </script>

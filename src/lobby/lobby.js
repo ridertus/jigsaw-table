@@ -46,10 +46,47 @@ async function loadHistory(){
 
 /* ---------- radio ---------- */
 const Radio = {
-  st: {}, player: null, ready: false, apiLoading: false, muted: true, small: LS.get('jt-mini-small', false), folded: LS.get('jt-mini-fold', false), vol: LS.get('jt-vol', 80), lastLoaded: null,
+  st: {}, player: null, ready: false, apiLoading: false, muted: true, small: LS.get('jt-mini-small', false), folded: LS.get('jt-mini-fold', false), vol: LS.get('jt-vol', 80), lastLoaded: null, liveMode: false, lastSeekAt: 0, lastLiveAnchorAt: 0, lastLiveCorrectionAt: 0, pausedLiveSyncKey: '',
   isPlaying(){ return !!(this.st.vid && this.st.playing); },
   canControl(){ return L.mode === 'all' || L.isOwner; },
   expected(){ const s = this.st; if (!s.vid) return 0; return s.playing ? (s.pos || 0) + Math.max(0, serverNow() - (s.at || 0)) / 1000 : (s.pos || 0); },
+  liveLeaderId(){
+    const ids = (S.players || []).map(p => String(p.key || p.id || '')).filter(Boolean).sort();
+    const preferred = String(this.st.live_leader || '');
+    if (preferred && (preferred === ME.id || ids.includes(preferred))) return preferred;
+    return ids[0] || ME.id;
+  },
+  liveHeartbeat(){
+    if (!this.liveMode || !this.st.vid || !this.st.playing || !this.ready || !S.chan) return;
+    if (this.liveLeaderId() !== ME.id || this.player.getPlayerState() !== 1) return;
+    if (Date.now() - this.lastLiveAnchorAt < 6000) return;
+    let pos = 0;
+    try { pos = this.player.getCurrentTime(); } catch(e) { return; }
+    if (!Number.isFinite(pos) || pos < 0) return;
+    this.lastLiveAnchorAt = Date.now();
+    S.chan.send({ type: 'broadcast', event: 'radio_live_anchor', payload: {
+      vid: this.st.vid, leader: ME.id, pos, at: serverNow()
+    }}).catch(() => {});
+  },
+  onLiveAnchor(anchor){
+    if (!anchor || anchor.vid !== this.st.vid || !this.st.playing || !this.ready) return;
+    if (anchor.leader !== this.liveLeaderId() || anchor.leader === ME.id) return;
+    const pos = Number(anchor.pos), at = Number(anchor.at);
+    if (!Number.isFinite(pos) || !Number.isFinite(at) || pos < 0) return;
+    const age = serverNow() - at;
+    if (age < -3000 || age > 12000) return;
+    this.liveMode = true;
+    this.render();
+    if (this.player.getPlayerState() !== 1) return;
+    let local = 0;
+    try { local = this.player.getCurrentTime(); } catch(e) { return; }
+    const target = pos + Math.max(0, age) / 1000;
+    // Ignore harmless segment jitter; correct only large drift and never repeatedly seek.
+    if (!Number.isFinite(local) || Math.abs(local - target) < 5) return;
+    if (Date.now() - this.lastLiveCorrectionAt < 20000) return;
+    this.lastLiveCorrectionAt = Date.now();
+    try { this.player.seekTo(Math.max(0, target), true); } catch(e) {}
+  },
   loadApi(){
     if (this.apiLoading) return; this.apiLoading = true;
     window.onYouTubeIframeAPIReady = () => this.create();
@@ -81,21 +118,54 @@ const Radio = {
   sync(force){
     const s = this.st;
     $('#mini').hidden = !s.vid;
-    if (!this.ready || !s.vid) { if (this.ready && !s.vid) try { this.player.stopVideo(); } catch(e){} return; }
+    if (!this.ready || !s.vid) {
+      if (!s.vid){ this.liveMode = false; this.lastLoaded = null; this.lastSeekAt = 0; this.lastLiveAnchorAt = 0; this.lastLiveCorrectionAt = 0; this.pausedLiveSyncKey = ''; }
+      if (this.ready && !s.vid) try { this.player.stopVideo(); } catch(e){}
+      return;
+    }
     const p = this.player, want = this.expected();
     let cur = null; try { cur = p.getVideoData && p.getVideoData().video_id; } catch(e){}
     if (cur !== s.vid || this.lastLoaded !== s.vid){
       this.lastLoaded = s.vid;
-      if (s.playing) p.loadVideoById({ videoId: s.vid, startSeconds: want }); else p.cueVideoById({ videoId: s.vid, startSeconds: want });
+      this.liveMode = !!s.live_hint; this.lastSeekAt = 0; this.lastLiveAnchorAt = 0; this.lastLiveCorrectionAt = 0; this.pausedLiveSyncKey = '';
+      // For Live, let YouTube choose the live edge. For VOD, keep the shared playback position.
+      if (s.playing) p.loadVideoById(this.liveMode ? { videoId: s.vid } : { videoId: s.vid, startSeconds: want });
+      else p.cueVideoById(this.liveMode ? { videoId: s.vid } : { videoId: s.vid, startSeconds: want });
       return;
     }
+    if (s.live_hint) this.liveMode = true;
     const state = p.getPlayerState(), t = p.getCurrentTime();
-    if (s.playing){
-      if (force || Math.abs(t - want) > 3) p.seekTo(want, true);
-      if (state !== 1 && state !== 3) p.playVideo();
+    let dur = 0; try { dur = p.getDuration(); } catch(e){}
+    // getDuration() is elapsed stream time on many Live broadcasts, not VOD duration.
+    // Detect a likely Live timeline only when the playhead is near that elapsed endpoint;
+    // URLs containing /live/ can opt in explicitly through live_hint.
+    if (!this.liveMode && s.playing && Number.isFinite(t) && Number.isFinite(want) &&
+        t - want > 12 && ((dur > 60 && t > 10 && dur - t >= -3 && dur - t < 600) || (dur <= 0 && t > 90))){
+      this.liveMode = true;
+      this.render();
+    }
+    if (this.liveMode){
+      if (s.playing){
+        this.pausedLiveSyncKey = '';
+        if (state !== 1 && state !== 3) p.playVideo();
+      } else {
+        if (state === 1 || state === 3) p.pauseVideo();
+        // When pausing a Live, align once to the shared playhead; never poll-seek while playing.
+        const pauseKey = `${s.vid}:${s.at || 0}:${s.pos || 0}`;
+        if (pauseKey !== this.pausedLiveSyncKey && Number.isFinite(t) && Math.abs(t - (s.pos || 0)) > 4){
+          this.pausedLiveSyncKey = pauseKey;
+          try { p.seekTo(Math.max(0, s.pos || 0), true); } catch(e) {}
+        } else if (pauseKey !== this.pausedLiveSyncKey){ this.pausedLiveSyncKey = pauseKey; }
+      }
     } else {
-      if (state === 1 || state === 3) p.pauseVideo();
-      if (force || Math.abs(t - want) > 2) p.seekTo(want, true);
+      const canSeek = state !== 3 && (force || Date.now() - this.lastSeekAt > 8000);
+      if (s.playing){
+        if (canSeek && (force || Math.abs(t - want) > 3)) { p.seekTo(want, true); this.lastSeekAt = Date.now(); }
+        if (state !== 1 && state !== 3) p.playVideo();
+      } else {
+        if (state === 1 || state === 3) p.pauseVideo();
+        if (canSeek && (force || Math.abs(t - want) > 2)) { p.seekTo(want, true); this.lastSeekAt = Date.now(); }
+      }
     }
   },
   userGesture(){ // called from taps so iOS lets sound play
@@ -111,8 +181,8 @@ const Radio = {
     $('#miniPlay').innerHTML = s.playing ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
     $('#mini').classList.toggle('small', this.small);
     $('#mini').classList.toggle('folded', this.folded); $('#mini').classList.toggle('on', !!s.playing);
-    $('#rdNow').textContent = s.vid ? (s.playing ? 'กำลังเล่น: ' : 'หยุดไว้: ') + this.title() : 'ยังไม่มีรายการ วางลิงก์ YouTube ด้านล่างได้เลย';
-    $('#rdControls').hidden = !s.vid; $('#rdSeek').hidden = !s.vid;
+    $('#rdNow').textContent = s.vid ? ((this.liveMode || s.live_hint ? 'LIVE · ' : '') + (s.playing ? 'กำลังเล่น: ' : 'หยุดไว้: ') + this.title()) : 'ยังไม่มีรายการ วางลิงก์ YouTube ด้านล่างได้เลย';
+    $('#rdControls').hidden = !s.vid; $('#rdSeek').hidden = !s.vid || this.liveMode;
     $('#rdPlay').textContent = s.playing ? 'หยุด' : 'เล่น';
     $('#rdNext').disabled = !(s.queue && s.queue.length);
     const q = $('#rdQueue'); q.innerHTML = '';
@@ -128,9 +198,17 @@ const Radio = {
   },
   tick(){
     if (!this.st.vid) return;
-    const dur = (this.ready && this.player.getDuration && this.player.getDuration()) || 0, t = this.expected();
-    $('#rdTime').textContent = `${fmtClock(t)} / ${dur ? fmtClock(dur) : '–'}`;
-    if (!Radio.seeking && dur) $('#rdSeek').value = Math.round(Math.min(1, t / dur) * 1000);
+    const dur = (this.ready && this.player.getDuration && this.player.getDuration()) || 0;
+    if (this.liveMode){
+      const t = (this.ready && this.player.getCurrentTime && this.player.getCurrentTime()) || 0;
+      $('#rdTime').textContent = `LIVE · ${fmtClock(t)}`;
+      $('#rdSeek').hidden = true;
+    } else {
+      const t = this.expected();
+      $('#rdTime').textContent = `${fmtClock(t)} / ${dur ? fmtClock(dur) : '–'}`;
+      $('#rdSeek').hidden = false;
+      if (!Radio.seeking && dur) $('#rdSeek').value = Math.round(Math.min(1, t / dur) * 1000);
+    }
     if (!this.st.title && this.ready){ try { const tt = this.player.getVideoData().title; if (tt){ $('#miniTitle').textContent = tt; } } catch(e){} }
   },
   async set(st){
@@ -144,17 +222,18 @@ const Radio = {
       return true;
     } catch(e){ this.apply(prev); toast('เปลี่ยนวิทยุไม่สำเร็จ'); refreshLobby(); return false; }
   },
-  play(vid, title){ this.set({ vid, title: title || '', playing: true, pos: 0, at: serverNow(), queue: this.st.queue || [] }); this.userGesture(); },
-  toggle(){ const s = this.st; if (!s.vid) return; this.set({ ...s, playing: !s.playing, pos: this.expected(), at: serverNow() }); this.userGesture(); },
-  seek(sec){ const s = this.st; if (!s.vid) return; this.set({ ...s, pos: Math.max(0, sec), at: serverNow() }); },
+  play(vid, title, liveHint){ this.set({ vid, title: title || '', playing: true, pos: 0, at: serverNow(), live_hint: !!liveHint, live_leader: ME.id, queue: this.st.queue || [] }); this.userGesture(); },
+  toggle(){ const s = this.st; if (!s.vid) return; let pos = this.expected(); if (this.liveMode && this.ready){ try { const t = this.player.getCurrentTime(); if (Number.isFinite(t)) pos = t; } catch(e){} } this.set({ ...s, live_hint: this.liveMode || !!s.live_hint, live_leader: s.live_leader || this.liveLeaderId(), playing: !s.playing, pos, at: serverNow() }); this.userGesture(); },
+  seek(sec){ const s = this.st; if (!s.vid || this.liveMode) return; this.lastSeekAt = 0; this.set({ ...s, pos: Math.max(0, sec), at: serverNow() }); },
   next(fromVid){
     const s = this.st; if (fromVid && s.vid !== fromVid) return;
     const q = [...(s.queue || [])], it = q.shift();
-    if (!it){ this.set({ ...s, playing: false, pos: 0, at: serverNow() }); return; }
-    this.set({ vid: it.vid, title: it.title || '', playing: true, pos: 0, at: serverNow(), queue: q });
+    if (!it){ let pos = this.liveMode ? (this.ready ? (this.player.getCurrentTime() || 0) : (s.pos || 0)) : 0; this.set({ ...s, playing: false, pos, at: serverNow() }); return; }
+    this.set({ vid: it.vid, title: it.title || '', playing: true, pos: 0, at: serverNow(), live_hint: !!it.live_hint, live_leader: ME.id, queue: q });
   },
   openPanel(){ this.render(); $('#radio').hidden = false; this.userGesture(); }
 };
+function isYouTubeLiveUrl(u){ return /youtube\.com\/live\//i.test(String(u || '').trim()) || /[?&]live=1(?:&|$)/i.test(String(u || '').trim()); }
 function parseYouTube(u){
   u = (u || '').trim();
   if (/^[\w-]{11}$/.test(u)) return u;
@@ -165,17 +244,17 @@ async function fetchTitle(vid){
   try { const r = await fetch('https://noembed.com/embed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + vid)); const j = await r.json(); return (j && j.title) || ''; } catch(e){ return ''; }
 }
 $('#rdPlayNow').onclick = async () => {
-  const vid = parseYouTube($('#rdUrl').value); $('#rdErr').textContent = '';
+  const raw = $('#rdUrl').value, vid = parseYouTube(raw), liveHint = isYouTubeLiveUrl(raw); $('#rdErr').textContent = '';
   if (!vid){ $('#rdErr').textContent = 'ลิงก์นี้ไม่ใช่ลิงก์ YouTube ลองคัดลอกลิงก์จากปุ่มแชร์ของ YouTube'; return; }
-  $('#rdUrl').value = ''; Radio.play(vid, ''); const t = await fetchTitle(vid); if (t && Radio.st.vid === vid && !Radio.st.title) Radio.set({ ...Radio.st, title: t, pos: Radio.expected(), at: serverNow() });
+  $('#rdUrl').value = ''; Radio.play(vid, '', liveHint); const t = await fetchTitle(vid); if (t && Radio.st.vid === vid && !Radio.st.title) Radio.set({ ...Radio.st, title: t, pos: Radio.liveMode ? (Radio.player.getCurrentTime() || 0) : Radio.expected(), at: serverNow() });
 };
 $('#rdQueueAdd').onclick = async () => {
-  const vid = parseYouTube($('#rdUrl').value); $('#rdErr').textContent = '';
+  const raw = $('#rdUrl').value, vid = parseYouTube(raw), liveHint = isYouTubeLiveUrl(raw); $('#rdErr').textContent = '';
   if (!vid){ $('#rdErr').textContent = 'ลิงก์นี้ไม่ใช่ลิงก์ YouTube ลองคัดลอกลิงก์จากปุ่มแชร์ของ YouTube'; return; }
   $('#rdUrl').value = '';
   const title = await fetchTitle(vid);
-  if (!Radio.st.vid){ Radio.play(vid, title); return; }
-  Radio.set({ ...Radio.st, pos: Radio.expected(), at: serverNow(), queue: [...(Radio.st.queue || []), { vid, title }].slice(0, 30) });
+  if (!Radio.st.vid){ Radio.play(vid, title, liveHint); return; }
+  Radio.set({ ...Radio.st, pos: Radio.expected(), at: serverNow(), queue: [...(Radio.st.queue || []), { vid, title, live_hint: liveHint }].slice(0, 30) });
   toast('เพิ่มเข้าคิวแล้ว');
 };
 $('#rdPlay').onclick = () => Radio.toggle();
@@ -191,7 +270,7 @@ $('#rdSeek').addEventListener('input', () => { Radio.seeking = true; });
 $('#rdSeek').addEventListener('change', () => { Radio.seeking = false; const dur = Radio.ready ? Radio.player.getDuration() : 0; if (dur) Radio.seek($('#rdSeek').value / 1000 * dur); });
 $('#rdVol').value = Radio.vol;
 $('#rdVol').addEventListener('input', e => { Radio.vol = +e.target.value; LS.set('jt-vol', Radio.vol); if (Radio.ready){ Radio.player.setVolume(Radio.vol); if (Radio.muted) Radio.userGesture(); } });
-setInterval(() => { Radio.tick(); if (Radio.st.vid) Radio.sync(false); }, 1000);
+setInterval(() => { Radio.tick(); if (Radio.st.vid) { Radio.sync(false); Radio.liveHeartbeat(); } }, 1000);
 document.addEventListener('pointerdown', () => { if (Radio.muted && Radio.ready && Radio.st.vid) Radio.userGesture(); }, true);
 
 /* ---------- lobby state ---------- */
@@ -390,6 +469,7 @@ function connect(){
   ch.on('broadcast', { event: 'pos' }, mine(onPos))
     .on('broadcast', { event: 'chat' }, mine(m => addMsg(m, true)))
     .on('broadcast', { event: 'radio' }, mine(st => Radio.apply(st)))
+    .on('broadcast', { event: 'radio_live_anchor' }, mine(anchor => Radio.onLiveAnchor(anchor)))
     .on('broadcast', { event: 'mode' }, mine(m => { L.mode = m.mode; Radio.render(); renderSettings(); }))
     .on('broadcast', { event: 'puzzle' }, mine(m => { if (m.code !== L.puzzle){ const open = !$('#game').hidden; setPuzzle(m.code, true, m.by).then(() => { if (open) openPuzzle(); }); } }))
     .on('broadcast', { event: 'weather' }, mine(m => applyWeather(m.w, m.by)))
@@ -397,6 +477,7 @@ function connect(){
     .on('broadcast', { event: 'bd' }, mine(onBoard))
     .on('broadcast', { event: 'drag' }, mine(onDrag))
     .on('broadcast', { event: 'release' }, mine(onRelease))
+    .on('broadcast', { event: 'draw_guess' }, mine(DG.onBroadcast))
     .on('presence', { event: 'sync' }, () => { if (S.chan === ch) syncPresence(); })
     .subscribe((status, err) => {
       if (err) console.warn('realtime', status, err);
