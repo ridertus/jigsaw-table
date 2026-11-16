@@ -125,15 +125,16 @@ function topAt(x, y, kinds){
 function bdSize(){ return [bdCv.clientWidth || 1, bdCv.clientHeight || 1]; }
 function ensureView(){ if (!Board.view || !(Board.view.z > 0)){ const [W, H] = bdSize(); Board.view = { x: W / 2, y: H / 2, z: 1 }; } }
 const toWorld = (sx, sy) => [(sx - Board.view.x) / Board.view.z, (sy - Board.view.y) / Board.view.z];
+const ZMIN = 1 / 4000, ZMAX = 600; // ซูมแทบไม่จำกัด: เส้นเป็นเวกเตอร์ จึงคมทุกระดับ
 function zoomAt(sx, sy, z){
-  const v = Board.view, nz = clamp(z, .08, 8), [wx, wy] = toWorld(sx, sy);
+  const v = Board.view, nz = clamp(z, ZMIN, ZMAX), [wx, wy] = toWorld(sx, sy);
   v.z = nz; v.x = sx - wx * nz; v.y = sy - wy * nz; bdDirty();
 }
 function fitAll(){
   const [W, H] = bdSize(); let b = null;
   Board.items.forEach(it => { if (!it.bb) return; b = b ? [Math.min(b[0], it.bb[0]), Math.min(b[1], it.bb[1]), Math.max(b[2], it.bb[2]), Math.max(b[3], it.bb[3])] : [...it.bb]; });
   if (!b){ Board.view = { x: W / 2, y: H / 2, z: 1 }; bdDirty(); return; }
-  const pad = 60, bottom = 120, z = clamp(Math.min((W - pad * 2) / Math.max(1, b[2] - b[0]), (H - pad - bottom) / Math.max(1, b[3] - b[1])), .08, 2);
+  const pad = 60, bottom = 120, z = clamp(Math.min((W - pad * 2) / Math.max(1, b[2] - b[0]), (H - pad - bottom) / Math.max(1, b[3] - b[1])), ZMIN, 2);
   Board.view = { z, x: W / 2 - (b[0] + b[2]) / 2 * z, y: (H - bottom + pad) / 2 - (b[1] + b[3]) / 2 * z }; bdDirty();
 }
 
@@ -380,7 +381,7 @@ bdCv.addEventListener('pointermove', e => {
   pt.x = x; pt.y = y;
   if (!cur) return;
   if (cur.type === 'pinch' && ptrs.size >= 2){
-    const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), z = clamp(cur.z0 * d / cur.d0, .08, 8);
+    const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), z = clamp(cur.z0 * d / cur.d0, ZMIN, ZMAX);
     const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
     Board.view.z = z; Board.view.x = mx - cur.w[0] * z; Board.view.y = my - cur.w[1] * z; bdDirty(); return;
   }
@@ -1039,6 +1040,9 @@ function renderBdTools(){
 $('#bdUndo').onclick = undo;
 $('#bdRedo').onclick = redo;
 $('#bdFit').onclick = () => { fitAll(); saveView(); };
+const zoomBtn = f => { const [W, H] = bdSize(); zoomAt(W / 2, H / 2, Board.view.z * f); saveView(); };
+$('#bdZoomIn').onclick = () => zoomBtn(1.6);
+$('#bdZoomOut').onclick = () => zoomBtn(1 / 1.6);
 $('#bdBack').onclick = () => closeBoard();
 $('#bdClear').onclick = () => { commitText(); if (!Board.items.size){ toast('กระดานว่างอยู่แล้ว'); return; } $('#bdAsk').hidden = false; };
 $('#bdAskNo').onclick = () => { $('#bdAsk').hidden = true; };

@@ -122,6 +122,7 @@ function dgBuildUI(){
             <div class="dg-tools" id="dgTools" hidden>
               <div class="dg-tool-row">
                 <button class="dg-tool" id="dgToolPen" aria-pressed="true"><span>✏️</span>ปากกา</button>
+                <button class="dg-tool" id="dgToolFill" aria-pressed="false" title="แตะพื้นที่ปิดเพื่อเทสี"><span>🪣</span>ถังสี</button>
                 <button class="dg-tool" id="dgToolEraser" aria-pressed="false"><span>🧽</span>ยางลบ</button>
                 <div class="dg-seg" id="dgEMode" hidden role="group" aria-label="โหมดยางลบ">
                   <button type="button" data-m="pixel" title="ลบเฉพาะส่วนที่ลากผ่าน">เฉพาะจุด</button>
@@ -199,6 +200,7 @@ function dgBuildUI(){
 
   /* เครื่องมือวาด */
   DG.$('dgToolPen').onclick = () => dgSetTool('pen');
+  DG.$('dgToolFill').onclick = () => dgSetTool('fill');
   DG.$('dgToolEraser').onclick = () => dgSetTool('eraser');
   DG.$('dgEMode').addEventListener('click', e => { const b = e.target.closest('button[data-m]'); if (b) dgSetEMode(b.dataset.m); });
   DG.$('dgSize').addEventListener('input', e => { DG.prefs[DG.tool === 'eraser' ? 'eraser' : 'pen'] = +e.target.value; dgSavePrefs(); dgRenderTools(); });
@@ -226,7 +228,7 @@ function dgBuildUI(){
     if (e.key === 'Escape'){ if (!DG.$('dgPalette').hidden) DG.$('dgPalette').hidden = true; else if (!DG.$('dgForm').hidden) dgCloseForm(); else if (DG.visible) dgHideRoom(); else if (DG.hubOpen) dgCloseHub(); return; }
     if (!DG.visible || !dgCanDraw() || /input|textarea|select/i.test((e.target.tagName || ''))) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); dgUndo(); }
-    else if (e.key === 'p') dgSetTool('pen'); else if (e.key === 'e') dgSetTool('eraser');
+    else if (e.key === 'p') dgSetTool('pen'); else if (e.key === 'e') dgSetTool('eraser'); else if (e.key === 'g') dgSetTool('fill');
   });
 
   dgBuildFormOptions();
@@ -599,10 +601,13 @@ function dgSetTool(t){ DG.tool = t; if (t === 'eraser'){ DG.cursor = null; } dgR
 function dgSetEMode(m){ DG.eMode = m; DG.prefs.eMode = m; dgSavePrefs(); dgRenderTools(); }
 function dgRenderTools(){
   const er = DG.tool === 'eraser';
-  DG.$('dgToolPen').setAttribute('aria-pressed', String(!er)); DG.$('dgToolEraser').setAttribute('aria-pressed', String(er));
+  const fl = DG.tool === 'fill';
+  DG.$('dgToolFill').setAttribute('aria-pressed', String(fl));
+  DG.$('dgToolPen').setAttribute('aria-pressed', String(!er && !fl)); DG.$('dgToolEraser').setAttribute('aria-pressed', String(er));
   DG.$('dgEMode').hidden = !er;
   DG.$('dgEMode').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === DG.eMode)));
   DG.$('dgColorRow').classList.toggle('dim', er);
+  DG.$('dgSize').parentElement.style.visibility = fl ? 'hidden' : '';
   const size = er ? DG.prefs.eraser : DG.prefs.pen; DG.$('dgSize').value = size;
   const dot = DG.$('dgSizeDot'); const px = Math.max(3, Math.min(26, size * .45)); dot.style.width = dot.style.height = px + 'px';
   dot.style.background = er ? '#9a8a74' : DG.prefs.color;
@@ -640,6 +645,7 @@ function dgPointerDown(e){
   if (e.pointerType === 'mouse' && e.button !== 0) return;
   e.preventDefault(); try { DG.canvas.setPointerCapture(e.pointerId); } catch (_) {}
   const [x, y] = dgPt(e);
+  if (DG.tool === 'fill'){ dgFillAt(x, y); return; }
   if (DG.tool === 'eraser' && DG.eMode === 'stroke'){ DG.cur = { type: 'sweep', pointerId: e.pointerId, gone: [] }; DG.cursor = [x, y]; dgSweep(x, y); dgRequestRender(); return; }
   const erase = DG.tool === 'eraser', id = dgNewId();
   const s = { id, color: erase ? '#ffffff' : DG.prefs.color, width: dgSize(), erase, points: [dgR4(x), dgR4(y), dgR4(x), dgR4(y)] };
@@ -678,11 +684,71 @@ async function dgSaveStroke(s){
   try {
     await dgRpc('dg3_save_stroke', { p_room_id: roomId, p_round_no: round, p_player_id: ME.id, p_stroke: s });
     if (!DG.room || DG.room.round_no !== round) return;
-    const body = { id: s.id, color: s.color, width: s.width, erase: s.erase, points: s.points };
+    const body = { id: s.id, color: s.color, width: s.width, erase: s.erase, points: s.points }; if (s.fill) body.fill = true;
     DG.strokes.set(s.id, body); if (!DG.order.includes(s.id)) DG.order.push(s.id);
     DG.own.set(s.id, Date.now()); DG.mine.push(s.id); DG.live.delete(s.id); DG.inkDirty = true;
     dgBroadcast('sdone', { round, id: s.id }); dgRenderTools(); dgRequestRender();
   } catch (e){ DG.live.delete(s.id); dgRequestRender(); dgBroadcast('sdone', { round, id: s.id, failed: true }); toast('บันทึกเส้นไม่สำเร็จ: ' + dgError(e)); }
+}
+
+/* ---------- ถังสี ----------
+   คำนวณพื้นที่ที่จะเทสีบนตารางความละเอียดคงที่ (DG_FW x DG_FH) แล้วส่งเป็น "แถบแนวนอน" (run) ในรูปเส้นชนิด fill
+   ทุกเครื่องจึงเห็นผลเหมือนกันเป๊ะ ไม่ขึ้นกับขนาดหน้าจอ และ undo/ยางลบก็ใช้กับมันได้เหมือนเส้นทั่วไป */
+const DG_FW = 640, DG_FH = 480, DG_MAX_RUNS = 1400;
+let dgFillBusy = false;
+function dgFillRaster(){
+  const c = document.createElement('canvas'); c.width = DG_FW; c.height = DG_FH;
+  const g = c.getContext('2d', { willReadFrequently: true }); g.fillStyle = '#fffdf8'; g.fillRect(0, 0, DG_FW, DG_FH);
+  for (const id of DG.order){ if (DG.hidden.has(id)) continue; const s = DG.strokes.get(id); if (s) dgDrawStroke(g, s, DG_FW, DG_FH); }
+  return g.getImageData(0, 0, DG_FW, DG_FH).data;
+}
+function dgFillMask(px, sx, sy){
+  const N = DG_FW * DG_FH, o = (sy * DG_FW + sx) * 4, r0 = px[o], g0 = px[o + 1], b0 = px[o + 2];
+  const TOL = 96, near = i => Math.abs(px[i * 4] - r0) + Math.abs(px[i * 4 + 1] - g0) + Math.abs(px[i * 4 + 2] - b0) <= TOL;
+  const mask = new Uint8Array(N), stack = [sy * DG_FW + sx]; mask[stack[0]] = 1;
+  while (stack.length){
+    const i = stack.pop(), x = i % DG_FW, y = (i / DG_FW) | 0;
+    if (x > 0 && !mask[i - 1] && near(i - 1)){ mask[i - 1] = 1; stack.push(i - 1); }
+    if (x < DG_FW - 1 && !mask[i + 1] && near(i + 1)){ mask[i + 1] = 1; stack.push(i + 1); }
+    if (y > 0 && !mask[i - DG_FW] && near(i - DG_FW)){ mask[i - DG_FW] = 1; stack.push(i - DG_FW); }
+    if (y < DG_FH - 1 && !mask[i + DG_FW] && near(i + DG_FW)){ mask[i + DG_FW] = 1; stack.push(i + DG_FW); }
+  }
+  // ขยายออก 1 ช่อง ให้สีเข้าไปชิดขอบเส้น ไม่เหลือขอบขาว
+  const out = new Uint8Array(mask);
+  for (let y = 0; y < DG_FH; y++) for (let x = 0; x < DG_FW; x++){
+    const i = y * DG_FW + x; if (mask[i]) continue;
+    if ((x > 0 && mask[i - 1]) || (x < DG_FW - 1 && mask[i + 1]) || (y > 0 && mask[i - DG_FW]) || (y < DG_FH - 1 && mask[i + DG_FW])) out[i] = 1;
+  }
+  return out;
+}
+function dgFillRuns(mask){
+  const pts = []; let runs = 0;
+  for (let y = 0; y < DG_FH; y++){
+    let x = 0; const row = y * DG_FW, yy = dgR4((y + .5) / DG_FH);
+    while (x < DG_FW){
+      if (!mask[row + x]){ x++; continue; }
+      let e = x; while (e < DG_FW && mask[row + e]) e++;
+      if (++runs > DG_MAX_RUNS) return null;
+      pts.push(dgR4(x / DG_FW), yy, dgR4(e / DG_FW), yy); x = e;
+    }
+  }
+  return pts;
+}
+async function dgFillAt(nx, ny){
+  if (dgFillBusy || !dgCanDraw()) return; dgFillBusy = true;
+  try {
+    const sx = Math.min(DG_FW - 1, Math.floor(nx * DG_FW)), sy = Math.min(DG_FH - 1, Math.floor(ny * DG_FH));
+    const px = dgFillRaster(), mask = dgFillMask(px, sx, sy), pts = dgFillRuns(mask);
+    if (!pts){ toast('พื้นที่นี้ซับซ้อนเกินไปสำหรับถังสี ลองปิดขอบให้เป็นรูปง่ายขึ้น'); return; }
+    if (pts.length < 4) return;
+    const s = { id: dgNewId(), color: DG.prefs.color, width: .002, erase: false, fill: true, points: pts };
+    await dgSaveStroke(s);
+  } finally { dgFillBusy = false; }
+}
+function dgFillHit(s, x, y){
+  const p = s.points, row = Math.min(DG_FH - 1, Math.floor(y * DG_FH)), yy = (row + .5) / DG_FH;
+  for (let i = 0; i + 3 < p.length; i += 4) if (Math.abs(p[i + 1] - yy) < .0008 && x >= p[i] && x <= p[i + 2]) return true;
+  return false;
 }
 
 /* ---------- ยางลบทั้งเส้น ---------- */
@@ -698,8 +764,11 @@ function dgSegDist(px, py, ax, ay, bx, by){
 function dgSweep(x, y){
   const c = DG.cur; if (!c) return;
   const r = (DG.prefs.eraser / DG_REF) / 2 * 0.9 + 0.004;     // รัศมีในหน่วยความสูงผืน
+  // ถังสีซ้อนกัน: ถ้าเมาส์ยังอยู่ในพื้นที่ของถังสีที่เพิ่งลบ ไม่ลบชั้นล่างต่อ (ต้องลากออกแล้วแตะใหม่)
+  let fillHit = c.gone.some(gid => { const g = DG.strokes.get(gid); return g && g.fill && dgFillHit(g, x, y); });
   for (let i = DG.order.length - 1; i >= 0; i--){
     const id = DG.order[i]; if (DG.hidden.has(id)) continue; const s = DG.strokes.get(id); if (!s || s.erase) continue;
+    if (s.fill){ if (!fillHit && dgFillHit(s, x, y)){ fillHit = true; DG.hidden.add(id); c.gone.push(id); DG.inkDirty = true; } continue; } // ถังสีซ้อนกัน ลบเฉพาะชั้นบนสุด
     const bb = dgBBox(s), pad = r + s.width / 2, A = DG_ASPECT;
     if (x * A < bb[0] * A - pad || x * A > bb[2] * A + pad || y < bb[1] - pad || y > bb[3] + pad) continue;
     const p = s.points; let hit = false;
@@ -763,6 +832,11 @@ async function dgFetchStrokes(){
 /* ---------- วาดลงผืน ---------- */
 function dgDrawStroke(g, s, W, H){
   const p = s.points || []; if (p.length < 2) return;
+  if (s.fill){
+    g.save(); g.fillStyle = s.color || '#252525'; const rh = H / DG_FH;
+    for (let i = 0; i + 3 < p.length; i += 4){ const y = Math.round((p[i + 1] * DG_FH - .5)) * rh; g.fillRect(p[i] * W - .25, y - .25, (p[i + 2] - p[i]) * W + .5, rh + .5); }
+    g.restore(); return;
+  }
   g.save(); g.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
   g.strokeStyle = g.fillStyle = s.erase ? '#000' : (s.color || '#252525');
   const w = Math.max(1, (s.width || .006) * H); g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round';

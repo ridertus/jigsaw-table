@@ -707,7 +707,8 @@ begin
   end if;
   insert into public.dg3_strokes(id, room_id, round_no, drawer_id, stroke)
   values (v_id, p_room_id, p_round_no, p_player_id,
-          jsonb_build_object('id', v_id, 'color', lower(v_color), 'width', v_width, 'erase', coalesce((p_stroke->>'erase')::boolean, false), 'points', v_pts))
+          jsonb_build_object('id', v_id, 'color', lower(v_color), 'width', v_width, 'erase', coalesce((p_stroke->>'erase')::boolean, false), 'points', v_pts)
+          || case when coalesce((p_stroke->>'fill')::boolean, false) then jsonb_build_object('fill', true) else '{}'::jsonb end)
   on conflict (id) do nothing;
   return true;
 end;
