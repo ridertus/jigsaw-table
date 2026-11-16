@@ -4361,14 +4361,30 @@ const Radio = {
       }
     } else {
       const canSeek = state !== 3 && (force || Date.now() - this.lastSeekAt > 8000);
+      // Shared clock has run past the end of the clip: never seek beyond it (that restarts the clip in a loop).
+      // Whoever is leader moves the queue along; anyone does so if the leader never reported the end.
+      if (s.playing && dur > 1 && want >= dur - 0.5){
+        if (state === 1 || state === 3){ if (want > dur + 8) this.endedFallback(dur, want); return; }
+        const late = want - dur;
+        const leader = [...(S.players || []).map(x => x.key)].sort()[0] || ME.id;
+        if (Date.now() - (this.lastEndAt || 0) > 5000 && ((leader === ME.id && late > 1.5) || late > 12) && this.canControl()){
+          this.lastEndAt = Date.now(); this.next(s.vid);
+        }
+        return;
+      }
       if (s.playing){
         if (canSeek && (force || Math.abs(t - want) > 3)) { p.seekTo(want, true); this.lastSeekAt = Date.now(); }
         if (state !== 1 && state !== 3) p.playVideo();
       } else {
         if (state === 1 || state === 3) p.pauseVideo();
+        if (state === 0 && !force) return; // finished and stopped: don't seek (seeking an ended clip makes it play again)
         if (canSeek && (force || Math.abs(t - want) > 2)) { p.seekTo(want, true); this.lastSeekAt = Date.now(); }
       }
     }
+  },
+  endedFallback(dur, want){
+    if (Date.now() - (this.lastEndAt || 0) < 5000 || !this.canControl()) return;
+    this.lastEndAt = Date.now(); this.next(this.st.vid);
   },
   userGesture(){ // called from taps so iOS lets sound play
     if (!this.ready) return;
@@ -4406,7 +4422,7 @@ const Radio = {
       $('#rdTime').textContent = `LIVE · ${fmtClock(t)}`;
       $('#rdSeek').hidden = true;
     } else {
-      const t = this.expected();
+      let t = this.expected(); if (dur > 1) t = Math.min(t, dur);
       $('#rdTime').textContent = `${fmtClock(t)} / ${dur ? fmtClock(dur) : '–'}`;
       $('#rdSeek').hidden = false;
       if (!Radio.seeking && dur) $('#rdSeek').value = Math.round(Math.min(1, t / dur) * 1000);
