@@ -3593,7 +3593,7 @@ function dgBuildFormOptions(){
   });
 }
 function dgFormCats(ids){ DG.$('dgFCats').querySelectorAll('input').forEach(i => { i.checked = ids.includes(i.value); }); }
-function dgDefaults(){ return Object.assign({ categories: ['animals', 'food', 'objects', 'cozy'], difficulty: 'normal', duration_seconds: 90, total_rounds: 5, max_players: 8, custom_words: [] }, LS.get('jt-dg-settings', {})); }
+function dgDefaults(){ return Object.assign({ categories: DG_CATS.map(c => c[0]), difficulty: 'mixed', duration_seconds: 90, total_rounds: 5, max_players: 8, custom_words: [] }, LS.get('jt-dg-settings', {})); }
 function dgOpenForm(mode){
   DG.form.mode = mode; dgCloseHubKeep();
   const edit = mode === 'edit' && DG.room && DG.room.found;

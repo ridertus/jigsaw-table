@@ -71,6 +71,17 @@ revoke all on public.dg3_rooms, public.dg3_players, public.dg3_strokes, public.d
 
 -- ---------------------------------------------------------------- ตัวช่วยภายใน (ไม่เปิดให้เรียกจากเว็บ)
 
+-- ตัวช่วยเทียบคำตอบ: ตัดช่องว่าง/เครื่องหมาย/วรรณยุกต์/ไม้ไต่คู้/ทัณฑฆาต ให้ "กีต้าร์" = "กีตาร์"
+create or replace function public.dg3_norm(p_value text)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select lower(regexp_replace(coalesce(p_value, ''), '[[:space:][:punct:]\u0E47-\u0E4C]+', '', 'g'));
+$$;
+revoke all on function public.dg3_norm(text) from public, anon, authenticated;
+
 create or replace function public.dg3_clean_settings(p jsonb)
 returns jsonb
 language plpgsql
@@ -499,7 +510,8 @@ begin
   delete from public.dg3_strokes where room_id = p_room_id;
   update public.dg3_rooms set
     status = 'drawing', round_no = 1, drawer_id = v_drawer,
-    word = w.o_word, word_aliases = w.o_aliases, category = w.o_category, used_words = array[w.o_word],
+    word = w.o_word, word_aliases = w.o_aliases, category = w.o_category,
+    used_words = (select coalesce(array_agg(x), '{}') from (select x from unnest(coalesce(v.used_words,'{}'::text[]) || w.o_word) with ordinality t(x, i) order by i desc limit 150) z),
     started_at = now(), revealed_at = null,
     ends_at = case when (v.settings->>'duration_seconds')::integer = 0 then null else now() + make_interval(secs => (v.settings->>'duration_seconds')::integer) end,
     updated_at = now()
@@ -648,7 +660,7 @@ begin
   update public.dg3_players set score = 0, solved_at = null where room_id = p_room_id;
   update public.dg3_players set last_seen = now() where room_id = p_room_id and left_at is null;
   update public.dg3_rooms set status = 'waiting', round_no = 0, drawer_id = null, word = null, word_aliases = '{}', category = null,
-    used_words = '{}', started_at = null, ends_at = null, revealed_at = null, updated_at = now() where id = p_room_id;
+    started_at = null, ends_at = null, revealed_at = null, updated_at = now() where id = p_room_id;
   insert into public.dg3_chat(room_id, round_no, kind, body) values (p_room_id, 0, 'system', 'กลับมาที่ห้องรอ พร้อมแล้วให้เจ้าของห้องกดเริ่มได้เลย');
   return public.dg3_state(p_room_id, p_player_id);
 end;
@@ -786,8 +798,8 @@ begin
     if v.ends_at is not null and now() >= v.ends_at then
       return jsonb_build_object('ok', false, 'expired', true, 'message', 'หมดเวลาแล้ว');
     end if;
-    v_norm := public.dg_normalize_text(v_text);
-    v_ans := public.dg_normalize_text(v.word);
+    v_norm := public.dg3_norm(v_text);
+    v_ans := public.dg3_norm(v.word);
     if p_player_id = v.drawer_id then
       if v_norm <> '' and char_length(v_ans) >= 2 and position(v_ans in v_norm) > 0 then
         return jsonb_build_object('ok', false, 'message', 'คนวาดห้ามบอกคำตอบนะ');
@@ -799,7 +811,7 @@ begin
       insert into public.dg3_chat(room_id, round_no, player_id, name, kind, audience, body) values (p_room_id, v.round_no, p_player_id, me.name, 'chat', 'solved', v_text);
       return jsonb_build_object('ok', true);
     end if;
-    if v_norm <> '' and (v_norm = v_ans or exists (select 1 from unnest(v.word_aliases) a where v_norm = public.dg_normalize_text(a))) then
+    if v_norm <> '' and (v_norm = v_ans or exists (select 1 from unnest(v.word_aliases) a where v_norm = public.dg3_norm(a))) then
       select count(*)::integer + 1 into v_rank from public.dg3_players
       where room_id = p_room_id and left_at is null and player_id <> v.drawer_id and solved_at is not null;
       v_delta := case when v_rank = 1 then 3 else 1 end;
