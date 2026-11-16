@@ -39,6 +39,10 @@ build แค่ต่อไฟล์เข้าด้วยกัน (ไม่
   เครื่องมือ มือ (เลื่อน + ลากโน้ต/ข้อความ, แตะสองครั้งแก้) ปากกา ปากกาเน้น ยางลบ (ลบทั้งเส้น) ข้อความ โน้ตแปะ, undo/redo (เฉพาะของตัวเอง ย้อนการล้างกระดานได้)
   ถ้าเคยใช้ Apple Pencil นิ้วเดียวจะกลายเป็นเลื่อนกระดานแทน, ภาพย่อกระดานโชว์บนผนังห้อง (`drawWallBoard`)
 - `board.css` สไตล์กระดาน (โหลดหลัง lobby.css)
+- `draw-guess.js` + `draw-guess.css` เกมวาดภาพทายคำ v3 (`DG`): หน้ารวมห้อง/ฟอร์มสร้างห้อง/ห้องรอ/กระดานวาด/แชท-ทายช่องเดียว, `DG.onBroadcast` ถูกต่อใน `lobby.js` (event `draw_guess`)
+  ตารางและ RPC ชุด `dg3_*` (ดูรายละเอียด/วิธีติดตั้ง/วิธีเพิ่มคำใน `DRAW_GUESS_DEPLOY.md`), ชุดเก่า `draw_guess_*`/`dg_*` เก็บไว้ ใช้คลังคำ `draw_guess_words` ร่วมกัน
+  เส้นวาดใช้พิกัด 0–1 บนผ้าใบ 4:3, ยางลบเฉพาะจุด = เส้น `erase:true` (destination-out), ลบทั้งเส้น = `dg3_delete_strokes`
+  ทดสอบแบบไม่ต้องมี Supabase จริงด้วย pglite + playwright (mock client ส่ง rpc เข้า pglite) ถ้ากลับมาแก้อีก
 - `lobby.js` แชท, วิทยุ (`Radio` + YouTube IFrame API), โต๊ะ/รูปใหม่, ตั้งค่าเจ้าของบ้าน, presence, channel `lobby:main`, `enterLobby`
 
 ## Supabase

@@ -475,110 +475,184 @@ body.draw-open .chatlog{max-height:min(36vh,300px);width:min(340px, calc(100% - 
 #bdText.note{border:2px solid var(--mint);border-radius:0;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:3px 5px 0 rgba(60,40,20,.18)}
 @media (max-width:420px){ .bd-tool{width:40px;height:40px} .bd-tool svg{width:22px;height:22px} .bd-sw{width:26px;height:26px} }
 
-/* ---------- Draw & Guess mini-game ---------- */
+/* ---------- Draw & Guess v3 ---------- */
 #dgLauncher{font-size:19px;position:relative}
-#dgLauncher::after{content:'+';position:absolute;right:4px;top:1px;font-size:10px;font-weight:800;color:var(--mint-ink)}
+#dgLauncher.in-room::after{content:'';position:absolute;right:5px;top:5px;width:9px;height:9px;border-radius:50%;background:#3ed17a;box-shadow:0 0 0 2px var(--paper)}
 .dg-screen{position:fixed;inset:0;z-index:55;display:grid;place-items:center;overflow:auto;overscroll-behavior:contain;padding:calc(env(safe-area-inset-top,0px) + 14px) max(12px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(12px,env(safe-area-inset-left,0px));background:rgba(11,31,35,.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:var(--ink)}
+.dg-screen[hidden],.dg-palette[hidden],.dg-menu[hidden],.dg-seg[hidden],.dg-tools[hidden],.dg-wait[hidden],.dg-canvas-column[hidden]{display:none}
+.dg-over{z-index:58}
 .dg-card{width:min(720px,100%);max-height:calc(100dvh - 28px);overflow:auto;display:grid;gap:14px;padding:clamp(14px,3vw,22px);border-radius:22px;background:var(--paper);box-shadow:0 24px 60px rgba(0,0,0,.4);overscroll-behavior:contain}
 .dg-head{display:flex;align-items:center;gap:10px;justify-content:space-between}
-.dg-head h2{margin:0;font:800 clamp(22px,4vw,30px)/1.1 var(--display);color:var(--ink)}
+.dg-head h2,.dg-head h3{margin:0;font:800 clamp(22px,4vw,30px)/1.1 var(--display);color:var(--ink)}
+.dg-head h3{font-size:20px}
 .dg-sub{margin:3px 0 0;font-size:13px;color:var(--ink-soft)}
-.dg-close{width:38px;height:38px;border-radius:50%;background:#f0e5d4;color:var(--ink);display:grid;place-items:center;font-size:22px;flex:none}
+.dg-close{width:38px;height:38px;border-radius:50%;background:#f0e5d4;color:var(--ink);display:grid;place-items:center;font-size:20px;flex:none;line-height:1}
 .dg-section{display:grid;gap:8px}
-.dg-label{font-size:13px;font-weight:800;color:var(--ink-soft)}
-.dg-player-chips{display:flex;flex-wrap:wrap;gap:7px}
-.dg-player-chip{display:flex;align-items:center;gap:7px;padding:6px 10px 6px 6px;border-radius:999px;background:#f0e5d4;font-size:13px;font-weight:700}
-.dg-player-chip i,.dg-avatar{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-style:normal;font-weight:800;flex:none}
+.dg-label{font-size:13px;font-weight:800;color:var(--ink-soft);display:flex;align-items:center;gap:8px;justify-content:space-between}
+.dg-mini-actions{display:flex;gap:6px}
+.dg-mini-actions button{padding:3px 9px;border-radius:999px;background:#f0e5d4;color:var(--ink);font-size:11px;font-weight:800}
 .dg-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .dg-category{display:flex;align-items:center;gap:7px;min-width:0;padding:9px 10px;border:1px solid #e7dac5;border-radius:12px;background:#fffaf1;color:var(--ink);font-size:13px;font-weight:700;cursor:pointer}
 .dg-category input{width:17px;height:17px;accent-color:var(--mint);flex:none}
-.dg-setting-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dg-setting-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .dg-field{display:grid;gap:5px;font-size:12px;font-weight:700;color:var(--ink-soft)}
-.dg-field select{width:100%;height:42px;border:1px solid #ddceb6;border-radius:11px;padding:0 10px;background:#fff;color:var(--ink);font:600 14px var(--body)}
+.dg-field select,.dg-field input,.dg-field textarea{width:100%;border:1px solid #ddceb6;border-radius:11px;padding:0 10px;background:#fff;color:var(--ink);font:600 15px var(--body)}
+.dg-field select,.dg-field input{height:42px}
+.dg-field textarea{padding:9px 10px;resize:vertical;min-height:64px}
 .dg-actions{display:flex;gap:8px;flex-wrap:wrap}
 .dg-actions .btn{flex:1;min-width:110px}
+.dg-actions .btn[hidden]{display:none}
 .dg-note{margin:0;color:var(--ink-soft);font-size:12px;line-height:1.5}
-.dg-game-screen{align-items:stretch;justify-items:stretch;padding:0;background:#f5ead7;color:var(--ink);backdrop-filter:none;-webkit-backdrop-filter:none}
-.dg-game-layout{width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:0;background:#f5ead7}
-.dg-game-header{display:flex;align-items:center;gap:9px;min-height:58px;padding:calc(env(safe-area-inset-top,0px) + 8px) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));background:var(--paper);box-shadow:0 2px 10px rgba(60,40,20,.12);z-index:2}
+.dg-empty{padding:16px 10px;border-radius:12px;background:#f7efe3;color:var(--ink-soft);font-size:13px;text-align:center}
+.dg-room-list{display:grid;gap:9px;max-height:46dvh;overflow:auto}
+.dg-room-card{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;background:#f7efe3;border:1px solid #eadcc6}
+.dg-room-info{display:grid;gap:2px;min-width:0;flex:1}
+.dg-room-info strong{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dg-room-meta{font-size:12px;color:var(--ink-soft)}
+.dg-room-names{font-size:12px;color:#8d7762;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dg-room-card .btn{flex:none;min-height:42px;padding:0 14px;font-size:14px}
+
+/* ----- หน้าเล่น ----- */
+.dg-game-screen{align-items:stretch;justify-items:stretch;padding:0;background:#f5ead7;backdrop-filter:none;-webkit-backdrop-filter:none;overflow:hidden}
+.dg-game-layout{position:relative;width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:#f5ead7}
+.dg-game-header{display:flex;align-items:center;gap:9px;min-height:56px;padding:calc(env(safe-area-inset-top,0px) + 8px) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));background:var(--paper);box-shadow:0 2px 10px rgba(60,40,20,.12);z-index:3}
 .dg-round-pill,.dg-time-pill{padding:6px 10px;border-radius:999px;background:#f0e5d4;font-size:12px;font-weight:800;white-space:nowrap}
 .dg-time-pill{background:var(--mint-soft);color:var(--mint-ink);font-variant-numeric:tabular-nums;font-size:15px}
+.dg-time-pill[hidden]{display:none}
+.dg-time-pill.low{background:#ffe0d6;color:#b43b17}
 .dg-game-heading{min-width:0;display:grid;gap:1px;flex:1}
 .dg-game-heading strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dg-game-heading span{font-size:11px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dg-game-body{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px;min-height:0;padding:12px max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.dg-menu-wrap{position:relative}
+.dg-menu{position:absolute;right:0;top:44px;z-index:6;min-width:160px;display:grid;padding:6px;border-radius:14px;background:var(--paper);box-shadow:0 10px 30px rgba(40,25,10,.28)}
+.dg-menu button{padding:10px 12px;border-radius:9px;text-align:left;font-size:14px;font-weight:700;color:var(--ink)}
+.dg-menu button:hover{background:#f3e8d6}
+.dg-menu button[hidden]{display:none}
+.dg-menu .danger{color:#b43b17}
+.dg-game-body{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px;min-height:0;padding:12px max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.dg-main{min-height:0;min-width:0;display:grid;grid-template-rows:minmax(0,1fr)}
 .dg-canvas-column{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:9px}
-.dg-canvas-frame{min-height:0;display:grid;place-items:center;padding:8px;border-radius:17px;background:linear-gradient(150deg,#e8c58e,#bd8850);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 8px 20px rgba(55,35,16,.18)}
-#dgCanvas{display:block;width:100%;height:100%;max-height:100%;aspect-ratio:4/3;object-fit:contain;border-radius:8px;background:#fffdf8;touch-action:none;cursor:crosshair;box-shadow:0 2px 8px rgba(0,0,0,.13)}
+.dg-canvas-frame{position:relative;min-height:0;border-radius:17px;background:linear-gradient(150deg,#e8c58e,#bd8850);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 8px 20px rgba(55,35,16,.18)}
+#dgCanvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;width:100%;height:100%;border-radius:8px;background:#fffdf8;touch-action:none;cursor:crosshair;box-shadow:0 2px 8px rgba(0,0,0,.13)}
 #dgCanvas.dg-readonly{cursor:default;touch-action:pan-y}
-.dg-draw-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 10px;border-radius:14px;background:var(--paper);box-shadow:0 3px 10px rgba(60,40,20,.1)}
-.dg-draw-tools[hidden]{display:none}
-.dg-palette-bar{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 340px}
-.dg-palette-select{height:32px;max-width:118px;min-width:88px;padding:0 22px 0 8px;border:1px solid #ddceb6;border-radius:9px;background:#fff;color:var(--ink);font:600 11px var(--body);flex:none}
-.dg-colors{display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow-x:auto;overscroll-behavior-x:contain;padding:5px 3px;scrollbar-width:thin}
-.dg-color{width:25px;height:25px;border-radius:50%;border:2px solid rgba(50,40,30,.2);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);flex:none}
-.dg-color[aria-pressed=true]{outline:2px solid var(--mint-ink);outline-offset:2px}
-.dg-color-add,.dg-palette-add{width:30px;height:30px;display:grid;place-items:center;flex:none;border:0;border-radius:50%;cursor:pointer}
-.dg-color-add{position:relative;overflow:hidden;background:conic-gradient(#e44 0 16.6%,#ebc33a 16.6% 33.2%,#48a66b 33.2% 49.8%,#398ed0 49.8% 66.4%,#8262c9 66.4% 83%,#e46aa1 83%);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px rgba(40,30,20,.2)}
-.dg-color-add input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-.dg-color-add span{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#fff;color:#44382d;font-size:18px;font-weight:800;line-height:1;pointer-events:none}
-.dg-palette-add{background:var(--mint-soft);color:var(--mint-ink);font-size:21px;font-weight:800;box-shadow:inset 0 0 0 1px rgba(31,140,130,.25)}
-.dg-palette-empty{font-size:11px;color:var(--ink-soft);white-space:nowrap;padding:0 5px}
-.dg-tool-btn{min-height:32px;padding:0 10px;border-radius:9px;background:#f0e5d4;color:var(--ink);font-size:12px;font-weight:800}
-.dg-tool-btn[aria-pressed=true]{background:var(--mint);color:white}
-.dg-size-select{height:32px;border:1px solid #ddceb6;border-radius:9px;background:#fff;color:var(--ink);padding:0 5px;font:600 12px var(--body)}
-.dg-side{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:9px}
-.dg-side-card{display:grid;gap:8px;align-content:start;padding:12px;border-radius:15px;background:var(--paper);box-shadow:0 3px 10px rgba(60,40,20,.08)}
-.dg-secret{padding:10px;border-radius:11px;background:#fff0bf;text-align:center}
+
+/* เครื่องมือวาด */
+.dg-tools{display:grid;gap:7px;padding:8px 10px;border-radius:14px;background:var(--paper);box-shadow:0 3px 10px rgba(60,40,20,.1)}
+.dg-tool-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dg-tool{min-height:40px;padding:0 11px;border-radius:11px;background:#f0e5d4;color:var(--ink);font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px}
+.dg-tool span{font-size:16px}
+.dg-tool[aria-pressed=true]{background:var(--mint);color:#fff}
+.dg-tool:disabled{opacity:.4}
+.dg-seg{display:flex;padding:3px;border-radius:11px;background:#f0e5d4;gap:2px}
+.dg-seg button{min-height:34px;padding:0 10px;border-radius:9px;font-size:12px;font-weight:800;color:var(--ink)}
+.dg-seg button[aria-pressed=true]{background:#fff;box-shadow:0 1px 4px rgba(60,40,20,.25);color:var(--mint-ink)}
+.dg-size{display:flex;align-items:center;gap:7px;flex:1 1 130px;min-width:110px;max-width:220px}
+.dg-size i{display:block;border-radius:50%;flex:none;min-width:4px;min-height:4px;box-shadow:0 0 0 1px rgba(60,40,20,.25);width:10px;height:10px;align-self:center}
+.dg-size input{flex:1;min-width:0;accent-color:var(--mint);height:34px}
+.dg-color-row{display:flex;align-items:center;gap:8px;min-width:0}
+.dg-color-row.dim .dg-colors,.dg-color-row.dim .dg-color-cur{opacity:.45}
+.dg-color-cur{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px rgba(60,40,20,.35);flex:none}
+.dg-colors{display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow-x:auto;overscroll-behavior-x:contain;padding:5px 4px;scrollbar-width:none}
+.dg-colors::-webkit-scrollbar{display:none}
+.dg-color{width:28px;height:28px;border-radius:50%;border:2px solid rgba(50,40,30,.2);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);flex:none}
+.dg-color[aria-pressed=true]{outline:3px solid var(--mint-ink);outline-offset:1px}
+.dg-palette-open{flex:none;min-height:36px;padding:0 12px;border-radius:11px;background:var(--mint-soft);color:var(--mint-ink);font-size:12px;font-weight:800}
+.dg-tool-btn{min-height:34px;padding:0 12px;border-radius:9px;background:#f0e5d4;color:var(--ink);font-size:12px;font-weight:800}
+
+/* ชุดสีเต็ม */
+.dg-palette{position:absolute;inset:0;z-index:20;display:grid;place-items:end center;background:rgba(20,35,35,.45);padding:0}
+.dg-palette-card{width:min(560px,100%);max-height:92%;overflow:auto;display:grid;gap:10px;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:var(--paper);box-shadow:0 -10px 40px rgba(0,0,0,.3)}
+.dg-pal-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px}
+.dg-pal-row{display:flex;flex-wrap:wrap;gap:6px;min-height:32px}
+.dg-sw{aspect-ratio:1;border-radius:9px;border:1px solid rgba(40,30,20,.18);width:100%;min-width:0}
+.dg-pal-row .dg-sw{width:32px;height:32px;aspect-ratio:auto}
+.dg-sw[aria-pressed=true]{outline:3px solid var(--mint-ink);outline-offset:1px;z-index:1}
+.dg-palette-empty{font-size:11px;color:var(--ink-soft);padding:6px 2px}
+.dg-custom{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dg-color-pick{position:relative;display:flex;align-items:center;gap:8px;padding:0 12px 0 6px;min-height:42px;border-radius:12px;background:#f0e5d4;font-size:13px;font-weight:800;cursor:pointer}
+.dg-color-pick input{width:34px;height:34px;border:0;padding:0;background:none;cursor:pointer}
+#dgHexInput{width:104px;height:42px;border:1px solid #ddceb6;border-radius:11px;padding:0 10px;background:#fff;font:700 14px var(--body);text-transform:uppercase;color:var(--ink)}
+
+/* ห้องรอ */
+.dg-wait{align-self:start;display:grid;gap:12px;padding:18px;border-radius:18px;background:var(--paper);box-shadow:0 4px 14px rgba(60,40,20,.12);overflow:auto;max-height:100%}
+.dg-wait h3{margin:0;font:800 24px/1.2 var(--display);color:var(--ink)}
+.dg-chips{display:flex;flex-wrap:wrap;gap:6px}
+.dg-chip{padding:5px 10px;border-radius:999px;background:#f0e5d4;font-size:12px;font-weight:800;color:var(--ink)}
+.dg-wait-players{display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+
+/* ด้านข้าง: โจทย์ + คะแนน + แชท */
+.dg-side{min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:9px}
+.dg-prompt{display:grid;gap:8px}
+.dg-prompt[hidden],.dg-players[hidden]{display:none}
+.dg-secret{padding:10px;border-radius:13px;background:#fff0bf;text-align:center;box-shadow:0 3px 10px rgba(60,40,20,.08)}
+.dg-secret[hidden],.dg-clue[hidden]{display:none}
 .dg-secret small{display:block;font-size:11px;color:#846323;font-weight:700}
-.dg-secret strong{display:block;font:800 24px/1.3 var(--display);color:#5e4514;overflow-wrap:anywhere}
-.dg-clue{padding:9px 10px;border-radius:11px;background:#e8f3f0;color:#24665f;font-size:13px;font-weight:800;text-align:center}
-.dg-guess-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
-.dg-guess-row input{min-width:0;height:42px;border:1.5px solid #ddceb6;border-radius:10px;padding:0 10px;background:#fff;color:var(--ink);font:500 15px var(--body)}
-.dg-guess-row input:focus{outline:none;border-color:var(--mint)}
-.dg-guess-row button{padding:0 13px;border-radius:10px;background:var(--mint);color:white;font-size:13px;font-weight:800}
-.dg-guess-row button:disabled,.dg-guess-row input:disabled{opacity:.5}
-.dg-feedback{min-height:18px;font-size:12px;font-weight:800;color:var(--ink-soft)}
-.dg-feedback.good{color:#16805f}.dg-feedback.bad{color:#b4532a}
-.dg-player-list{display:grid;gap:6px;overflow:auto;min-height:0;align-content:start}
-.dg-score-row{display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:10px;background:#f7efe3;font-size:12px}
-.dg-score-row .dg-avatar{width:25px;height:25px}
+.dg-secret strong{display:block;font:800 26px/1.3 var(--display);color:#5e4514;overflow-wrap:anywhere}
+.dg-clue{padding:10px;border-radius:13px;background:#e8f3f0;color:#24665f;font-size:14px;font-weight:800;text-align:center;box-shadow:0 3px 10px rgba(60,40,20,.08)}
+.dg-players{display:grid;gap:5px;align-content:start;max-height:30dvh;overflow:auto;padding:8px;border-radius:15px;background:var(--paper);box-shadow:0 3px 10px rgba(60,40,20,.08)}
+.dg-score-row{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:10px;background:#f7efe3;font-size:12px;min-width:0}
+.dg-score-row.me{background:#e5f4f1}
+.dg-score-row.gone{opacity:.5}
+.dg-avatar,.dg-score-row i{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-style:normal;font-weight:800;flex:none}
 .dg-score-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
 .dg-score-points{font-variant-numeric:tabular-nums;font-weight:900;color:var(--mint-ink)}
 .dg-status{font-size:10px;color:var(--ink-soft);white-space:nowrap}
-.dg-result{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:rgba(20,35,35,.58)}
+.dg-chat{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto auto;border-radius:15px;background:var(--paper);box-shadow:0 3px 10px rgba(60,40,20,.08);overflow:hidden}
+.dg-chat-log{overflow-y:auto;overscroll-behavior:contain;padding:9px 10px;display:flex;flex-direction:column;gap:4px;min-height:80px;-webkit-overflow-scrolling:touch}
+.dg-msg{font-size:14px;line-height:1.4;overflow-wrap:anywhere;color:var(--ink)}
+.dg-msg b{font-weight:800}
+.dg-msg.sys{font-size:12px;color:var(--ink-soft);text-align:center;padding:2px 0}
+.dg-msg.ok{padding:5px 9px;border-radius:9px;background:#dff5e8;color:#136b45;font-weight:800;font-size:13px}
+.dg-msg.inner{padding:3px 8px;border-radius:9px;background:#fff0bf;border-left:3px solid #e6b94a}
+.dg-msg.mine b{color:var(--mint-ink)!important}
+.dg-notice{min-height:0;padding:0 11px;font-size:12px;font-weight:800;color:var(--ink-soft)}
+.dg-notice:not(:empty){padding:3px 11px}
+.dg-notice.good{color:#16805f}.dg-notice.bad{color:#b4532a}
+.dg-chat-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;padding:8px;border-top:1px solid #eadcc6}
+.dg-chat-form input{min-width:0;height:44px;border:1.5px solid #ddceb6;border-radius:11px;padding:0 12px;background:#fff;color:var(--ink);font:600 16px var(--body)}
+.dg-chat-form input:focus{outline:none;border-color:var(--mint)}
+.dg-chat-form button{padding:0 16px;border-radius:11px;background:var(--mint);color:#fff;font-size:14px;font-weight:800}
+
+/* ผลรอบ / จบเกม */
+.dg-result{position:absolute;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:rgba(20,35,35,.58)}
 .dg-result[hidden]{display:none}
-.dg-result-card{width:min(420px,100%);max-height:90%;overflow:auto;display:grid;gap:10px;padding:20px;border-radius:20px;background:var(--paper);box-shadow:0 18px 55px rgba(0,0,0,.35);text-align:center}
+.dg-result-card{width:min(440px,100%);max-height:92%;overflow:auto;display:grid;gap:10px;padding:20px;border-radius:20px;background:var(--paper);box-shadow:0 18px 55px rgba(0,0,0,.35);text-align:center}
 .dg-result-card h3{margin:0;font:800 26px var(--display);color:var(--mint-ink)}
-.dg-result-answer{padding:10px;border-radius:12px;background:#fff0bf;font:800 25px var(--display)}
+.dg-result-answer{padding:10px;border-radius:12px;background:#fff0bf;font:800 24px var(--display);overflow-wrap:anywhere}
 .dg-result-scores{display:grid;gap:5px;text-align:left}
-.dg-empty{padding:10px;border-radius:10px;background:#f7efe3;color:var(--ink-soft);font-size:12px;text-align:center}
+.dg-result-card .dg-actions .btn[hidden]{display:none}
+
+@media(max-width:900px){.dg-setting-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){
-  .dg-game-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:8px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
-  .dg-side{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto;gap:7px;max-height:34vh;overflow:auto}
-  .dg-side-card{padding:9px;gap:6px}
-  .dg-player-list{max-height:100px}
-  .dg-secret strong{font-size:20px}
-  .dg-game-header{gap:6px;min-height:54px}
-  .dg-game-heading strong{font-size:12px}
+  .dg-game-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));overflow:hidden}
+  .dg-main{grid-template-rows:auto}
+  .dg-canvas-column{grid-template-rows:auto auto}
+  .dg-canvas-frame{aspect-ratio:4/3;width:100%;max-height:44dvh;margin-inline:auto}
+  .dg-wait{max-height:46dvh}
+  .dg-side{grid-template-rows:auto auto minmax(0,1fr);gap:7px}
+  .dg-prompt{grid-template-columns:minmax(0,1fr)}
+  .dg-secret strong{font-size:22px}
+  .dg-players{display:flex;gap:6px;max-height:none;overflow-x:auto;overflow-y:hidden;padding:6px}
+  .dg-players .dg-score-row{flex:none;min-width:120px;max-width:170px}
+  .dg-game-header{gap:6px;min-height:52px}
+  .dg-game-heading strong{font-size:13px}
   .dg-round-pill{font-size:10px;padding:5px 7px}
   .dg-time-pill{font-size:13px;padding:5px 8px}
+  .dg-tool{padding:0 9px;min-height:38px}
+  .dg-pal-grid{gap:4px}
 }
 @media(max-width:430px){
   .dg-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .dg-setting-grid{grid-template-columns:1fr}
-  .dg-side{grid-template-columns:1fr 1fr;max-height:38vh}
-  .dg-guess-row input{font-size:14px}
-  .dg-game-body{padding-inline:6px}
-  .dg-draw-tools{gap:5px;padding:6px}
-  .dg-color{width:23px;height:23px}
-  .dg-palette-select{max-width:100px;min-width:78px;font-size:10px}
-  .dg-palette-bar{gap:5px;flex-basis:100%}
+  .dg-setting-grid{grid-template-columns:1fr 1fr}
+  .dg-tool-row{gap:5px}
+  .dg-tool{font-size:11px}
+  .dg-tool span{font-size:15px}
+  .dg-room-card{flex-wrap:wrap}
 }
-@media(orientation:landscape) and (max-height:560px){
+@media(orientation:landscape) and (max-height:560px) and (min-width:761px){
   .dg-game-header{min-height:44px;padding-top:calc(env(safe-area-inset-top,0px) + 4px);padding-bottom:4px}
-  .dg-game-body{padding-block:6px;grid-template-columns:minmax(0,1fr) 220px;grid-template-rows:minmax(0,1fr)}
-  .dg-side{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto;max-height:none}
+  .dg-game-body{padding-block:6px;grid-template-columns:minmax(0,1fr) 250px}
+  .dg-side{grid-template-rows:auto minmax(0,.7fr) minmax(0,1.3fr)}
 }
 
 </style>
@@ -3220,466 +3294,831 @@ function closeBoard(){
 window.addEventListener('resize', () => { if (Board.open){ applyToolboxPosition(); if (Board.ui.collapsed) placeToolboxToggle(); placeText(); bdDirty(); } });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && Board.open) loadBoard(); });
 
-/* ---------- Draw & Guess (isolated mini-game; does not reuse Board / board_items) ---------- */
-const DG_CATEGORIES = [
-  ['animals','สัตว์','🐾'],['food','อาหาร','🍜'],['objects','สิ่งของ','🎒'],
-  ['occupations','อาชีพ','🧑‍🍳'],['places','สถานที่','🏡'],['nature','ธรรมชาติ','🌈'],
-  ['vehicles','ยานพาหนะ','🛺'],['thai_culture','วัฒนธรรมไทย','🇹🇭'],['fantasy','แฟนตาซี','🐉']
+/* ---------- Draw & Guess v3 ----------
+   ห้องหลายห้อง + ห้องรอ, แชท/ทายคำช่องเดียว, ชุดสีใหญ่, ยางลบ 2 โหมด (เฉพาะจุด / ทั้งเส้น), ย้อนกลับ
+   แยกจากกระดานวาดร่วม (Board / board_items) ใช้ตาราง dg3_* ฝั่ง Supabase (supabase/draw_guess_v3.sql) */
+const DG_CATS = [
+  ['animals','สัตว์','🐾'],['food','อาหาร','🍜'],['objects','สิ่งของ','🎒'],['occupations','อาชีพ','🧑‍🍳'],
+  ['places','สถานที่','🏡'],['nature','ธรรมชาติ','🌈'],['vehicles','ยานพาหนะ','🛺'],['thai_culture','วัฒนธรรมไทย','🇹🇭'],
+  ['fantasy','แฟนตาซี','🐉'],['actions','กิจกรรม','🏃'],['sports','กีฬา','⚽'],['clothes','เสื้อผ้า','👗'],
+  ['cozy','ชิลล์ ๆ','🧺'],['school','โรงเรียน','✏️'],['games','เกมและของเล่น','🎲']
 ];
-const DG_COLORS = ['#252525','#e45151','#ec9635','#3b9e68','#328cc9','#8062c9','#e06aa4','#ffffff'];
+const DG_DIFFS = [['easy','ง่าย'],['normal','ทั่วไป'],['hard','ยาก'],['mixed','ผสมทุกระดับ']];
+const DG_TIMES = [[45,'45 วินาที'],[60,'60 วินาที'],[90,'90 วินาที'],[120,'2 นาที'],[180,'3 นาที'],[0,'ไม่จำกัดเวลา']];
+const DG_ROUNDS = [3,5,8,10,15,20,30];
+const DG_REF = 600;            // ความสูงอ้างอิงของผืนวาด: ขนาดเส้น (px) -> สัดส่วนของผืน
+const DG_ASPECT = 4 / 3;
+
+/* ---- ชุดสี: 12 โทน x 6 ระดับ + เทา + สีผิว/ผม ---- */
+function dgHsl(h, s, l){
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+  const f = n => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
+  return '#' + [f(0), f(8), f(4)].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+const DG_HUES = [0, 24, 46, 62, 100, 148, 178, 204, 228, 264, 298, 334];
+const DG_LIGHT = [[90, 90], [88, 74], [84, 60], [80, 46], [72, 34], [62, 22]];
+const DG_GRID = DG_LIGHT.map(([s, l]) => DG_HUES.map(h => dgHsl(h, s, l))).flat();
+const DG_GRAYS = ['#ffffff', '#ececec', '#d4d4d4', '#bbbbbb', '#a0a0a0', '#858585', '#6b6b6b', '#505050', '#383838', '#252525', '#141414', '#000000'];
+const DG_SKINS = ['#ffe8d6', '#fcd9bd', '#f3c79f', '#e3ad7f', '#c98d5c', '#a96f43', '#8a5530', '#6a3f22', '#4a2a16', '#f6d365', '#c27a3a', '#7a4a2e'];
+const DG_QUICK = ['#252525', '#e63946', '#f48c06', '#fcd116', '#3a9d5d', '#2d87d6', '#7b5cd6', '#ec6aa8', '#8a5530', '#ffffff'];
+
 const DG = {
-  state: null, selectedCats: ['animals','food','objects'], difficulty: 'normal', duration: 90,
-  visible: false, busy: false, color: DG_COLORS[0], size: 0.006, eraser: false,
-  canvas: null, ctx: null, live: new Map(), current: null, lastLiveAt: 0, pendingLive: [],
-  revealTimer: 0, tickTimer: 0, pollTimer: 0, restoredChannel: null, lastPoll: 0,
-  feedback: '', feedbackKind: '',
+  roomId: null, room: null, rooms: [], mineRoom: null, visible: false, hubOpen: false, busy: false,
+  chat: [], chatLast: 0, chatReset: true,
+  strokes: new Map(), order: [], hidden: new Set(), live: new Map(), own: new Map(), mine: [],
+  cur: null, cursor: null, pending: [], lastLiveAt: 0,
+  tool: 'pen', eMode: 'pixel',
+  prefs: Object.assign({ color: '#252525', recent: [], mine: [], pen: 8, eraser: 28, eMode: 'pixel' }, LS.get('jt-dg-prefs', {})),
+  form: { mode: 'create' },
+  skew: 0, seenResult: '', resultHidden: false, notice: '', noticeKind: '',
+  timers: {}, restored: null, lastSyncAt: 0, lastAway: 0, lastPrev: null,
   $: id => document.getElementById(id)
 };
+DG.tool = 'pen'; DG.eMode = DG.prefs.eMode === 'stroke' ? 'stroke' : 'pixel';
+const dgSavePrefs = () => LS.set('jt-dg-prefs', DG.prefs);
+const dgNow = () => Date.now() + DG.skew;
 
-function dgPaletteList(){
-  if (typeof Board !== 'undefined' && Array.isArray(Board.palettes) && Board.palettes.length) return Board.palettes;
-  return [{id:'basic',name:'พื้นฐาน',colors:[...DG_COLORS]}];
+function dgCats(id){ const c = DG_CATS.find(x => x[0] === id); return c ? c : id === 'custom' ? ['custom', 'คำของห้อง', '⭐'] : [id, id, '•']; }
+function dgError(e){
+  const msg = (e && e.message) || String(e || 'เกิดข้อผิดพลาด');
+  return msg.replace(/^error:\s*/i, '').replace(/[\r\n]+/g, ' ').slice(0, 160);
 }
-function dgCurrentPalette(){
-  const palettes=dgPaletteList();
-  const activeId=typeof Board !== 'undefined' ? Board.activePaletteId : 'basic';
-  return palettes.find(p=>p.id===activeId)||palettes[0];
+async function dgRpc(fn, args){ const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; }
+function dgEl(tag, cls, text){ const el = document.createElement(tag); if (cls) el.className = cls; if (text != null) el.textContent = text; return el; }
+function dgMeName(){ return (ME.name || 'ผู้เล่น').slice(0, 32); }
+function dgColor(id){
+  const on = (S.players || []).find(p => String(p.key) === String(id));
+  return on && on.color ? on.color : id === ME.id ? ME.color : colorOf(id);
 }
-function dgSetDrawColor(color){
-  if(typeof color!=='string'||!/^#[0-9a-f]{6}$/i.test(color))return;
-  DG.color=color.toLowerCase(); DG.eraser=false;
-  if(typeof Board!=='undefined'){
-    Board.color=DG.color;
-    Board.recentColors=[DG.color,...(Array.isArray(Board.recentColors)?Board.recentColors.filter(c=>c!==DG.color):[])].slice(0,8);
-    if(typeof LS!=='undefined'){
-      LS.set('jt-bd-color',DG.color);
-      LS.set('jt-bd-recent-colors',Board.recentColors);
-    }
-    if(typeof renderBdTools==='function')renderBdTools();
-  }
-  const eraser=DG.$('dgEraser');
-  if(eraser)eraser.setAttribute('aria-pressed','false');
-  dgRenderPaletteControls();
-}
-function dgRenderPaletteControls(){
-  const select=DG.$('dgPaletteSelect'), box=DG.$('dgColors'), picker=DG.$('dgColorPicker');
-  if(!select||!box)return;
-  const palettes=dgPaletteList(), active=dgCurrentPalette();
-  select.replaceChildren();
-  palettes.forEach(p=>{
-    const option=document.createElement('option');option.value=p.id;option.textContent=p.name;
-    option.selected=p.id===active.id;select.appendChild(option);
-  });
-  box.replaceChildren();
-  (active.colors||[]).forEach(color=>{
-    const b=document.createElement('button');b.type='button';b.className='dg-color';
-    b.style.background=color;b.title=color.toUpperCase();b.setAttribute('aria-label','เลือกสี '+color.toUpperCase());
-    b.setAttribute('aria-pressed',String(color.toLowerCase()===DG.color));
-    b.addEventListener('click',()=>dgSetDrawColor(color));box.appendChild(b);
-  });
-  if(!box.children.length){
-    const empty=document.createElement('span');empty.className='dg-palette-empty';empty.textContent='ชุดสีนี้ยังว่าง';box.appendChild(empty);
-  }
-  if(picker)picker.value=DG.color;
-}
+function dgAvatar(id, name, cls){ const a = dgEl('i', cls || 'dg-avatar', [...(name || '?')][0] || '?'); a.style.background = dgColor(id); return a; }
 
+/* ============================ โครงหน้าจอ ============================ */
 function dgBuildUI(){
   const topbar = document.querySelector('.topbar');
-  if (topbar && !DG.$('dgLauncher')) {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'round'; b.id = 'dgLauncher';
-    b.setAttribute('aria-label','มินิเกม Draw & Guess'); b.title = 'มินิเกม Draw & Guess';
-    b.textContent = '🎨'; b.addEventListener('click', dgOpen);
-    const wx = DG.$('wxBtn'); topbar.insertBefore(b, wx || topbar.firstChild);
+  if (topbar && !DG.$('dgLauncher')){
+    const b = dgEl('button', 'round'); b.type = 'button'; b.id = 'dgLauncher'; b.textContent = '🎨';
+    b.setAttribute('aria-label', 'มินิเกมวาดภาพทายคำ'); b.title = 'วาดภาพทายคำ';
+    b.addEventListener('click', dgOpen);
+    topbar.insertBefore(b, DG.$('wxBtn') || topbar.firstChild);
   }
+  document.body.insertAdjacentHTML('beforeend', `
+  <section id="dgHub" class="dg-screen" hidden>
+    <div class="dg-card">
+      <div class="dg-head"><div><h2>🎨 วาดภาพทายคำ</h2><p class="dg-sub">สร้างห้องหรือเข้าห้องของเพื่อน เล่นได้ 2–12 คน</p></div><button class="dg-close" id="dgHubClose" aria-label="ปิด">×</button></div>
+      <div class="dg-actions"><button class="btn primary" id="dgNewRoom">＋ สร้างห้องใหม่</button><button class="btn soft" id="dgHubRefresh">รีเฟรช</button></div>
+      <div class="dg-room-list" id="dgRoomList"></div>
+      <p class="dg-note">ห้องที่ไม่มีใครออนไลน์เกิน 3 นาทีจะปิดเองอัตโนมัติ</p>
+    </div>
+  </section>
 
-  if (!DG.$('dgLobby')) document.body.insertAdjacentHTML('beforeend', `
-    <section id="dgLobby" class="dg-screen" hidden>
-      <div class="dg-card">
-        <div class="dg-head"><div><h2>🎨 Draw &amp; Guess</h2><p class="dg-sub">วาดภาพให้เพื่อนทาย ใครจะเดาใจคนวาดได้ก่อน?</p></div><button class="dg-close" id="dgLobbyClose" aria-label="ปิด">×</button></div>
-        <div class="dg-section"><div class="dg-label">ผู้เล่นในห้อง</div><div class="dg-player-chips" id="dgLobbyPlayers"></div><p class="dg-note" id="dgLobbyHint">ต้องมีผู้เล่นอย่างน้อย 2 คน เริ่มเล่นได้สูงสุด 4 คน</p></div>
-        <div class="dg-section"><div class="dg-label">เลือกหมวดหมู่ (เลือกได้หลายหมวด)</div><div class="dg-category-grid" id="dgCategoryGrid"></div></div>
-        <div class="dg-setting-grid">
-          <label class="dg-field">ระดับความยาก<select id="dgDifficulty"><option value="easy">ง่าย</option><option value="normal" selected>ทั่วไป</option><option value="hard">ยาก</option></select></label>
-          <label class="dg-field">เวลาต่อรอบ<select id="dgDuration"><option value="60">60 วินาที</option><option value="90" selected>90 วินาที</option><option value="120">120 วินาที</option><option value="0">ไม่จำกัดเวลา</option></select></label>
-          <label class="dg-field">จำนวนรอบต่อห้อง<select id="dgTotalRounds"><option value="3">3 รอบ</option><option value="5" selected>5 รอบ</option><option value="10">10 รอบ</option><option value="15">15 รอบ</option><option value="20">20 รอบ</option></select></label>
-        </div>
-        <p class="dg-note">คนวาดจะหมุนเวียนตามลำดับผู้เล่น ทุกคนมีสิทธิ์ข้ามรอบหรือจบเกมก่อนกำหนด เมื่อครบจำนวนรอบ ระบบจะสรุปคะแนนและประกาศผู้ชนะโดยอัตโนมัติ</p>
-        <div class="dg-actions"><button class="btn soft" id="dgLobbyCancel">กลับห้อง</button><button class="btn primary" id="dgStart">สร้างห้องและเริ่ม</button></div>
-        <p class="err" id="dgLobbyError" role="alert"></p>
+  <section id="dgForm" class="dg-screen dg-over" hidden>
+    <div class="dg-card">
+      <div class="dg-head"><div><h2 id="dgFormTitle">สร้างห้อง</h2><p class="dg-sub">ตั้งค่าได้ใหม่ตอนอยู่ห้องรอ ก่อนเริ่มเกม</p></div><button class="dg-close" id="dgFormClose" aria-label="ปิด">×</button></div>
+      <label class="dg-field">ชื่อห้อง<input id="dgFName" maxlength="40" placeholder="เช่น ห้องวาดเล่นกัน" autocomplete="off"></label>
+      <div class="dg-section"><div class="dg-label">หมวดคำ <span class="dg-mini-actions"><button type="button" id="dgCatAll">เลือกทั้งหมด</button><button type="button" id="dgCatNone">ล้าง</button></span></div><div class="dg-category-grid" id="dgFCats"></div></div>
+      <div class="dg-setting-grid">
+        <label class="dg-field">ความยาก<select id="dgFDiff"></select></label>
+        <label class="dg-field">เวลาต่อรอบ<select id="dgFTime"></select></label>
+        <label class="dg-field">จำนวนรอบ<select id="dgFRounds"></select></label>
+        <label class="dg-field">คนสูงสุด<select id="dgFMax"></select></label>
       </div>
-    </section>
-    <section id="dgGame" class="dg-screen dg-game-screen" hidden>
-      <div class="dg-game-layout">
-        <header class="dg-game-header">
-          <button class="dg-close" id="dgGameClose" aria-label="ซ่อนเกม">×</button>
-          <span class="dg-round-pill" id="dgRound">รอบ 1</span>
-          <div class="dg-game-heading"><strong id="dgDrawerName">คนวาด</strong><span id="dgCategoryName">หมวดหมู่</span></div>
-          <span class="dg-time-pill" id="dgClock">1:30</span>
-          <button class="dg-tool-btn" id="dgSkip" hidden>ข้ามรอบ</button>
-          <button class="dg-tool-btn" id="dgEnd" hidden>จบเกมก่อนกำหนด</button>
-        </header>
-        <div class="dg-game-body">
-          <div class="dg-canvas-column">
-            <div class="dg-canvas-frame"><canvas id="dgCanvas" width="960" height="720" aria-label="พื้นที่วาดภาพ"></canvas></div>
-            <div class="dg-draw-tools" id="dgDrawTools" hidden>
-              <div class="dg-palette-bar">
-                <select class="dg-palette-select" id="dgPaletteSelect" aria-label="เลือกชุดสี"></select>
-                <div class="dg-colors" id="dgColors" aria-label="สีที่ใช้วาด"></div>
-                <label class="dg-color-add" title="เลือกสีอื่น" aria-label="เลือกสีอื่น">
-                  <input type="color" id="dgColorPicker" value="#252525" aria-label="เลือกสีอื่น">
-                  <span aria-hidden="true">+</span>
-                </label>
-                <button class="dg-palette-add" id="dgAddPaletteColor" type="button" title="เพิ่มสีปัจจุบันลงในชุดสี" aria-label="เพิ่มสีปัจจุบันลงในชุดสี">+</button>
+      <label class="dg-field">คำของเราเอง (ไม่บังคับ) คั่นด้วย , หรือขึ้นบรรทัดใหม่
+        <textarea id="dgFCustom" rows="3" maxlength="900" placeholder="เช่น แมวของเรา, โต๊ะจิ๊กซอว์, วิทยุผี"></textarea></label>
+      <p class="dg-note">คำของเราจะถูกสุ่มปนกับคำของระบบ ถ้าไม่เลือกหมวดเลยจะใช้เฉพาะคำของเรา (เจ้าของห้องจะรู้คำเหล่านี้อยู่แล้ว คนอื่นมองไม่เห็น)</p>
+      <div class="dg-actions"><button class="btn soft" id="dgFCancel">ยกเลิก</button><button class="btn primary" id="dgFSubmit">สร้างห้อง</button></div>
+      <p class="err" id="dgFError" role="alert"></p>
+    </div>
+  </section>
+
+  <section id="dgRoom" class="dg-screen dg-game-screen" hidden>
+    <div class="dg-game-layout">
+      <header class="dg-game-header">
+        <button class="dg-close" id="dgHide" aria-label="ซ่อนเกม (ยังอยู่ในห้อง)" title="ซ่อนเกม (ยังอยู่ในห้อง)">⌂</button>
+        <span class="dg-round-pill" id="dgRound">รอ</span>
+        <div class="dg-game-heading"><strong id="dgTitle">ห้อง</strong><span id="dgSubTitle"></span></div>
+        <span class="dg-time-pill" id="dgClock" hidden>1:30</span>
+        <div class="dg-menu-wrap"><button class="dg-close" id="dgMenuBtn" aria-label="เมนู">⋯</button>
+          <div class="dg-menu" id="dgMenu" hidden>
+            <button id="dgMSkip">ข้ามรอบนี้</button><button id="dgMEnd">จบเกมเลย</button><button id="dgMSettings">ตั้งค่าห้อง</button><button id="dgMLeave" class="danger">ออกจากห้อง</button>
+          </div></div>
+      </header>
+      <div class="dg-game-body">
+        <div class="dg-main">
+          <div class="dg-wait" id="dgWait" hidden>
+            <h3 id="dgWaitName">ห้องรอ</h3>
+            <div class="dg-chips" id="dgWaitChips"></div>
+            <div class="dg-label" id="dgWaitCount">ผู้เล่น</div>
+            <div class="dg-wait-players" id="dgWaitPlayers"></div>
+            <p class="dg-note" id="dgWaitNote"></p>
+            <div class="dg-actions"><button class="btn primary" id="dgStartBtn">เริ่มเกม</button><button class="btn soft" id="dgEditBtn">ตั้งค่าห้อง</button><button class="btn soft" id="dgInviteBtn">เรียกเพื่อน 🔔</button></div>
+          </div>
+          <div class="dg-canvas-column" id="dgStage">
+            <div class="dg-canvas-frame" id="dgFrame"><canvas id="dgCanvas" width="960" height="720" aria-label="พื้นที่วาดภาพ"></canvas></div>
+            <div class="dg-tools" id="dgTools" hidden>
+              <div class="dg-tool-row">
+                <button class="dg-tool" id="dgToolPen" aria-pressed="true"><span>✏️</span>ปากกา</button>
+                <button class="dg-tool" id="dgToolEraser" aria-pressed="false"><span>🧽</span>ยางลบ</button>
+                <div class="dg-seg" id="dgEMode" hidden role="group" aria-label="โหมดยางลบ">
+                  <button type="button" data-m="pixel" title="ลบเฉพาะส่วนที่ลากผ่าน">เฉพาะจุด</button>
+                  <button type="button" data-m="stroke" title="แตะเส้นไหนลบทั้งเส้นนั้น">ทั้งเส้น</button>
+                </div>
+                <label class="dg-size" title="ขนาด"><i id="dgSizeDot"></i><input type="range" id="dgSize" min="2" max="64" step="1" aria-label="ขนาดเส้น"></label>
+                <button class="dg-tool" id="dgUndo" title="ย้อนเส้นล่าสุด"><span>↩️</span>ย้อน</button>
+                <button class="dg-tool" id="dgClear" title="ล้างภาพทั้งหมด"><span>🗑️</span>ล้าง</button>
               </div>
-              <select class="dg-size-select" id="dgBrushSize" aria-label="ขนาดเส้น"><option value="0.0035">เล็ก</option><option value="0.006" selected>กลาง</option><option value="0.012">ใหญ่</option></select>
-              <button class="dg-tool-btn" id="dgEraser" aria-pressed="false">ยางลบ</button>
-              <button class="dg-tool-btn" id="dgClear">ล้างภาพ</button>
+              <div class="dg-color-row" id="dgColorRow">
+                <button class="dg-color-cur" id="dgColorCur" aria-label="เปิดชุดสี" title="ชุดสีทั้งหมด"></button>
+                <div class="dg-colors" id="dgColors" aria-label="สีล่าสุด"></div>
+                <button class="dg-palette-open" id="dgPaletteOpen" aria-label="เปิดชุดสีทั้งหมด">🎨 สีทั้งหมด</button>
+              </div>
             </div>
           </div>
-          <aside class="dg-side">
-            <div class="dg-side-card" id="dgPromptCard">
-              <div class="dg-label" id="dgPromptLabel">คำใบ้</div>
-              <div class="dg-secret" id="dgSecret" hidden><small>คำที่คุณต้องวาด</small><strong id="dgSecretWord">—</strong></div>
-              <div class="dg-clue" id="dgClue">หมวดหมู่: สัตว์</div>
-              <div class="dg-guess-row" id="dgGuessRow"><input id="dgGuessInput" maxlength="80" autocomplete="off" placeholder="พิมพ์คำตอบ…"><button id="dgGuessSend">ส่ง</button></div>
-              <div class="dg-feedback" id="dgFeedback" aria-live="polite"></div>
-              <p class="dg-note" id="dgRoleNote"></p>
-            </div>
-            <div class="dg-side-card"><div class="dg-label">ผู้เล่นและคะแนน</div><div class="dg-player-list" id="dgScoreList"></div></div>
-            <div class="dg-side-card"><div class="dg-label">สถานะรอบ</div><div class="dg-note" id="dgRoundStatus">กำลังเตรียมเกม…</div></div>
-          </aside>
+        </div>
+        <aside class="dg-side">
+          <div class="dg-prompt" id="dgPrompt">
+            <div class="dg-secret" id="dgSecret" hidden><small>คำที่ต้องวาด</small><strong id="dgSecretWord">—</strong></div>
+            <div class="dg-clue" id="dgClue"></div>
+          </div>
+          <div class="dg-players" id="dgScoreList"></div>
+          <div class="dg-chat">
+            <div class="dg-chat-log" id="dgChatLog" aria-live="polite"></div>
+            <div class="dg-notice" id="dgNotice" aria-live="polite"></div>
+            <form class="dg-chat-form" id="dgChatForm" autocomplete="off">
+              <input id="dgChatInput" maxlength="120" placeholder="พิมพ์ข้อความ…" enterkeyhint="send"><button type="submit" id="dgChatSend">ส่ง</button>
+            </form>
+          </div>
+        </aside>
+      </div>
+      <div class="dg-palette" id="dgPalette" hidden>
+        <div class="dg-palette-card">
+          <div class="dg-head"><h3>เลือกสี</h3><button class="dg-close" id="dgPaletteClose" aria-label="ปิด">×</button></div>
+          <div class="dg-pal-grid" id="dgPalGrid"></div>
+          <div class="dg-label">สีของฉัน</div><div class="dg-pal-row" id="dgPalMine"></div>
+          <div class="dg-custom">
+            <label class="dg-color-pick"><input type="color" id="dgPickInput" value="#252525"><span>เลือกสีเอง</span></label>
+            <input id="dgHexInput" maxlength="7" placeholder="#RRGGBB" aria-label="รหัสสี">
+            <button class="dg-tool-btn" id="dgSaveColor">เก็บเข้าสีของฉัน</button>
+          </div>
         </div>
       </div>
-      <div class="dg-result" id="dgResult" hidden><div class="dg-result-card"><h3 id="dgResultTitle">หมดรอบ!</h3><div class="dg-result-answer" id="dgResultAnswer">คำตอบ</div><div class="dg-note" id="dgResultReason"></div><div class="dg-result-scores" id="dgResultScores"></div><div class="dg-actions"><button class="btn soft" id="dgResultClose">ซ่อนเกม</button><button class="btn soft" id="dgEndFromResult" hidden>จบเกมก่อนกำหนด</button><button class="btn primary" id="dgNextRound" hidden>เริ่มรอบถัดไป</button><button class="btn primary" id="dgPlayAgain" hidden>สร้างห้องใหม่</button></div></div></div>
-    </section>`);
+      <div class="dg-result" id="dgResult" hidden><div class="dg-result-card">
+        <h3 id="dgResultTitle"></h3>
+        <div class="dg-result-answer" id="dgResultAnswer"></div>
+        <div class="dg-note" id="dgResultReason"></div>
+        <div class="dg-result-scores" id="dgResultScores"></div>
+        <div class="dg-actions"><button class="btn soft" id="dgResultView">ดูภาพ</button><button class="btn primary" id="dgNextBtn">รอบถัดไป</button><button class="btn primary" id="dgAgainBtn">เล่นอีกครั้ง</button><button class="btn soft" id="dgLeaveBtn">ออกจากห้อง</button></div>
+      </div></div>
+    </div>
+  </section>`);
 
-  DG.$('dgLobbyClose').onclick = dgCloseLobby;
-  DG.$('dgLobbyCancel').onclick = dgCloseLobby;
-  DG.$('dgGameClose').onclick = () => { DG.$('dgGame').hidden = true; DG.visible = false; };
-  DG.$('dgStart').onclick = dgStartSession;
-  DG.$('dgGuessSend').onclick = dgSubmitGuess;
-  DG.$('dgGuessInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); dgSubmitGuess(); } });
-  DG.$('dgSkip').onclick = () => dgFinishRound('skipped');
-  DG.$('dgEnd').onclick = DG.$('dgEndFromResult').onclick = dgEndSession;
-  DG.$('dgNextRound').onclick = dgNextRound;
-  DG.$('dgPlayAgain').onclick = () => { DG.$('dgGame').hidden = true; DG.state = null; dgOpenLobby(); };
-  DG.$('dgResultClose').onclick = () => { DG.$('dgGame').hidden = true; DG.visible = false; };
-  DG.$('dgEraser').onclick = () => { DG.eraser = !DG.eraser; DG.$('dgEraser').setAttribute('aria-pressed',String(DG.eraser)); };
-  DG.$('dgBrushSize').onchange = e => DG.size = +e.target.value;
+  DG.$('dgHubClose').onclick = dgCloseHub;
+  DG.$('dgHubRefresh').onclick = () => dgLoadRooms(false);
+  DG.$('dgNewRoom').onclick = () => dgOpenForm('create');
+  DG.$('dgFormClose').onclick = DG.$('dgFCancel').onclick = dgCloseForm;
+  DG.$('dgFSubmit').onclick = dgSubmitForm;
+  DG.$('dgCatAll').onclick = () => dgFormCats(DG_CATS.map(c => c[0]));
+  DG.$('dgCatNone').onclick = () => dgFormCats([]);
+  DG.$('dgHide').onclick = dgHideRoom;
+  DG.$('dgMenuBtn').onclick = e => { e.stopPropagation(); DG.$('dgMenu').hidden = !DG.$('dgMenu').hidden; };
+  document.addEventListener('click', e => { if (!e.target.closest('.dg-menu-wrap')) DG.$('dgMenu').hidden = true; });
+  DG.$('dgMSkip').onclick = () => { DG.$('dgMenu').hidden = true; dgFinishRound('skipped'); };
+  DG.$('dgMEnd').onclick = () => { DG.$('dgMenu').hidden = true; dgEndRoom(); };
+  DG.$('dgMSettings').onclick = DG.$('dgEditBtn').onclick = () => { DG.$('dgMenu').hidden = true; dgOpenForm('edit'); };
+  DG.$('dgMLeave').onclick = DG.$('dgLeaveBtn').onclick = () => { DG.$('dgMenu').hidden = true; dgLeaveRoom(); };
+  DG.$('dgStartBtn').onclick = dgStartGame;
+  DG.$('dgInviteBtn').onclick = dgInvite;
+  DG.$('dgNextBtn').onclick = dgAdvance;
+  DG.$('dgAgainBtn').onclick = dgReset;
+  DG.$('dgResultView').onclick = () => { DG.resultHidden = true; DG.$('dgResult').hidden = true; };
+  DG.$('dgChatForm').addEventListener('submit', e => { e.preventDefault(); dgSend(); });
+
+  /* เครื่องมือวาด */
+  DG.$('dgToolPen').onclick = () => dgSetTool('pen');
+  DG.$('dgToolEraser').onclick = () => dgSetTool('eraser');
+  DG.$('dgEMode').addEventListener('click', e => { const b = e.target.closest('button[data-m]'); if (b) dgSetEMode(b.dataset.m); });
+  DG.$('dgSize').addEventListener('input', e => { DG.prefs[DG.tool === 'eraser' ? 'eraser' : 'pen'] = +e.target.value; dgSavePrefs(); dgRenderTools(); });
+  DG.$('dgUndo').onclick = dgUndo;
   DG.$('dgClear').onclick = dgClearCanvas;
-  DG.$('dgPaletteSelect').onchange = e => {
-    if (typeof setActivePalette === 'function') setActivePalette(e.target.value);
-    else if (typeof Board !== 'undefined') Board.activePaletteId = e.target.value;
-    dgRenderPaletteControls();
-  };
-  DG.$('dgColorPicker').onchange = e => dgSetDrawColor(e.target.value);
-  DG.$('dgAddPaletteColor').onclick = () => {
-    if (typeof addColorToPalette === 'function') addColorToPalette(DG.color);
-    dgRenderPaletteControls();
-  };
-  if (typeof Board !== 'undefined' && Board.color && /^#[0-9a-f]{6}$/i.test(Board.color)) DG.color = Board.color.toLowerCase();
-  dgRenderPaletteControls();
+  DG.$('dgColorCur').onclick = DG.$('dgPaletteOpen').onclick = dgOpenPalette;
+  DG.$('dgPaletteClose').onclick = () => { DG.$('dgPalette').hidden = true; };
+  DG.$('dgPalette').addEventListener('click', e => { if (e.target === DG.$('dgPalette')) DG.$('dgPalette').hidden = true; });
+  DG.$('dgPickInput').addEventListener('input', e => dgSetColor(e.target.value, true));
+  DG.$('dgHexInput').addEventListener('change', e => { let v = e.target.value.trim(); if (/^[0-9a-f]{6}$/i.test(v)) v = '#' + v; if (/^#[0-9a-f]{6}$/i.test(v)) dgSetColor(v, true); else e.target.value = DG.prefs.color; });
+  DG.$('dgSaveColor').onclick = () => { const c = DG.prefs.color; DG.prefs.mine = [c, ...DG.prefs.mine.filter(x => x !== c)].slice(0, 30); dgSavePrefs(); dgRenderPalette(); toast('เก็บสีไว้แล้ว'); };
+  dgRenderPalette();
 
-  DG.canvas = DG.$('dgCanvas'); DG.ctx = DG.canvas.getContext('2d');
-  DG.canvas.addEventListener('pointerdown', dgPointerDown);
-  DG.canvas.addEventListener('pointermove', dgPointerMove);
-  DG.canvas.addEventListener('pointerup', dgPointerUp);
-  DG.canvas.addEventListener('pointercancel', dgPointerUp);
-  window.addEventListener('resize', () => { if (DG.state) dgRenderCanvas(); });
-  document.addEventListener('keydown', e => { if (e.key==='Escape' && !DG.$('dgGame').hidden){ DG.$('dgGame').hidden=true; DG.visible=false; } });
-
-  DG_CATEGORY_RENDER();
-  DG.tickTimer = setInterval(dgTick,250);
-  DG.pollTimer = setInterval(() => {
-    if (S.connected && S.chan && DG.restoredChannel !== S.chan){ DG.restoredChannel = S.chan; DG.lastPoll=Date.now(); dgRefreshState(true); }
-    if (!S.connected) DG.restoredChannel = null;
-    if (DG.state && DG.state.active && !DG.busy && Date.now()-DG.lastPoll>10000){ DG.lastPoll=Date.now(); dgRefreshState(true); }
-  },1200);
-}
-
-function DG_CATEGORY_RENDER(){
-  const box = DG.$('dgCategoryGrid'); if (!box) return;
-  box.replaceChildren();
-  DG_CATEGORIES.forEach(([id,label,emoji]) => {
-    const labelEl=document.createElement('label'); labelEl.className='dg-category';
-    const input=document.createElement('input'); input.type='checkbox'; input.value=id; input.checked=DG.selectedCats.includes(id);
-    input.onchange=()=>{ DG.selectedCats = [...box.querySelectorAll('input:checked')].map(x=>x.value); };
-    const name=document.createElement('span'); name.textContent=emoji+' '+label;
-    labelEl.append(input,name); box.appendChild(labelEl);
+  const cv = DG.canvas = DG.$('dgCanvas');
+  DG.ctx = cv.getContext('2d');
+  DG.ink = document.createElement('canvas'); DG.tmp = document.createElement('canvas');
+  cv.addEventListener('pointerdown', dgPointerDown);
+  cv.addEventListener('pointermove', dgPointerMove);
+  cv.addEventListener('pointerup', dgPointerUp);
+  cv.addEventListener('pointercancel', dgPointerUp);
+  cv.addEventListener('pointerleave', () => { DG.cursor = null; dgRequestRender(); });
+  window.addEventListener('resize', () => { if (DG.visible) dgRequestRender(); });
+  if (window.ResizeObserver) new ResizeObserver(() => { if (DG.visible) dgRequestRender(); }).observe(DG.$('dgFrame'));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape'){ if (!DG.$('dgPalette').hidden) DG.$('dgPalette').hidden = true; else if (!DG.$('dgForm').hidden) dgCloseForm(); else if (DG.visible) dgHideRoom(); else if (DG.hubOpen) dgCloseHub(); return; }
+    if (!DG.visible || !dgCanDraw() || /input|textarea|select/i.test((e.target.tagName || ''))) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); dgUndo(); }
+    else if (e.key === 'p') dgSetTool('pen'); else if (e.key === 'e') dgSetTool('eraser');
   });
+
+  dgBuildFormOptions();
+  dgRenderTools();
+  DG.timers.tick = setInterval(dgTick, 250);
+  DG.timers.poll = setInterval(dgPoll, 1500);
 }
-function dgOnlinePlayers(){
-  const list=(S.players||[]).map(p=>({id:String(p.key||p.id||''),name:String(p.name||'ผู้เล่น'),color:p.color||colorOf(p.key||p.id||'')})).filter(p=>p.id);
-  const seen=new Set(); return list.filter(p=>{ if(seen.has(p.id))return false;seen.add(p.id);return true; });
-}
-function dgRenderLobby(){
-  const box=DG.$('dgLobbyPlayers'); box.replaceChildren();
-  const players=dgOnlinePlayers();
-  players.forEach(p=>{const item=document.createElement('span');item.className='dg-player-chip';const av=document.createElement('i');av.style.background=p.color;av.textContent=[...p.name][0]||'?';const n=document.createElement('span');n.textContent=p.name+(p.id===ME.id?' (คุณ)':'');item.append(av,n);box.appendChild(item);});
-  DG.$('dgLobbyHint').textContent=players.length<2?'ต้องมีผู้เล่นอย่างน้อย 2 คนจึงเริ่มเกมได้':players.length>4?'เกมรองรับสูงสุด 4 คน':'พร้อมเล่น '+players.length+' คน';
-  DG.$('dgStart').disabled=players.length<2||players.length>4||DG.selectedCats.length===0||DG.busy;
-  DG.$('dgLobbyError').textContent='';
-}
+
+/* ============================ ล็อบบี้ / รายการห้อง ============================ */
 function dgOpen(){
-  if (DG.state && DG.state.active){ dgShowGame(); return; }
-  dgRefreshState(false).then(() => { if (DG.state && (DG.state.active || DG.state.status==='ended')) dgShowGame(); else dgOpenLobby(); });
+  if (!sb){ toast('ยังไม่ได้เชื่อมต่อเซิร์ฟเวอร์'); return; }
+  if (DG.room && DG.room.found){ dgShowRoom(); return; }
+  DG.hubOpen = true; DG.$('dgHub').hidden = false; dgLoadRooms(false);
+  clearInterval(DG.timers.hub); DG.timers.hub = setInterval(() => { if (DG.hubOpen) dgLoadRooms(true); }, 4000);
 }
-function dgOpenLobby(){ DG.visible=false; dgRenderLobby(); DG.$('dgLobby').hidden=false; }
-function dgCloseLobby(){ DG.$('dgLobby').hidden=true; }
-async function dgStartSession(){
-  if(DG.busy)return;
-  const players=dgOnlinePlayers();
-  if(players.length<2||players.length>4){ DG.$('dgLobbyError').textContent='ต้องมีผู้เล่นออนไลน์ 2–4 คน';return; }
-  if(!DG.selectedCats.length){ DG.$('dgLobbyError').textContent='เลือกอย่างน้อยหนึ่งหมวดหมู่';return; }
-  DG.busy=true; dgRenderLobby(); DG.$('dgStart').textContent='กำลังเริ่ม…';
-  try{
-    const {data,error}=await sb.rpc('dg_start_room',{p_creator_id:ME.id,p_players:players.map(p=>({id:p.id,name:p.name})),p_categories:DG.selectedCats,p_difficulty:DG.$('dgDifficulty').value,p_duration_seconds:+DG.$('dgDuration').value,p_total_rounds:+DG.$('dgTotalRounds').value});
-    if(error)throw error;
-    DG.state=data; DG.live.clear(); DG.feedback=''; DG.$('dgLobby').hidden=true; dgShowGame(); dgBroadcast('session_started');
-  }catch(e){ DG.$('dgLobbyError').textContent=dgError(e); }
-  finally{DG.busy=false;DG.$('dgStart').textContent='สร้างห้องและเริ่ม';dgRenderLobby();}
+function dgCloseHub(){ DG.hubOpen = false; DG.$('dgHub').hidden = true; clearInterval(DG.timers.hub); }
+async function dgLoadRooms(silent){
+  if (!sb || !ME || !ME.id) return;
+  try {
+    const d = await dgRpc('dg3_list_rooms', { p_player_id: ME.id });
+    DG.rooms = d.rooms || []; DG.mineRoom = d.my_room_id || null;
+    if (DG.mineRoom && !DG.roomId){ DG.roomId = DG.mineRoom; await dgSync(true); if (DG.hubOpen && DG.room && DG.room.found){ dgCloseHub(); dgShowRoom(); return; } }
+    dgRenderHub();
+  } catch (e){ if (!silent) toast('โหลดรายการห้องไม่สำเร็จ'); }
 }
-async function dgRefreshState(silent){
-  if(!sb||!ME||!ME.id)return null;
-  try{
-    const {data,error}=await sb.rpc('dg_get_public_state',{p_player_id:ME.id}); if(error)throw error;
-    if(data&&data.status==='ended'){
-      DG.state=data;DG.live.clear();
-      if(!DG.$('dgGame').hidden)dgRenderGame();
-      return data;
-    }
-    if(data&&data.active){
-      const changed=!DG.state||DG.state.session_id!==data.session_id||DG.state.round_no!==data.round_no||DG.state.status!==data.status;
-      DG.state=data;DG.lastPoll=Date.now();
-      if(changed){DG.live.clear();DG.feedback='';DG.feedbackKind='';}
-      if(!DG.$('dgGame').hidden)dgRenderGame();
-      dgRenderCanvas();
-      if(DG.$('dgLobby')&&!DG.$('dgLobby').hidden)dgRenderLobby();
-      dgScheduleAutoNext();
-      return data;
-    }
-    if(!DG.state||DG.state.status==='ended')DG.state=null;
-    if(!silent&&!DG.$('dgGame').hidden){DG.$('dgGame').hidden=true;DG.visible=false;}
-    return null;
-  }catch(e){ if(!silent)toast('โหลดสถานะ Draw & Guess ไม่สำเร็จ'); return null; }
-}
-function dgShowGame(){
-  if(!DG.state)return;
-  DG.$('dgLobby').hidden=true;DG.$('dgGame').hidden=false;DG.visible=true;
-  dgRenderGame();requestAnimationFrame(dgRenderCanvas);dgScheduleAutoNext();
-}
-function dgBroadcast(type,extra){
-  if(!S.chan||!DG.state||!DG.state.session_id)return;
-  const payload={type,session_id:DG.state.session_id,round_no:DG.state.round_no,...(extra||{})};
-  S.chan.send({type:'broadcast',event:'draw_guess',payload}).catch(()=>{});
-}
-function dgOnBroadcast(payload){
-  if(!payload||typeof payload!=='object')return;
-  if(payload.type==='session_started'){
-    if(!DG.state||DG.state.session_id!==payload.session_id){
-      dgRefreshState(true).then(()=>{ if(DG.state&&DG.state.active)dgShowGame(); });
-    }
-    return;
-  }
-  if(!DG.state||payload.session_id!==DG.state.session_id)return;
-  if(payload.round_no!==undefined&&payload.round_no!==DG.state.round_no&&payload.type!=='state_changed')return;
-  if(payload.type==='stroke_live'){
-    if(payload.drawer_id===ME.id)return;
-    let stroke=DG.live.get(payload.stroke_id);
-    if(!stroke){stroke={id:payload.stroke_id,color:payload.color,width:payload.width,erase:!!payload.erase,points:[]};DG.live.set(payload.stroke_id,stroke);}
-    if(Array.isArray(payload.points))stroke.points.push(...payload.points);
-    dgRenderCanvas();return;
-  }
-  if(payload.type==='stroke_saved'||payload.type==='canvas_cleared'||payload.type==='state_changed'||payload.type==='round_finished'||payload.type==='round_started'||payload.type==='session_ended'){
-    if((payload.type==='stroke_saved'||payload.type==='stroke_discarded')&&payload.stroke_id)DG.live.delete(payload.stroke_id);
-    if(payload.type==='canvas_cleared')DG.live.clear();
-    dgRefreshState(true);
-  }
-}
-DG.onBroadcast=dgOnBroadcast;
-function dgError(e){
-  const msg=(e&&e.message)||String(e||'เกิดข้อผิดพลาด');
-  return msg.replace(/^.*?:\s*/,'').replace(/[\r\n]+/g,' ').slice(0,180);
-}
-function dgName(id){ const p=(DG.state?.players||[]).find(x=>x.player_id===id);return p?p.name:'ผู้เล่น'; }
-function dgIsDrawer(){return !!DG.state&&DG.state.drawer_id===ME.id&&DG.state.status==='drawing';}
-function dgHasSolved(){const p=(DG.state?.players||[]).find(x=>x.player_id===ME.id);return !!(p&&p.solved);}
-function dgRenderGame(){
-  const s=DG.state;if(!s)return;
-  const drawer=dgIsDrawer(),meParticipant=!!s.is_participant;
-  const totalRounds=Number(s.total_rounds)||5;
-  DG.$('dgRound').textContent='รอบ '+s.round_no+' / '+totalRounds;
-  DG.$('dgDrawerName').textContent='🎨 '+dgName(s.drawer_id)+(drawer?' (คุณกำลังวาด)':' กำลังวาด');
-  const cat=DG_CATEGORIES.find(x=>x[0]===s.category);DG.$('dgCategoryName').textContent='หมวดหมู่: '+(cat?cat[1]:s.category||'—');
-  DG.$('dgSecret').hidden=!drawer;DG.$('dgSecretWord').textContent=s.secret_word||'กำลังโหลดคำ…';
-  DG.$('dgClue').hidden=drawer;DG.$('dgClue').textContent='หมวดหมู่: '+(cat?cat[1]:s.category||'—');
-  DG.$('dgDrawTools').hidden=!drawer;
-  DG.canvas.classList.toggle('dg-readonly',!drawer);
-  DG.$('dgGuessRow').hidden=drawer||dgHasSolved()||!meParticipant||s.status!=='drawing';
-  DG.$('dgGuessInput').disabled=DG.busy;
-  DG.$('dgRoleNote').textContent=drawer?'วาดให้เพื่อนเดาคำนี้ ห้ามเขียนตัวอักษรหรือใบ้ด้วยคำพูด':!meParticipant?'คุณเข้ามาหลังเริ่มเกม จึงรับชมรอบนี้ได้ รอบหน้าจึงจะเข้าร่วมได้':dgHasSolved()?'คุณทายถูกแล้ว รอเพื่อนคนอื่นได้เลย':'พิมพ์คำตอบที่คิดว่าใช่ได้เรื่อย ๆ';
-  DG.$('dgSkip').hidden=!meParticipant||s.status!=='drawing';DG.$('dgEnd').hidden=!meParticipant||s.status==='ended';
-  DG.$('dgClock').textContent=s.status==='reveal'?'เฉลย':s.status==='ended'?'จบเกม':DG.$('dgClock').textContent;
-  DG.$('dgSkip').disabled=DG.busy;DG.$('dgEnd').disabled=DG.busy;
-  DG.$('dgFeedback').textContent=DG.feedback;DG.$('dgFeedback').className='dg-feedback '+DG.feedbackKind;
-  DG.$('dgRoundStatus').textContent=s.status==='drawing'?(drawer?'คุณเป็นคนวาด':'กำลังวาดภาพ')+' · รอบ '+s.round_no+'/'+totalRounds:s.status==='ended'?'เกมจบแล้ว · '+s.round_no+'/'+totalRounds+' รอบ':'กำลังเฉลยรอบ '+s.round_no+'/'+totalRounds;
-  const scores=DG.$('dgScoreList');scores.replaceChildren();
-  [...(s.players||[])].sort((a,b)=>b.score-a.score||a.join_order-b.join_order).forEach(p=>{
-    const row=document.createElement('div');row.className='dg-score-row';const av=document.createElement('i');av.className='dg-avatar';const online=dgOnlinePlayers().find(x=>x.id===p.player_id);av.style.background=online?online.color:colorOf(p.player_id);av.textContent=[...(p.name||'?')][0]||'?';
-    const name=document.createElement('span');name.className='dg-score-name';name.textContent=p.name+(p.player_id===ME.id?' (คุณ)':'');
-    const status=document.createElement('span');status.className='dg-status';status.textContent=p.is_drawer?'คนวาด':p.solved?'✓ ทายถูก':'กำลังทาย';
-    const pts=document.createElement('strong');pts.className='dg-score-points';pts.textContent=p.score+' คะแนน';row.append(av,name,status,pts);scores.appendChild(row);
+function dgRenderHub(){
+  const box = DG.$('dgRoomList'); box.replaceChildren();
+  if (!DG.rooms.length){ box.appendChild(dgEl('div', 'dg-empty', 'ยังไม่มีห้อง กด "สร้างห้องใหม่" แล้วชวนเพื่อนได้เลย')); return; }
+  DG.rooms.forEach(r => {
+    const card = dgEl('div', 'dg-room-card');
+    const info = dgEl('div', 'dg-room-info');
+    info.append(dgEl('strong', '', r.name));
+    const playing = r.status !== 'waiting';
+    info.append(dgEl('span', 'dg-room-meta', '👑 ' + (r.host_name || '—') + ' · ' + r.count + '/' + r.max_players + ' คน · ' + (playing ? 'กำลังเล่น รอบ ' + r.round_no + '/' + r.total_rounds : 'รอเริ่ม')));
+    info.append(dgEl('span', 'dg-room-names', (r.names || []).join(', ')));
+    const btn = dgEl('button', 'btn ' + (r.id === DG.mineRoom ? 'soft' : 'primary'), r.id === DG.mineRoom ? 'กลับเข้าห้อง' : r.count >= r.max_players ? 'เต็ม' : playing ? 'เข้าเล่นกลางเกม' : 'เข้าร่วม');
+    btn.disabled = r.count >= r.max_players && r.id !== DG.mineRoom;
+    btn.onclick = () => dgJoin(r.id);
+    card.append(info, btn); box.appendChild(card);
   });
-  const reveal=DG.$('dgResult');reveal.hidden=s.status!=='reveal'&&s.status!=='ended';
-  if(!reveal.hidden)dgRenderResult();
-  if(!DG.$('dgGame').hidden)requestAnimationFrame(dgRenderCanvas);
+}
+async function dgJoin(id){
+  if (DG.busy) return; DG.busy = true;
+  try {
+    const st = await dgRpc('dg3_join_room', { p_player_id: ME.id, p_name: dgMeName(), p_room_id: id });
+    dgEnterRoom(st); dgBroadcast('rooms'); dgBroadcast('room');
+  } catch (e){ toast(dgError(e)); dgLoadRooms(true); }
+  finally { DG.busy = false; }
+}
+
+/* ============================ สร้าง / แก้ตั้งค่าห้อง ============================ */
+function dgBuildFormOptions(){
+  const fill = (id, rows) => { const s = DG.$(id); rows.forEach(([v, l]) => { const o = dgEl('option', '', l); o.value = v; s.appendChild(o); }); };
+  fill('dgFDiff', DG_DIFFS); fill('dgFTime', DG_TIMES); fill('dgFRounds', DG_ROUNDS.map(n => [n, n + ' รอบ']));
+  fill('dgFMax', Array.from({ length: 11 }, (_, i) => [i + 2, (i + 2) + ' คน']));
+  const box = DG.$('dgFCats');
+  DG_CATS.forEach(([id, label, emoji]) => {
+    const l = dgEl('label', 'dg-category'); const i = document.createElement('input'); i.type = 'checkbox'; i.value = id;
+    l.append(i, dgEl('span', '', emoji + ' ' + label)); box.appendChild(l);
+  });
+}
+function dgFormCats(ids){ DG.$('dgFCats').querySelectorAll('input').forEach(i => { i.checked = ids.includes(i.value); }); }
+function dgDefaults(){ return Object.assign({ categories: ['animals', 'food', 'objects', 'cozy'], difficulty: 'normal', duration_seconds: 90, total_rounds: 5, max_players: 8, custom_words: [] }, LS.get('jt-dg-settings', {})); }
+function dgOpenForm(mode){
+  DG.form.mode = mode; dgCloseHubKeep();
+  const edit = mode === 'edit' && DG.room && DG.room.found;
+  const s = edit ? DG.room.settings : dgDefaults();
+  DG.$('dgFormTitle').textContent = edit ? 'ตั้งค่าห้อง' : 'สร้างห้อง';
+  DG.$('dgFSubmit').textContent = edit ? 'บันทึก' : 'สร้างห้อง';
+  DG.$('dgFName').value = edit ? DG.room.name : (dgMeName() ? 'ห้องของ ' + dgMeName() : '');
+  dgFormCats(s.categories || []);
+  DG.$('dgFDiff').value = s.difficulty; DG.$('dgFTime').value = s.duration_seconds; DG.$('dgFRounds').value = s.total_rounds; DG.$('dgFMax').value = s.max_players;
+  DG.$('dgFCustom').value = (s.custom_words || []).join(', ');
+  DG.$('dgFError').textContent = ''; DG.$('dgForm').hidden = false;
+}
+function dgCloseHubKeep(){ DG.$('dgHub').hidden = true; }
+function dgCloseForm(){ DG.$('dgForm').hidden = true; if (DG.hubOpen && !DG.room) DG.$('dgHub').hidden = false; }
+function dgReadForm(){
+  const cats = [...DG.$('dgFCats').querySelectorAll('input:checked')].map(i => i.value);
+  const custom = DG.$('dgFCustom').value.split(/[,\n，、]+/).map(x => x.trim()).filter(Boolean).slice(0, 60);
+  return { categories: cats, difficulty: DG.$('dgFDiff').value, duration_seconds: +DG.$('dgFTime').value, total_rounds: +DG.$('dgFRounds').value, max_players: +DG.$('dgFMax').value, custom_words: custom };
+}
+async function dgSubmitForm(){
+  if (DG.busy) return;
+  const s = dgReadForm(), name = DG.$('dgFName').value.trim();
+  if (!s.categories.length && !s.custom_words.length){ DG.$('dgFError').textContent = 'เลือกอย่างน้อยหนึ่งหมวด หรือใส่คำของเราเอง'; return; }
+  DG.busy = true; DG.$('dgFSubmit').disabled = true;
+  try {
+    let st;
+    if (DG.form.mode === 'edit' && DG.room && DG.room.found) st = await dgRpc('dg3_update_settings', { p_room_id: DG.roomId, p_player_id: ME.id, p_name: name, p_settings: s });
+    else { LS.set('jt-dg-settings', s); st = await dgRpc('dg3_create_room', { p_player_id: ME.id, p_name: dgMeName(), p_room_name: name, p_settings: s }); }
+    DG.$('dgForm').hidden = true;
+    if (DG.form.mode === 'edit'){ dgApplyState(st); dgBroadcast('room'); }
+    else { dgEnterRoom(st); dgBroadcast('rooms'); }
+    dgBroadcast('rooms');
+  } catch (e){ DG.$('dgFError').textContent = dgError(e); }
+  finally { DG.busy = false; DG.$('dgFSubmit').disabled = false; }
+}
+
+/* ============================ เข้า / ออกห้อง / ซิงก์ ============================ */
+function dgEnterRoom(st){
+  DG.roomId = st.room_id; DG.room = null; dgResetRound(true); DG.chat = []; DG.chatLast = 0;
+  dgCloseHub(); DG.$('dgForm').hidden = true;
+  dgApplyState(st, true); dgShowRoom();
+  dgFetchChat(true); dgFetchStrokes();
+}
+function dgShowRoom(){
+  if (!DG.room) return; DG.visible = true; DG.hubOpen = false; DG.$('dgHub').hidden = true; DG.$('dgRoom').hidden = false;
+  dgRender(); requestAnimationFrame(() => { dgRequestRender(); dgScrollChat(true); });
+}
+function dgHideRoom(){ DG.visible = false; DG.$('dgRoom').hidden = true; DG.$('dgMenu').hidden = true; }
+function dgLeaveLocal(msg){
+  DG.roomId = null; DG.room = null; DG.chat = []; DG.chatLast = 0; dgResetRound(true);
+  clearTimeout(DG.timers.next); DG.$('dgRoom').hidden = true; DG.visible = false; DG.$('dgResult').hidden = true;
+  dgLauncherBadge(); if (msg) toast(msg);
+}
+async function dgLeaveRoom(){
+  if (!DG.room) return;
+  if (DG.room.status !== 'waiting' && DG.room.status !== 'ended' && !confirm('ออกจากห้องนี้ใช่ไหม?')) return;
+  const id = DG.roomId; dgLeaveLocal();
+  try { await dgRpc('dg3_leave_room', { p_room_id: id, p_player_id: ME.id }); dgBroadcast('room', {}, id); dgBroadcast('rooms'); } catch (e){}
+  dgOpen();
+}
+function dgLauncherBadge(){ const b = DG.$('dgLauncher'); if (b) b.classList.toggle('in-room', !!(DG.room && DG.room.found)); }
+
+async function dgSync(silent){
+  if (!sb || !DG.roomId) return null;
+  try {
+    const st = await dgRpc('dg3_get_state', { p_room_id: DG.roomId, p_player_id: ME.id });
+    DG.lastSyncAt = Date.now();
+    if (!st || !st.found){ dgLeaveLocal(silent ? '' : 'ห้องนี้ถูกปิดแล้ว'); return null; }
+    dgApplyState(st);
+    return st;
+  } catch (e){ if (!silent) toast('โหลดสถานะห้องไม่สำเร็จ'); return null; }
+}
+function dgPoll(){
+  if (S.connected && S.chan && DG.restored !== S.chan){ DG.restored = S.chan; if (!DG.roomId) dgLoadRooms(true); else dgSync(true); }
+  if (!S.connected) DG.restored = null;
+  if (!DG.roomId || DG.busy) return;
+  const gap = DG.room && DG.room.status === 'drawing' ? 4000 : 6000;
+  if (Date.now() - DG.lastSyncAt > gap){ DG.lastSyncAt = Date.now(); dgSync(true).then(() => { dgFetchChat(false); if (DG.room && DG.room.status === 'drawing') dgFetchStrokes(); }); }
+}
+
+function dgResetRound(full){
+  DG.strokes.clear(); DG.order = []; DG.hidden.clear(); DG.live.clear(); DG.own.clear(); DG.mine = []; DG.cur = null; DG.pending = [];
+  DG.resultHidden = false; DG.inkDirty = true;
+  if (full){ DG.lastPrev = null; DG.seenResult = ''; }
+  dgRequestRender();
+}
+function dgApplyState(st, first){
+  if (st.is_member === false && st.status !== 'ended' && !first){ dgLeaveLocal('คุณไม่ได้อยู่ในห้องนี้แล้ว'); return; }
+  const prev = DG.lastPrev, me = (st.players || []).find(p => p.player_id === ME.id);
+  DG.skew = st.server_now ? Date.parse(st.server_now) - Date.now() : DG.skew;
+  DG.room = st; DG.roomId = st.room_id;
+  const mySolved = !!(me && me.solved);
+  const roundChanged = !prev || prev.round !== st.round_no;
+  const statusChanged = !prev || prev.status !== st.status;
+  if (roundChanged){ dgResetRound(false); DG.mine = []; }
+  if (!prev || roundChanged || statusChanged || prev.solved !== mySolved){ DG.chatReset = true; dgFetchChat(true); }
+  if (roundChanged || (statusChanged && st.status === 'drawing')) dgFetchStrokes();
+  if (prev && prev.status === 'waiting' && st.status === 'drawing' && !DG.visible){ dgShowRoom(); toast('เกมเริ่มแล้ว!'); }
+  if (prev && statusChanged && st.status !== 'waiting' && DG.room.drawer_id === ME.id && st.status === 'drawing') toast('ตาคุณวาดแล้ว!');
+  DG.lastPrev = { round: st.round_no, status: st.status, solved: mySolved };
+  if (statusChanged || roundChanged){ DG.resultHidden = false; dgScheduleNext(); }
+  dgLauncherBadge();
+  if (DG.visible) dgRender();
+}
+
+/* ============================ วาดหน้าจอ ============================ */
+const dgIsDrawer = () => !!DG.room && DG.room.status === 'drawing' && DG.room.drawer_id === ME.id;
+const dgCanDraw = () => dgIsDrawer() && !DG.busy;
+function dgMe(){ return DG.room && (DG.room.players || []).find(p => p.player_id === ME.id); }
+function dgSettingChips(s){
+  const chips = [];
+  (s.categories || []).slice(0, 5).forEach(c => chips.push(dgCats(c)[2] + ' ' + dgCats(c)[1]));
+  if ((s.categories || []).length > 5) chips.push('+' + (s.categories.length - 5) + ' หมวด');
+  const cc = s.custom_count != null ? s.custom_count : (s.custom_words || []).length; if (cc) chips.push('⭐ คำเอง ' + cc);
+  chips.push('ระดับ ' + (DG_DIFFS.find(d => d[0] === s.difficulty) || [0, s.difficulty])[1]);
+  chips.push('⏱ ' + (DG_TIMES.find(t => t[0] === +s.duration_seconds) || [0, '—'])[1]);
+  chips.push('🔁 ' + s.total_rounds + ' รอบ'); chips.push('👥 สูงสุด ' + s.max_players);
+  return chips;
+}
+function dgRender(){
+  const r = DG.room; if (!r || !r.found) return;
+  const waiting = r.status === 'waiting', drawing = r.status === 'drawing', ended = r.status === 'ended';
+  const drawer = dgIsDrawer(), isHost = !!r.is_host, active = (r.players || []).filter(p => !p.left);
+  DG.$('dgRound').textContent = waiting ? 'ห้องรอ' : 'รอบ ' + r.round_no + '/' + r.total_rounds;
+  DG.$('dgTitle').textContent = r.name;
+  const dn = (r.players || []).find(p => p.player_id === r.drawer_id);
+  DG.$('dgSubTitle').textContent = waiting ? active.length + '/' + r.max_players + ' คน' : ended ? 'จบเกม' : r.status === 'reveal' ? 'เฉลย' : drawer ? '🎨 คุณกำลังวาด: ' + (r.secret_word || '…') : '🎨 ' + (dn ? dn.name : '—') + ' กำลังวาด';
+  DG.$('dgClock').hidden = !drawing;
+  DG.$('dgMSkip').hidden = !(drawing && (isHost || drawer));
+  DG.$('dgMEnd').hidden = !(isHost && !waiting && !ended);
+  DG.$('dgMSettings').hidden = !(isHost && waiting);
+
+  DG.$('dgWait').hidden = !waiting; DG.$('dgStage').hidden = waiting;
+  if (waiting) dgRenderWait(active);
+
+  const secret = DG.$('dgSecret'); secret.hidden = !(drawer && r.secret_word); DG.$('dgSecretWord').textContent = r.secret_word || '—';
+  const clue = DG.$('dgClue'), cat = dgCats(r.category || '');
+  clue.hidden = waiting || drawer;
+  clue.textContent = ended ? '' : r.status === 'reveal' ? 'คำตอบคือ: ' + (r.answer || '—') : 'หมวด: ' + cat[2] + ' ' + cat[1] + (r.word_length ? ' · ' + r.word_length + ' ตัวอักษร' : '');
+  DG.$('dgPrompt').hidden = waiting || ended || (drawer && !r.secret_word);
+  DG.$('dgTools').hidden = !drawer;
+  DG.canvas.classList.toggle('dg-readonly', !drawer);
+  dgRenderTools(); dgRenderScores(); dgRenderChatInput(); dgRenderResult();
+  dgRequestRender();
+}
+function dgRenderWait(active){
+  const r = DG.room, isHost = r.is_host;
+  DG.$('dgWaitName').textContent = r.name;
+  const chips = DG.$('dgWaitChips'); chips.replaceChildren(); dgSettingChips(r.settings).forEach(c => chips.appendChild(dgEl('span', 'dg-chip', c)));
+  DG.$('dgWaitCount').textContent = 'ผู้เล่นในห้อง ' + active.length + '/' + r.max_players;
+  const box = DG.$('dgWaitPlayers'); box.replaceChildren();
+  active.forEach(p => {
+    const row = dgEl('div', 'dg-score-row'); row.append(dgAvatar(p.player_id, p.name), dgEl('span', 'dg-score-name', p.name + (p.player_id === ME.id ? ' (คุณ)' : '')),
+      dgEl('span', 'dg-status', (p.is_host ? '👑 เจ้าของห้อง' : '') + (p.away ? ' 💤' : ''))); box.appendChild(row);
+  });
+  DG.$('dgStartBtn').hidden = !isHost; DG.$('dgEditBtn').hidden = !isHost; DG.$('dgInviteBtn').hidden = false;
+  DG.$('dgStartBtn').disabled = active.length < 2 || DG.busy;
+  DG.$('dgWaitNote').textContent = isHost ? (active.length < 2 ? 'รอเพื่อนอย่างน้อย 1 คนก่อนเริ่มเกมได้ กด "เรียกเพื่อน" เพื่อส่งสัญญาณไปที่ห้องนั่งเล่น' : 'พร้อมแล้วกด "เริ่มเกม" ได้เลย เพื่อนที่เข้าห้องช้าจะเข้ามาเล่นกลางเกมได้') : 'รอเจ้าของห้องกดเริ่มเกม · คุยแชทรอได้ตรงนี้เลย';
+}
+function dgRenderScores(){
+  const r = DG.room, box = DG.$('dgScoreList'); box.replaceChildren();
+  const list = (r.players || []).filter(p => !p.left || r.status === 'ended');
+  if (r.status !== 'waiting') list.sort((a, b) => b.score - a.score || a.join_order - b.join_order);
+  list.forEach(p => {
+    const row = dgEl('div', 'dg-score-row' + (p.player_id === ME.id ? ' me' : '') + (p.left ? ' gone' : ''));
+    const tag = p.left ? 'ออกแล้ว' : p.is_drawer && r.status === 'drawing' ? '✏️ วาด' : p.solved && r.status === 'drawing' ? '✓ ถูก' : p.away ? '💤' : '';
+    row.append(dgAvatar(p.player_id, p.name), dgEl('span', 'dg-score-name', (p.is_host ? '👑 ' : '') + p.name), dgEl('span', 'dg-status', tag), dgEl('strong', 'dg-score-points', String(p.score)));
+    box.appendChild(row);
+  });
+  box.hidden = r.status === 'waiting';
+}
+function dgRenderChatInput(){
+  const r = DG.room, me = dgMe(), inp = DG.$('dgChatInput');
+  let ph = 'พิมพ์ข้อความ…';
+  if (r.status === 'drawing'){ ph = dgIsDrawer() ? 'คุยกับคนที่ทายถูกแล้ว…' : me && me.solved ? 'ทายถูกแล้ว! คุยกับคนที่ถูกเหมือนกัน…' : 'พิมพ์คำตอบ หรือคุยกันได้เลย…'; }
+  inp.placeholder = ph;
+  DG.$('dgNotice').textContent = DG.notice; DG.$('dgNotice').className = 'dg-notice ' + DG.noticeKind;
 }
 function dgRenderResult(){
-  const s=DG.state;if(!s)return;
-  const ended=s.status==='ended', totalRounds=Number(s.total_rounds)||5;
-  const ranked=[...(s.players||[])].sort((a,b)=>b.score-a.score||a.join_order-b.join_order);
-  const topScore=ranked.length?ranked[0].score:0;
-  const winners=ranked.filter(p=>p.score===topScore);
-  DG.$('dgResultTitle').textContent=ended
-    ? (winners.length>1?'🏆 คะแนนเสมอกัน!':'🏆 ผู้ชนะ: '+(winners[0]?.name||'—'))
-    : 'จบรอบที่ '+s.round_no+' / '+totalRounds;
-  DG.$('dgResultAnswer').textContent=s.answer||'เฉลยไม่พร้อมใช้งาน';
-  DG.$('dgResultReason').textContent=ended
-    ? (s.round_no>=totalRounds?'เล่นครบ '+s.round_no+' รอบแล้ว':'จบเกมก่อนกำหนดที่รอบ '+s.round_no+'/'+totalRounds)+' · '+(winners.length>1?'ผู้ชนะร่วม: '+winners.map(p=>p.name).join(' / '):'คะแนนรวมสูงสุด '+topScore+' คะแนน')
-    : ((s.players||[]).some(p=>!p.is_drawer&&!p.solved)?'ยังมีคนทายไม่ถูก':'ทุกคนทายถูกแล้ว เก่งมาก!')+' · รอบถัดไปจะเริ่มอัตโนมัติ';
-  const box=DG.$('dgResultScores');box.replaceChildren();
-  ranked.forEach((p,i)=>{const line=document.createElement('div');line.className='dg-score-row';const n=document.createElement('span');n.className='dg-score-name';n.textContent=(i+1)+'. '+p.name+(ended&&p.score===topScore?' 🏆':'');const pts=document.createElement('strong');pts.className='dg-score-points';pts.textContent=p.score+' คะแนน';line.append(n,pts);box.appendChild(line);});
-  DG.$('dgNextRound').hidden=ended||!s.is_participant;
-  DG.$('dgEndFromResult').hidden=ended||!s.is_participant;
-  DG.$('dgPlayAgain').hidden=!ended||!s.is_participant;
-  DG.$('dgResultClose').textContent=ended?'ปิดผลการแข่งขัน':'ซ่อนผลรอบนี้';
+  const r = DG.room, box = DG.$('dgResult');
+  const show = (r.status === 'reveal' || r.status === 'ended') && !DG.resultHidden;
+  box.hidden = !show; if (!show) return;
+  const ended = r.status === 'ended';
+  const ranked = [...(r.players || [])].sort((a, b) => b.score - a.score || a.join_order - b.join_order);
+  const top = ranked.length ? ranked[0].score : 0, winners = ranked.filter(p => p.score === top && top > 0);
+  DG.$('dgResultTitle').textContent = ended ? (winners.length > 1 ? '🏆 เสมอกัน!' : winners.length ? '🏆 ผู้ชนะ: ' + winners[0].name : 'จบเกม') : 'จบรอบที่ ' + r.round_no + '/' + r.total_rounds;
+  DG.$('dgResultAnswer').textContent = ended && !r.answer ? 'ขอบคุณที่เล่นด้วยกัน' : (ended ? 'คำสุดท้าย: ' : '') + (r.answer || '—');
+  const solved = (r.players || []).filter(p => p.solved && !p.is_drawer && !p.left).map(p => p.name);
+  DG.$('dgResultReason').textContent = ended ? 'คะแนนรวมเรียงจากมากไปน้อย' : (solved.length ? 'ทายถูก: ' + solved.join(', ') : 'รอบนี้ไม่มีใครทายถูก') + ' · รอบต่อไปเริ่มเองในไม่กี่วินาที';
+  const sc = DG.$('dgResultScores'); sc.replaceChildren();
+  ranked.forEach((p, i) => { const l = dgEl('div', 'dg-score-row'); l.append(dgEl('span', 'dg-score-name', (i + 1) + '. ' + p.name + (ended && p.score === top && top > 0 ? ' 🏆' : '') + (p.left ? ' (ออกแล้ว)' : '')), dgEl('strong', 'dg-score-points', p.score + ' คะแนน')); sc.appendChild(l); });
+  const member = r.is_member;
+  DG.$('dgNextBtn').hidden = ended || !member; DG.$('dgNextBtn').textContent = r.round_no >= r.total_rounds ? 'ดูผลสรุป' : 'รอบถัดไป';
+  DG.$('dgAgainBtn').hidden = !(ended && r.is_host); DG.$('dgResultView').hidden = false;
+  DG.$('dgLeaveBtn').hidden = false;
 }
 
-function dgScheduleAutoNext(){
-  clearTimeout(DG.revealTimer);
-  if(!DG.state||DG.state.status!=='reveal'||!DG.state.is_participant)return;
-  DG.revealTimer=setTimeout(()=>{if(DG.state&&DG.state.status==='reveal')dgNextRound();},6500);
+/* ============================ ตัวจับเวลา / เปลี่ยนรอบ ============================ */
+function dgScheduleNext(){
+  clearTimeout(DG.timers.next);
+  if (!DG.room || DG.room.status !== 'reveal' || !DG.room.is_member) return;
+  const r = DG.room.round_no;
+  DG.timers.next = setTimeout(() => { if (DG.room && DG.room.status === 'reveal' && DG.room.round_no === r) dgAdvance(); }, 6500 + Math.random() * 700);
 }
 function dgTick(){
-  if(!DG.state||DG.state.status!=='drawing')return;
-  if(!DG.state.ends_at){DG.$('dgClock').textContent='∞';return;}
-  const left=Math.max(0,Math.ceil((Date.parse(DG.state.ends_at)-(Date.now()+(L.offset||0)))/1000));
-  DG.$('dgClock').textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
-  if(left<=0&&!DG.busy)dgFinishRound('timeout');
-}
-async function dgSubmitGuess(){
-  if(DG.busy||!DG.state||DG.state.status!=='drawing'||dgIsDrawer()||dgHasSolved())return;
-  const input=DG.$('dgGuessInput'),guess=input.value.trim();if(!guess)return;
-  DG.busy=true;DG.$('dgGuessSend').disabled=true;
-  try{
-    const {data,error}=await sb.rpc('dg_submit_guess',{p_session_id:DG.state.session_id,p_round_no:DG.state.round_no,p_player_id:ME.id,p_guess:guess});
-    if(error)throw error;
-    input.value='';
-    if(data&&data.correct){
-      DG.feedback='ถูกต้อง! ได้ '+data.score_delta+' คะแนน';DG.feedbackKind='good';
-      if(data.state)DG.state=data.state;
-      dgBroadcast('state_changed');dgRenderGame();dgScheduleAutoNext();
-    }else{DG.feedback=(data&&data.message)||'ยังไม่ถูก ลองอีกครั้ง';DG.feedbackKind='bad';if(data&&data.expired)await dgRefreshState(true);}
-  }catch(e){DG.feedback=dgError(e);DG.feedbackKind='bad';}
-  finally{DG.busy=false;DG.$('dgGuessSend').disabled=false;dgRenderGame();}
-}
-async function dgFinishRound(reason){
-  if(DG.busy||!DG.state||DG.state.status!=='drawing')return;
-  DG.busy=true;
-  try{
-    const {data,error}=await sb.rpc('dg_finish_round_room',{p_session_id:DG.state.session_id,p_round_no:DG.state.round_no,p_requester_id:ME.id,p_reason:reason});
-    if(error)throw error;
-    if(data&&data.state){DG.state=data.state;DG.live.clear();dgRenderGame();dgRenderCanvas();dgBroadcast('round_finished');dgScheduleAutoNext();}
-  }catch(e){if(reason==='skipped')toast(dgError(e));}
-  finally{DG.busy=false;}
-}
-async function dgNextRound(){
-  clearTimeout(DG.revealTimer);
-  if(DG.busy||!DG.state||DG.state.status!=='reveal'||!DG.state.is_participant)return;
-  DG.busy=true;DG.$('dgNextRound').disabled=true;
-  try{
-    const {data,error}=await sb.rpc('dg_advance_round',{p_session_id:DG.state.session_id,p_requester_id:ME.id,p_round_no:DG.state.round_no});
-    if(error)throw error;
-    DG.state=data;DG.live.clear();DG.feedback='';DG.feedbackKind='';dgRenderGame();dgRenderCanvas();dgBroadcast(DG.state.status==='ended'?'session_ended':'round_started');dgScheduleAutoNext();
-  }catch(e){toast(dgError(e));}
-  finally{DG.busy=false;DG.$('dgNextRound').disabled=false;}
-}
-async function dgEndSession(){
-  if(DG.busy||!DG.state||!DG.state.is_participant||DG.state.status==='ended')return;
-  if(!confirm('ต้องการจบเกมก่อนครบจำนวนรอบใช่ไหม? คะแนนปัจจุบันจะถูกใช้สรุปผู้ชนะ'))return;
-  DG.busy=true;
-  try{
-    const {data,error}=await sb.rpc('dg_close_room',{p_session_id:DG.state.session_id,p_requester_id:ME.id});
-    if(error)throw error;
-    if(data&&data.state)DG.state=data.state;else if(DG.state)DG.state.status='ended';
-    clearTimeout(DG.revealTimer);DG.live.clear();dgRenderGame();dgBroadcast('session_ended');
-  }catch(e){toast(dgError(e));}
-  finally{DG.busy=false;}
-}
-async function dgClearCanvas(){
-  if(DG.busy||!dgIsDrawer())return;
-  if(!confirm('ล้างภาพวาดทั้งหมดในรอบนี้?'))return;
-  DG.busy=true;
-  try{
-    const {error}=await sb.rpc('dg_clear_canvas',{p_session_id:DG.state.session_id,p_round_no:DG.state.round_no,p_drawer_id:ME.id});if(error)throw error;
-    DG.live.clear();DG.state.strokes=[];dgRenderCanvas();dgBroadcast('canvas_cleared');
-  }catch(e){toast(dgError(e));}
-  finally{DG.busy=false;}
-}
-function dgPoint(e){const r=DG.canvas.getBoundingClientRect();return [Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))];}
-function dgPointerDown(e){
-  if(!dgIsDrawer()||DG.busy)return;
-  e.preventDefault();try{DG.canvas.setPointerCapture(e.pointerId);}catch(_){}
-  const [x,y]=dgPoint(e),id=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():'dg-'+ME.id+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
-  DG.current={pointerId:e.pointerId,id,color:DG.color,width:DG.size,erase:DG.eraser,points:[x,y,x,y],sent:0};
-  DG.live.set(id,{id,color:DG.color,width:DG.size,erase:DG.eraser,points:[x,y,x,y]});
-  DG.pendingLive=[x,y];dgFlushLive(true);dgRenderCanvas();
-}
-function dgPointerMove(e){
-  if(!DG.current||e.pointerId!==DG.current.pointerId)return;
-  e.preventDefault();const events=e.getCoalescedEvents?e.getCoalescedEvents():[e];
-  for(const ev of events){const [x,y]=dgPoint(ev),p=DG.current.points,n=p.length;if(n>=4000)break;if(Math.hypot((x-p[n-2])*960,(y-p[n-1])*720)>1.2){p.push(x,y);DG.pendingLive.push(x,y);}}
-  const live=DG.live.get(DG.current.id);if(live)live.points=DG.current.points;
-  dgFlushLive(false);dgRenderCanvas();
-}
-function dgPointerUp(e){
-  if(!DG.current||e.pointerId!==DG.current.pointerId)return;
-  e.preventDefault();const stroke=DG.current;DG.current=null;dgFlushLive(true);dgSaveCompletedStroke(stroke);
-}
-function dgFlushLive(force){
-  if(!DG.current||!DG.pendingLive.length)return;
-  const now=Date.now();if(!force&&now-DG.lastLiveAt<70)return;
-  const points=DG.pendingLive.splice(0);DG.lastLiveAt=now;
-  if(S.chan)S.chan.send({type:'broadcast',event:'draw_guess',payload:{type:'stroke_live',session_id:DG.state.session_id,round_no:DG.state.round_no,drawer_id:ME.id,stroke_id:DG.current.id,color:DG.current.color,width:DG.current.width,erase:DG.current.erase,points}}).catch(()=>{});
-}
-async function dgSaveCompletedStroke(stroke){
-  if(stroke.points.length<4){DG.live.delete(stroke.id);dgRenderCanvas();return;}
-  const payload={id:stroke.id,color:stroke.color,width:stroke.width,erase:stroke.erase,points:stroke.points};
-  try{
-    const {error}=await sb.rpc('dg_save_stroke',{p_session_id:DG.state.session_id,p_round_no:DG.state.round_no,p_drawer_id:ME.id,p_stroke:payload});if(error)throw error;
-    DG.live.delete(stroke.id);dgBroadcast('stroke_saved',{stroke_id:stroke.id});
-    await dgRefreshState(true);
-  }catch(e){DG.live.delete(stroke.id);dgRenderCanvas();dgBroadcast('stroke_discarded',{stroke_id:stroke.id});toast('บันทึกเส้นไม่สำเร็จ: '+dgError(e));}
-}
-function dgDrawStroke(g,stroke,W,H){
-  const p=stroke.points||[];if(p.length<2)return;
-  g.save();g.globalCompositeOperation=stroke.erase?'destination-out':'source-over';g.strokeStyle=stroke.color||'#252525';g.lineWidth=Math.max(1,(stroke.width||.006)*Math.min(W,H));g.lineCap='round';g.lineJoin='round';g.beginPath();g.moveTo(p[0]*W,p[1]*H);
-  for(let i=2;i<p.length;i+=2)g.lineTo(p[i]*W,p[i+1]*H);
-  if(p.length===2)g.lineTo(p[0]*W+.1,p[1]*H+.1);
-  g.stroke();g.restore();
-}
-function dgRenderCanvas(){
-  if(!DG.canvas||!DG.ctx)return;
-  const cv=DG.canvas,W=Math.max(1,cv.clientWidth),H=Math.max(1,cv.clientHeight),dpr=Math.min(2,window.devicePixelRatio||1);
-  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
-  const g=DG.ctx;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);g.fillStyle='#fffdf8';g.fillRect(0,0,W,H);
-  const saved=(DG.state&&DG.state.strokes)||[];
-  saved.forEach(row=>dgDrawStroke(g,row.stroke||row,W,H));
-  DG.live.forEach(stroke=>dgDrawStroke(g,stroke,W,H));
+  const r = DG.room; if (!r || r.status !== 'drawing' || !r.is_member) return;
+  const clock = DG.$('dgClock');
+  if (!r.ends_at){ clock.textContent = '∞'; }
+  else {
+    const left = Math.max(0, Math.ceil((Date.parse(r.ends_at) - dgNow()) / 1000));
+    clock.textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'); clock.classList.toggle('low', left <= 10);
+    if (left <= 0 && !DG.busy && Date.now() - DG.lastAway > 2500){ DG.lastAway = Date.now(); dgFinishRound('timeout'); return; }
+  }
+  const drawer = (r.players || []).find(p => p.player_id === r.drawer_id);
+  if (drawer && drawer.away && r.drawer_id !== ME.id && Date.now() - DG.lastAway > 8000){ DG.lastAway = Date.now(); dgFinishRound('drawer_away'); }
 }
 
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dgBuildUI,{once:true});else dgBuildUI();
+/* ============================ การกระทำในห้อง ============================ */
+async function dgStartGame(){
+  if (DG.busy || !DG.room) return; DG.busy = true; dgRender();
+  try { const st = await dgRpc('dg3_start', { p_room_id: DG.roomId, p_player_id: ME.id }); dgApplyState(st); dgBroadcast('room'); dgBroadcast('rooms'); }
+  catch (e){ toast(dgError(e)); }
+  finally { DG.busy = false; dgRender(); }
+}
+function dgInvite(){
+  dgBroadcast('rooms'); dgBroadcast('invite', { by: dgMeName(), name: DG.room ? DG.room.name : '' });
+  toast('ส่งสัญญาณเรียกเพื่อนแล้ว');
+}
+async function dgFinishRound(reason){
+  if (!DG.room || DG.room.status !== 'drawing') return;
+  try {
+    const d = await dgRpc('dg3_finish_round', { p_room_id: DG.roomId, p_round_no: DG.room.round_no, p_player_id: ME.id, p_reason: reason });
+    if (d && d.state){ dgApplyState(d.state); dgBroadcast('room'); } else if (d && d.stale) dgSync(true);
+  } catch (e){ if (reason === 'skipped') toast(dgError(e)); }
+}
+async function dgAdvance(){
+  clearTimeout(DG.timers.next);
+  if (!DG.room || DG.room.status !== 'reveal' || DG.busy) return; DG.busy = true;
+  try { const st = await dgRpc('dg3_advance', { p_room_id: DG.roomId, p_round_no: DG.room.round_no, p_player_id: ME.id }); dgApplyState(st); dgBroadcast('room'); }
+  catch (e){ toast(dgError(e)); }
+  finally { DG.busy = false; }
+}
+async function dgEndRoom(){
+  if (!DG.room || !DG.room.is_host || !confirm('จบเกมตอนนี้ใช่ไหม? ระบบจะสรุปคะแนนที่มีอยู่')) return;
+  try { const st = await dgRpc('dg3_end_room', { p_room_id: DG.roomId, p_player_id: ME.id }); dgApplyState(st); dgBroadcast('room'); dgBroadcast('rooms'); } catch (e){ toast(dgError(e)); }
+}
+async function dgReset(){
+  if (DG.busy || !DG.room) return; DG.busy = true;
+  try { const st = await dgRpc('dg3_reset', { p_room_id: DG.roomId, p_player_id: ME.id }); dgResetRound(true); dgApplyState(st); dgBroadcast('room'); dgBroadcast('rooms'); }
+  catch (e){ toast(dgError(e)); }
+  finally { DG.busy = false; }
+}
+
+/* ============================ แชท + ทายคำ ============================ */
+async function dgSend(){
+  const inp = DG.$('dgChatInput'), text = inp.value.trim();
+  if (!text || !DG.room || DG.sending) return;
+  DG.sending = true; DG.notice = ''; DG.noticeKind = '';
+  try {
+    const d = await dgRpc('dg3_send', { p_room_id: DG.roomId, p_round_no: DG.room.round_no, p_player_id: ME.id, p_text: text });
+    if (d && d.throttled){ DG.sending = false; return; }
+    if (d && d.ok){ inp.value = ''; if (d.correct){ DG.notice = 'ถูกต้อง! +' + d.score_delta + ' คะแนน 🎉'; DG.noticeKind = 'good'; } }
+    else if (d && d.message){ DG.notice = d.message; DG.noticeKind = 'bad'; }
+    else if (d && d.stale){ inp.value = ''; }
+    if (d && d.expired) dgSync(true);
+    await dgFetchChat(false); dgBroadcast('chat'); if (d && d.correct){ dgBroadcast('room'); dgSync(true); }
+  } catch (e){ DG.notice = dgError(e); DG.noticeKind = 'bad'; }
+  finally {
+    DG.sending = false; if (DG.room) dgRenderChatInput();
+    clearTimeout(DG.timers.notice); DG.timers.notice = setTimeout(() => { DG.notice = ''; DG.noticeKind = ''; if (DG.room) dgRenderChatInput(); }, 4500);
+    inp.focus();
+  }
+}
+async function dgFetchChat(reset){
+  if (!sb || !DG.roomId) return;
+  if (DG.chatBusy){ DG.chatAgain = DG.chatAgain || reset; return; }
+  DG.chatBusy = true; const wantReset = reset || DG.chatReset; const id = DG.roomId;
+  try {
+    const rows = await dgRpc('dg3_get_chat', { p_room_id: id, p_player_id: ME.id, p_after: wantReset ? 0 : DG.chatLast });
+    if (id !== DG.roomId) return;
+    if (wantReset){ DG.chat = []; DG.chatReset = false; }
+    rows.forEach(m => { if (!DG.chat.some(x => x.id === m.id)) DG.chat.push(m); });
+    DG.chat.sort((a, b) => a.id - b.id); if (DG.chat.length > 300) DG.chat = DG.chat.slice(-300);
+    DG.chatLast = DG.chat.length ? DG.chat[DG.chat.length - 1].id : 0;
+    dgRenderChat();
+  } catch (e){}
+  finally { DG.chatBusy = false; if (DG.chatAgain){ DG.chatAgain = false; dgFetchChat(false); } }
+}
+function dgRenderChat(){
+  const log = DG.$('dgChatLog'); const near = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
+  log.replaceChildren();
+  DG.chat.forEach(m => {
+    if (m.kind === 'system'){ log.appendChild(dgEl('div', 'dg-msg sys', m.body)); return; }
+    if (m.kind === 'correct'){ const d = dgEl('div', 'dg-msg ok'); d.textContent = '✓ ' + (m.name || '—') + ' ทายถูกแล้ว!'; log.appendChild(d); return; }
+    const d = dgEl('div', 'dg-msg' + (m.audience === 'solved' ? ' inner' : '') + (m.player_id === ME.id ? ' mine' : ''));
+    const n = dgEl('b', '', (m.name || '—') + ' '); n.style.color = dgColor(m.player_id);
+    d.append(n, document.createTextNode(m.body));
+    if (m.audience === 'solved') d.title = 'เห็นเฉพาะคนวาดกับคนที่ทายถูกแล้ว';
+    log.appendChild(d);
+  });
+  if (near) dgScrollChat(true);
+}
+function dgScrollChat(force){ const log = DG.$('dgChatLog'); if (log) log.scrollTop = log.scrollHeight; }
+
+/* ============================ เครื่องมือวาด ============================ */
+function dgSetTool(t){ DG.tool = t; if (t === 'eraser'){ DG.cursor = null; } dgRenderTools(); dgRequestRender(); }
+function dgSetEMode(m){ DG.eMode = m; DG.prefs.eMode = m; dgSavePrefs(); dgRenderTools(); }
+function dgRenderTools(){
+  const er = DG.tool === 'eraser';
+  DG.$('dgToolPen').setAttribute('aria-pressed', String(!er)); DG.$('dgToolEraser').setAttribute('aria-pressed', String(er));
+  DG.$('dgEMode').hidden = !er;
+  DG.$('dgEMode').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === DG.eMode)));
+  DG.$('dgColorRow').classList.toggle('dim', er);
+  const size = er ? DG.prefs.eraser : DG.prefs.pen; DG.$('dgSize').value = size;
+  const dot = DG.$('dgSizeDot'); const px = Math.max(3, Math.min(26, size * .45)); dot.style.width = dot.style.height = px + 'px';
+  dot.style.background = er ? '#9a8a74' : DG.prefs.color;
+  DG.$('dgColorCur').style.background = DG.prefs.color;
+  DG.$('dgUndo').disabled = !DG.mine.length;
+  const q = DG.$('dgColors'); q.replaceChildren();
+  const list = [...new Set([...DG.prefs.recent, ...DG_QUICK])].slice(0, 12);
+  list.forEach(c => { const b = dgEl('button', 'dg-color'); b.style.background = c; b.title = c.toUpperCase(); b.setAttribute('aria-label', 'สี ' + c); b.setAttribute('aria-pressed', String(c === DG.prefs.color)); b.onclick = () => dgSetColor(c, false); q.appendChild(b); });
+}
+function dgSetColor(c, remember){
+  if (!/^#[0-9a-f]{6}$/i.test(c)) return; c = c.toLowerCase();
+  DG.prefs.color = c;
+  if (remember !== false) DG.prefs.recent = [c, ...DG.prefs.recent.filter(x => x !== c)].slice(0, 10);
+  if (DG.tool === 'eraser') DG.tool = 'pen';
+  dgSavePrefs(); dgRenderTools(); dgRenderPalette();
+}
+function dgOpenPalette(){ dgRenderPalette(); DG.$('dgPalette').hidden = false; }
+function dgSwatch(c, extra){ const b = dgEl('button', 'dg-sw' + (extra || '')); b.type = 'button'; b.style.background = c; b.title = c.toUpperCase(); b.setAttribute('aria-label', 'สี ' + c); b.setAttribute('aria-pressed', String(c === DG.prefs.color)); b.onclick = () => dgSetColor(c, true); return b; }
+function dgRenderPalette(){
+  const g = DG.$('dgPalGrid'); if (!g) return; g.replaceChildren();
+  DG_GRID.forEach(c => g.appendChild(dgSwatch(c))); DG_GRAYS.forEach(c => g.appendChild(dgSwatch(c, c === '#ffffff' ? ' light' : ''))); DG_SKINS.forEach(c => g.appendChild(dgSwatch(c)));
+  const m = DG.$('dgPalMine'); m.replaceChildren();
+  if (!DG.prefs.mine.length) m.appendChild(dgEl('span', 'dg-palette-empty', 'ยังไม่มี เลือกสีแล้วกด "เก็บเข้าสีของฉัน"'));
+  DG.prefs.mine.forEach(c => m.appendChild(dgSwatch(c)));
+  DG.$('dgPickInput').value = DG.prefs.color; DG.$('dgHexInput').value = DG.prefs.color.toUpperCase();
+}
+
+/* ---------- ลาก / วาด ---------- */
+const dgR4 = v => Math.round(v * 10000) / 10000;
+function dgPt(e){ const r = DG.canvas.getBoundingClientRect(); return [Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (e.clientY - r.top) / r.height))]; }
+const dgSize = () => (DG.tool === 'eraser' ? DG.prefs.eraser : DG.prefs.pen) / DG_REF;
+function dgNewId(){ return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'dg-' + ME.id + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8); }
+function dgPointerDown(e){
+  if (!dgCanDraw() || DG.cur) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  e.preventDefault(); try { DG.canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  const [x, y] = dgPt(e);
+  if (DG.tool === 'eraser' && DG.eMode === 'stroke'){ DG.cur = { type: 'sweep', pointerId: e.pointerId, gone: [] }; DG.cursor = [x, y]; dgSweep(x, y); dgRequestRender(); return; }
+  const erase = DG.tool === 'eraser', id = dgNewId();
+  const s = { id, color: erase ? '#ffffff' : DG.prefs.color, width: dgSize(), erase, points: [dgR4(x), dgR4(y), dgR4(x), dgR4(y)] };
+  DG.cur = { type: 'ink', pointerId: e.pointerId, stroke: s }; DG.live.set(id, s); DG.pending = [s.points[0], s.points[1]];
+  DG.cursor = [x, y]; dgFlushLive(true); dgRequestRender();
+}
+function dgPointerMove(e){
+  const [x, y] = dgPt(e);
+  if (DG.tool === 'eraser' && dgIsDrawer() && e.pointerType !== 'touch'){ DG.cursor = [x, y]; if (!DG.cur) dgRequestRender(); }
+  const c = DG.cur; if (!c || e.pointerId !== c.pointerId) return; e.preventDefault();
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  const W = DG.canvas.clientWidth || 1, H = DG.canvas.clientHeight || 1;
+  for (const ev of evs){
+    const [px, py] = dgPt(ev);
+    if (c.type === 'sweep'){ dgSweep(px, py); DG.cursor = [px, py]; continue; }
+    const p = c.stroke.points, n = p.length; if (n >= 5990) break;
+    if (Math.hypot((px - p[n - 2]) * W, (py - p[n - 1]) * H) > 1.4){ const a = dgR4(px), b = dgR4(py); p.push(a, b); DG.pending.push(a, b); DG.cursor = [px, py]; }
+  }
+  if (c.type === 'ink') dgFlushLive(false);
+  dgRequestRender();
+}
+function dgPointerUp(e){
+  const c = DG.cur; if (!c || e.pointerId !== c.pointerId) return; e.preventDefault(); DG.cur = null;
+  if (c.type === 'sweep'){ dgCommitSweep(c); dgRequestRender(); return; }
+  dgFlushLive(true); dgSaveStroke(c.stroke);
+}
+function dgFlushLive(force){
+  if (!DG.cur || DG.cur.type !== 'ink' || !DG.pending.length) return;
+  const now = Date.now(); if (!force && now - DG.lastLiveAt < 60) return;
+  const s = DG.cur.stroke, pts = DG.pending.splice(0); DG.lastLiveAt = now;
+  dgBroadcast('live', { round: DG.room.round_no, id: s.id, color: s.color, width: s.width, erase: s.erase, pts });
+}
+async function dgSaveStroke(s){
+  const round = DG.room ? DG.room.round_no : 0, roomId = DG.roomId;
+  if (s.points.length < 4){ DG.live.delete(s.id); dgRequestRender(); return; }
+  try {
+    await dgRpc('dg3_save_stroke', { p_room_id: roomId, p_round_no: round, p_player_id: ME.id, p_stroke: s });
+    if (!DG.room || DG.room.round_no !== round) return;
+    const body = { id: s.id, color: s.color, width: s.width, erase: s.erase, points: s.points };
+    DG.strokes.set(s.id, body); if (!DG.order.includes(s.id)) DG.order.push(s.id);
+    DG.own.set(s.id, Date.now()); DG.mine.push(s.id); DG.live.delete(s.id); DG.inkDirty = true;
+    dgBroadcast('sdone', { round, id: s.id }); dgRenderTools(); dgRequestRender();
+  } catch (e){ DG.live.delete(s.id); dgRequestRender(); dgBroadcast('sdone', { round, id: s.id, failed: true }); toast('บันทึกเส้นไม่สำเร็จ: ' + dgError(e)); }
+}
+
+/* ---------- ยางลบทั้งเส้น ---------- */
+function dgBBox(s){
+  if (s._bb) return s._bb; const p = s.points; let a = 1, b = 1, c = 0, d = 0;
+  for (let i = 0; i < p.length; i += 2){ a = Math.min(a, p[i]); b = Math.min(b, p[i + 1]); c = Math.max(c, p[i]); d = Math.max(d, p[i + 1]); }
+  return s._bb = [a, b, c, d];
+}
+function dgSegDist(px, py, ax, ay, bx, by){
+  const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy; let t = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0; t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+function dgSweep(x, y){
+  const c = DG.cur; if (!c) return;
+  const r = (DG.prefs.eraser / DG_REF) / 2 * 0.9 + 0.004;     // รัศมีในหน่วยความสูงผืน
+  for (let i = DG.order.length - 1; i >= 0; i--){
+    const id = DG.order[i]; if (DG.hidden.has(id)) continue; const s = DG.strokes.get(id); if (!s || s.erase) continue;
+    const bb = dgBBox(s), pad = r + s.width / 2, A = DG_ASPECT;
+    if (x * A < bb[0] * A - pad || x * A > bb[2] * A + pad || y < bb[1] - pad || y > bb[3] + pad) continue;
+    const p = s.points; let hit = false;
+    for (let k = 0; k + 3 < p.length && !hit; k += 2) hit = dgSegDist(x * A, y, p[k] * A, p[k + 1], p[k + 2] * A, p[k + 3]) <= pad;
+    if (!hit && p.length === 4) hit = Math.hypot(x * A - p[0] * A, y - p[1]) <= pad;
+    if (hit){ DG.hidden.add(id); c.gone.push(id); DG.inkDirty = true; }
+  }
+}
+async function dgCommitSweep(c){
+  if (!c.gone.length) return; const ids = c.gone.slice(), round = DG.room.round_no;
+  try {
+    await dgRpc('dg3_delete_strokes', { p_room_id: DG.roomId, p_round_no: round, p_player_id: ME.id, p_ids: ids });
+    ids.forEach(id => { DG.strokes.delete(id); DG.hidden.delete(id); DG.own.delete(id); }); DG.order = DG.order.filter(id => !ids.includes(id));
+    DG.mine = DG.mine.filter(id => !ids.includes(id)); DG.inkDirty = true;
+    dgBroadcast('sdel', { round, ids }); dgRenderTools(); dgRequestRender();
+  } catch (e){ ids.forEach(id => DG.hidden.delete(id)); DG.inkDirty = true; dgRequestRender(); toast('ลบเส้นไม่สำเร็จ: ' + dgError(e)); }
+}
+async function dgUndo(){
+  if (!dgCanDraw()) return;
+  while (DG.mine.length && !DG.strokes.has(DG.mine[DG.mine.length - 1])) DG.mine.pop();
+  const id = DG.mine.pop(); if (!id) return;
+  DG.hidden.add(id); DG.inkDirty = true; dgRenderTools(); dgRequestRender();
+  const round = DG.room.round_no;
+  try {
+    await dgRpc('dg3_delete_strokes', { p_room_id: DG.roomId, p_round_no: round, p_player_id: ME.id, p_ids: [id] });
+    DG.strokes.delete(id); DG.hidden.delete(id); DG.order = DG.order.filter(x => x !== id); DG.inkDirty = true;
+    dgBroadcast('sdel', { round, ids: [id] }); dgRequestRender();
+  } catch (e){ DG.hidden.delete(id); DG.mine.push(id); DG.inkDirty = true; dgRenderTools(); dgRequestRender(); toast(dgError(e)); }
+}
+async function dgClearCanvas(){
+  if (!dgCanDraw() || !DG.order.length) return;
+  if (!confirm('ล้างภาพวาดทั้งหมดในรอบนี้?')) return;
+  const round = DG.room.round_no; DG.busy = true;
+  try {
+    await dgRpc('dg3_clear_canvas', { p_room_id: DG.roomId, p_round_no: round, p_player_id: ME.id });
+    DG.strokes.clear(); DG.order = []; DG.hidden.clear(); DG.live.clear(); DG.mine = []; DG.inkDirty = true;
+    dgBroadcast('clear', { round }); dgRenderTools(); dgRequestRender();
+  } catch (e){ toast(dgError(e)); }
+  finally { DG.busy = false; }
+}
+
+/* ---------- ดึงเส้นจากเซิร์ฟเวอร์ (เฉพาะเส้นที่ยังไม่มี) ---------- */
+async function dgFetchStrokes(){
+  if (!sb || !DG.roomId || !DG.room || !DG.room.round_no) return;
+  if (DG.strokeBusy){ DG.strokeAgain = true; return; }
+  DG.strokeBusy = true; const started = Date.now(), round = DG.room.round_no, id = DG.roomId;
+  try {
+    const d = await dgRpc('dg3_get_strokes', { p_room_id: id, p_round_no: round, p_known: [...DG.strokes.keys()].slice(0, 800) });
+    if (id !== DG.roomId || !DG.room || DG.room.round_no !== round || d.round_no !== round) return;
+    d.strokes.forEach(r => { DG.strokes.set(r.id, r.stroke); DG.live.delete(r.id); });
+    const ids = d.ids.slice();
+    DG.own.forEach((ts, sid) => { if (ts >= started - 200 && !ids.includes(sid) && DG.strokes.has(sid)) ids.push(sid); });
+    DG.order = ids.filter(sid => DG.strokes.has(sid));
+    [...DG.strokes.keys()].forEach(sid => { if (!DG.order.includes(sid)) DG.strokes.delete(sid); });
+    DG.hidden.forEach(sid => { if (!DG.strokes.has(sid)) DG.hidden.delete(sid); });
+    DG.inkDirty = true; dgRequestRender();
+  } catch (e){}
+  finally { DG.strokeBusy = false; if (DG.strokeAgain){ DG.strokeAgain = false; dgFetchStrokes(); } }
+}
+
+/* ---------- วาดลงผืน ---------- */
+function dgDrawStroke(g, s, W, H){
+  const p = s.points || []; if (p.length < 2) return;
+  g.save(); g.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
+  g.strokeStyle = g.fillStyle = s.erase ? '#000' : (s.color || '#252525');
+  const w = Math.max(1, (s.width || .006) * H); g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round';
+  if (p.length <= 4 && Math.hypot(p[p.length - 2] - p[0], p[p.length - 1] - p[1]) * H < 1){ g.beginPath(); g.arc(p[0] * W, p[1] * H, w / 2, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+  g.beginPath(); g.moveTo(p[0] * W, p[1] * H);
+  for (let i = 2; i + 3 < p.length; i += 2){ g.quadraticCurveTo(p[i] * W, p[i + 1] * H, (p[i] + p[i + 2]) / 2 * W, (p[i + 1] + p[i + 3]) / 2 * H); }
+  g.lineTo(p[p.length - 2] * W, p[p.length - 1] * H); g.stroke(); g.restore();
+}
+function dgRequestRender(){ if (DG.raf) return; DG.raf = requestAnimationFrame(() => { DG.raf = 0; dgRenderCanvas(); }); }
+function dgRenderCanvas(){
+  const cv = DG.canvas; if (!cv || !DG.visible) return;
+  const fr = DG.frame || (DG.frame = DG.$('dgFrame')), aw = fr.clientWidth - 16, ah = fr.clientHeight - 16;
+  if (aw < 20 || ah < 20) return;
+  let fw = aw, fh = fw / DG_ASPECT; if (fh > ah){ fh = ah; fw = fh * DG_ASPECT; }
+  cv.style.width = Math.floor(fw) + 'px'; cv.style.height = Math.floor(fh) + 'px';
+  const W = Math.max(1, cv.clientWidth), H = Math.max(1, cv.clientHeight), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+  if (cv.width !== pw || cv.height !== ph){ cv.width = pw; cv.height = ph; DG.ink.width = DG.tmp.width = pw; DG.ink.height = DG.tmp.height = ph; DG.inkDirty = true; }
+  if (DG.ink.width !== pw){ DG.ink.width = DG.tmp.width = pw; DG.ink.height = DG.tmp.height = ph; DG.inkDirty = true; }
+  if (DG.inkDirty){
+    const g = DG.ink.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    for (const id of DG.order){ if (DG.hidden.has(id)) continue; const s = DG.strokes.get(id); if (s) dgDrawStroke(g, s, W, H); }
+    DG.inkDirty = false;
+  }
+  const g = DG.ctx; g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#fffdf8'; g.fillRect(0, 0, cv.width, cv.height);
+  if (DG.live.size){
+    const t = DG.tmp.getContext('2d'); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, DG.tmp.width, DG.tmp.height); t.drawImage(DG.ink, 0, 0);
+    t.setTransform(dpr, 0, 0, dpr, 0, 0); DG.live.forEach(s => dgDrawStroke(t, s, W, H));
+    g.drawImage(DG.tmp, 0, 0);
+  } else g.drawImage(DG.ink, 0, 0);
+  if (DG.cursor && dgIsDrawer() && DG.tool === 'eraser'){
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.beginPath(); g.arc(DG.cursor[0] * W, DG.cursor[1] * H, Math.max(3, DG.prefs.eraser / DG_REF * H / 2), 0, Math.PI * 2);
+    g.lineWidth = 1.5; g.strokeStyle = 'rgba(60,45,30,.7)'; g.stroke();
+  }
+}
+
+/* ============================ เรียลไทม์ (channel lobby:main, event draw_guess) ============================ */
+function dgBroadcast(t, extra, roomId){
+  if (!S.chan) return; const room = roomId || DG.roomId;
+  S.chan.send({ type: 'broadcast', event: 'draw_guess', payload: Object.assign({ t, room, from: ME.id }, extra || {}) }).catch(() => {});
+}
+DG.onBroadcast = function(p){
+  if (!p || typeof p !== 'object' || p.from === ME.id) return;
+  if (p.t === 'rooms'){ if (DG.hubOpen) dgLoadRooms(true); return; }
+  if (p.t === 'invite'){ if (!DG.roomId) toast('🎨 ' + (p.by || 'เพื่อน') + ' ชวนเล่นวาดภาพทายคำ: ' + (p.name || 'ห้องใหม่')); return; }
+  if (!DG.roomId || p.room !== DG.roomId || !DG.room) return;
+  if (p.t === 'room'){ dgSync(true); return; }
+  if (p.t === 'chat'){ dgFetchChat(false); return; }
+  if (p.round !== undefined && p.round !== DG.room.round_no) return;
+  if (p.t === 'live'){
+    if (DG.room.drawer_id === ME.id) return;
+    let s = DG.live.get(p.id); if (!s){ s = { id: p.id, color: p.color, width: p.width, erase: !!p.erase, points: [] }; DG.live.set(p.id, s); }
+    if (Array.isArray(p.pts)) s.points.push(...p.pts); dgRequestRender(); return;
+  }
+  if (p.t === 'sdone'){ if (p.failed){ DG.live.delete(p.id); dgRequestRender(); } else dgFetchStrokes(); return; }
+  if (p.t === 'sdel'){ (p.ids || []).forEach(id => { DG.hidden.add(id); }); DG.inkDirty = true; dgRequestRender(); dgFetchStrokes(); return; }
+  if (p.t === 'clear'){ DG.strokes.clear(); DG.order = []; DG.hidden.clear(); DG.live.clear(); DG.inkDirty = true; dgRequestRender(); dgFetchStrokes(); }
+};
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', dgBuildUI, { once: true }); else dgBuildUI();
 
 /* ---------- chat ---------- */
 const Chat = { list: [] };

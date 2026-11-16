@@ -1,47 +1,44 @@
-# Draw & Guess MVP — deployment notes
+# วาดภาพทายคำ (Draw & Guess) v3 — วิธีติดตั้งและโครงสร้าง
 
-## Required order
+## ลำดับการติดตั้ง
 
-1. Open the Supabase project used by Jigsaw Table.
-2. In **SQL Editor**, paste and run `supabase/draw_guess.sql` once.
-3. Confirm the SQL completed successfully and that the `draw_guess_*` tables and `dg_*` functions exist.
-4. Copy the new source files into the repository:
-   - `src/lobby/draw-guess.js`
-   - `src/lobby/draw-guess.css`
-   - `supabase/draw_guess.sql`
-5. Apply the `src/lobby/build.py` update from this patch, then run:
-   ```powershell
-   py .\src\lobby\build.py
-   node --check .\src\lobby\draw-guess.js
-   git diff --check
-   ```
-6. Test with 2–4 different browser profiles/devices before merging/deploying the generated `lobby.html`.
+1. ต้องเคยรัน `supabase/draw_guess.sql` (ชุดเก่า) มาก่อน เพราะ v3 ใช้ตาราง `draw_guess_words` และฟังก์ชัน `dg_normalize_text` ร่วมกัน
+2. Supabase → SQL Editor → รัน `supabase/draw_guess_v3.sql` (รันซ้ำได้)
+3. รัน `supabase/draw_guess_words_v3.sql` เพื่อเพิ่มคำ (รวมเป็น 15 หมวด 800+ คำ รันซ้ำได้ ไม่ซ้ำคำเดิม)
+4. Deploy `lobby.html` (สร้างจาก `python3 src/lobby/build.py` ห้ามแก้ไฟล์ .html ที่ราก)
 
-## MVP behavior
+ชุดเก่า (`draw_guess_*`, `dg_*`) ไม่ถูกแตะ ใครยังเปิดหน้าเก่าค้างอยู่ก็ไม่พัง
 
-- The first player who starts the session becomes controller and first drawer.
-- Drawer order follows the roster order captured at session start.
-- Categories: animals, food, objects, occupations, places, nature, vehicles, Thai culture, fantasy.
-- Difficulty: easy / normal / hard. Timer: 60 / 90 / 120 seconds / unlimited.
-- First correct guess receives 3 points; later correct guesses receive 1 point. Drawer receives 1 point per correct guess and +2 when every guesser solves.
-- A solved player cannot score again in that round. Correct answer text is never sent in the broadcast payload; it is returned only by the state RPC when the viewer's supplied ID is the drawer, or after reveal.
-- Live strokes are broadcast on the existing `lobby:main` channel and persisted via RPC. The game uses a separate canvas and tables; it does not touch `Board`, `board_items`, puzzle pieces, radio, or chat state.
+> สถานะ: ข้อ 2–3 รันบน Supabase โปรเจกต์จริงแล้ว (16 พ.ย. 2026)
 
-## Important security limitation
+## ฟีเจอร์ v3
 
-The current lobby is guest-based: `ME.id` is generated in LocalStorage and is not a Supabase Auth identity. The RPCs check the supplied player ID against the active session roster and role, and they keep the answer out of public broadcast events, but a deliberately malicious visitor can forge another guest ID and call anon RPCs directly. Do **not** describe this MVP as cheat-proof. Strong identity and anti-cheat require a server-issued per-player credential or Supabase Auth/Edge Function flow in a later hardening phase.
+- หลายห้องพร้อมกัน มีห้องรอ ตั้งชื่อห้อง/จำนวนรอบ/เวลา/จำนวนคน/หมวด/ความยาก และใส่คำของตัวเองได้ (คำนี้ซ่อนจากคนอื่น)
+- เจ้าของห้องออกแล้วโอนให้คนถัดไป เข้า/ออกกลางเกมได้ เล่นอีกรอบในห้องเดิมได้ (`dg3_reset`)
+- ช่องเดียวใช้ทั้งแชทและทาย: ทายผิดเป็นแชทสาธารณะ ทายถูกได้คะแนนและเข้าแชทวงใน (คนวาด + คนที่ตอบถูก) ข้อความที่มีคำตอบถูกบล็อก
+- สี 96 ช่อง + เลือกสีเอง/ใส่ hex + สีล่าสุด + "สีของฉัน" (เก็บใน localStorage `jt-dg-prefs`)
+- ยางลบ 2 โหมด: ลบเฉพาะจุด (pixel) และลบทั้งเส้น (stroke) พร้อม undo และล้างกระดาน
+- คะแนนเหมือนเดิม: ทายถูกคนแรก +3 คนอื่น +1 คนวาด +1 ต่อคนที่ทายถูก และ +2 ถ้าทุกคนทายถูก
 
-## Known MVP limitation
+## โครงสร้างข้อมูล
 
-The session roster is captured at game start. A person who joins later can watch but cannot guess in the current session. If someone disconnects during a round, the round continues until everyone remaining in the roster solves or the timer expires; reconnect recovery reloads the state and saved strokes. A dedicated disconnect grace-period/host-takeover flow is deferred.
+- ตาราง: `dg3_rooms`, `dg3_players`, `dg3_strokes`, `dg3_chat` เปิด RLS และถอนสิทธิ์ anon/authenticated ทั้งหมด เข้าถึงผ่าน RPC `dg3_*` (security definer) เท่านั้น
+- Realtime ใช้ broadcast เท่านั้น ช่อง `lobby:main` event `draw_guess` ชนิด: `rooms`, `room`, `chat`, `live`, `sdone`, `sdel`, `clear`, `invite`
+- ผู้เล่น poll ทุก 4 วิ (ตอนวาด) / 6 วิ (ตอนอื่น) ซึ่งใช้เป็น heartbeat ด้วย ห้องที่ไม่มีคนเกิน 3 นาทีจะถูกปิดอัตโนมัติ
 
-## Manual acceptance test
+## เพิ่มคำใหม่
 
-1. Open the same lobby using two separate browser profiles (different `jt-me` IDs).
-2. Start a session with 2 players and select two or more categories.
-3. Confirm only drawer view shows the secret word.
-4. Draw several strokes. Confirm the other profile sees the strokes live.
-5. Submit a wrong answer, then the right answer. Confirm only the right answer gets points and the answer input locks.
-6. With 3–4 profiles, confirm first guess gets +3, later guesses +1, drawer gets +1 per correct guess and a +2 all-solved bonus.
-7. Test timeout, skip, next round, end game, refresh/reconnect and return to the lobby.
-8. Re-test the existing puzzle, shared whiteboard, YouTube radio, chat and room presence.
+แก้รายการใน `supabase/gen_words_v3.py` (รูปแบบ `คำ=ชื่อเรียกอื่น/ชื่อเรียกอื่น` คั่นด้วยคอมมา) แล้วรันสคริปต์เพื่อสร้าง `draw_guess_words_v3.sql` ใหม่ ห้ามแก้ไฟล์ .sql ด้วยมือ
+
+## ข้อจำกัดด้านความปลอดภัย
+
+ผู้เล่นเป็นแบบ guest (`ME.id` ใน localStorage ไม่ใช่ Supabase Auth) ฟังก์ชันตรวจ id กับรายชื่อในห้องและบทบาท และไม่ส่งคำตอบทางช่อง broadcast แต่คนที่ตั้งใจโกงสามารถปลอม id แล้วเรียก RPC ตรงได้ จึงอย่าเรียกว่ากันโกงได้ ถ้าจะทำให้แข็งแรงต้องใช้ Supabase Auth หรือ Edge Function ออก credential ต่อผู้เล่น
+
+## ทดสอบด้วยมือ
+
+1. เปิดลอบบี้ด้วยเบราว์เซอร์/โปรไฟล์ 2 ตัว สร้างห้องจากตัวแรก เข้าห้องจากตัวที่สอง แล้วลองแชทในห้องรอ
+2. เริ่มเกม เช็กว่ามีแต่คนวาดที่เห็นคำ และอีกฝั่งเห็นเส้นสด ๆ
+3. ลองเปลี่ยนสี/ใส่ hex, ยางลบทั้งสองโหมด, undo
+4. ทายผิด (ขึ้นในแชท) → พิมพ์ประโยคที่มีคำตอบ (ต้องถูกบล็อก) → ทายถูก (ได้คะแนน)
+5. ลองออกจากห้อง/โอนเจ้าของห้อง/จบเกม/เล่นอีกรอบ
+6. เช็กว่าจิ๊กซอว์ กระดานรวม วิทยุ และแชทลอบบี้ยังใช้ได้ปกติ
