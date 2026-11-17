@@ -4,24 +4,25 @@
    (or, sometimes, wanders over to a person) and naps/sits there until the next slot.
    Petting is the only thing sent over the network (`pet` broadcast) so the hearts show for everyone. */
 const CAT_SPOTS = [
-  // x,y = where the cat rests; floor = where it stands before hopping up (omit for floor spots); z = draw order
-  { id: 'bed', x: 32, y: 257, z: 273, pose: 'sleep' },
-  { id: 'sofaArm', x: 336, y: 82, z: 129, pose: 'loaf', floor: [348, 136] },
-  { id: 'sofaSeat', x: 214, y: 102, z: 129, pose: 'sleep', floor: [208, 138] },
-  { id: 'sofaBack', x: 300, y: 64, z: 129, pose: 'sleep', floor: [300, 136] },
-  { id: 'table', x: 326, y: 214, z: 233, pose: 'loaf', floor: [346, 236] },
-  { id: 'cabR', x: 494, y: 166, z: 233, pose: 'sleep', floor: [472, 190] },
-  { id: 'tvTop', x: 68, y: 148, z: 191, pose: 'sit', floor: [84, 166] },
-  { id: 'bean', x: 96, y: 200, z: 229, pose: 'sleep', floor: [120, 236] },
-  { id: 'musicTop', x: 178, y: 70, z: 121, pose: 'loaf', floor: [180, 136] },
-  { id: 'rug', x: 300, y: 270, pose: 'groom' },
-  { id: 'window', x: 360, y: 150, pose: 'sit' },
-  { id: 'door', x: 254, y: 286, pose: 'loaf' }
+  // x,y = where the cat rests (image px); floor = where it stands before hopping up (omit for floor spots); z = draw order
+  { id: 'sofaSeat', x: 1046, y: 412, z: 447, pose: 'sleep', floor: [1046, 470] },
+  { id: 'sofaL', x: 760, y: 410, z: 447, pose: 'loaf', floor: [760, 470] },
+  { id: 'sideTable', x: 1180, y: 262, z: 447, pose: 'sleep', floor: [1180, 410] },
+  { id: 'bean', x: 418, y: 480, z: 549, pose: 'sleep', floor: [530, 520] },
+  { id: 'table', x: 1070, y: 512, z: 601, pose: 'loaf', floor: [1210, 520] },
+  { id: 'rtable', x: 330, y: 574, z: 629, pose: 'sleep', floor: [462, 612] },
+  { id: 'chest', x: 1535, y: 650, z: 700, pose: 'loaf', floor: [1430, 650] },
+  { id: 'ledge', x: 470, y: 716, z: 100001, pose: 'loaf', floor: [470, 696] },
+  { id: 'ledgeR', x: 1180, y: 718, z: 100001, pose: 'sit', floor: [1180, 698] },
+  { id: 'easelRug', x: 1395, y: 446, pose: 'sit' },
+  { id: 'rugBig', x: 1290, y: 640, pose: 'groom' },
+  { id: 'beanRug', x: 560, y: 600, pose: 'sleep' },
+  { id: 'door', x: 1020, y: 760, pose: 'loaf' }
 ];
 const CATS = [
-  { id: 'mochi', name: 'โมจิ', coat: 'orange', slot: 61000, phase: 0, like: ['bed', 'sofaSeat', 'table', 'rug'] },
-  { id: 'kaopun', name: 'ข้าวปั้น', coat: 'white', slot: 73000, phase: 17000, like: ['cabR', 'sofaBack', 'bean', 'window'] },
-  { id: 'cocoa', name: 'โกโก้', coat: 'black', slot: 83000, phase: 39000, like: ['tvTop', 'musicTop', 'sofaArm', 'door'] }
+  { id: 'mochi', name: 'โมจิ', coat: 'orange', slot: 61000, phase: 0, like: ['sofaSeat', 'table', 'rugBig', 'ledge'] },
+  { id: 'kaopun', name: 'ข้าวปั้น', coat: 'white', slot: 73000, phase: 17000, like: ['bean', 'sideTable', 'beanRug', 'chest'] },
+  { id: 'cocoa', name: 'โกโก้', coat: 'black', slot: 83000, phase: 39000, like: ['rtable', 'sofaL', 'ledgeR', 'easelRug', 'door'] }
 ];
 const COATS = {
   orange: { base: '#e8954a', light: '#f6b878', dark: '#c06f2e', mark: '#c86a28', belly: '#f8dcb4', eye: '#3a7a3a' },
@@ -76,13 +77,13 @@ function stepCat(cat, dt){
   const now = catNow(), k = Math.floor((now + cat.phase) / cat.slot);
   if (k !== cat.k) startSlot(cat, k);
   if (cat.hop){
-    const h = cat.hop; h.t += dt / .45;
-    const p = Math.min(1, h.t); cat.x = h.x0 + (h.x1 - h.x0) * p; cat.y = h.y0 + (h.y1 - h.y0) * p; cat.lift = Math.sin(p * Math.PI) * 14;
+    const h = cat.hop; h.t += dt / .55;
+    const p = Math.min(1, h.t); cat.x = h.x0 + (h.x1 - h.x0) * p; cat.y = h.y0 + (h.y1 - h.y0) * p; cat.lift = Math.sin(p * Math.PI) * Math.max(36, Math.abs(h.y1 - h.y0) * .5);
     if (p >= 1){ cat.hop = null; cat.lift = 0; if (h.up){ cat.up = true; cat.upSpot = h.up; } }
     return;
   }
   if (cat.path.length){
-    const [px, py] = cat.path[0], dx = px - cat.x, dy = py - cat.y, d = Math.hypot(dx, dy), sp = (cat.mode === 'follow' ? 52 : 38) * dt;
+    const [px, py] = cat.path[0], dx = px - cat.x, dy = py - cat.y, d = Math.hypot(dx, dy), sp = (cat.mode === 'follow' ? 160 : 110) * dt;
     if (Math.abs(dx) > .5) cat.dir = dx < 0 ? 2 : 3;
     if (d <= sp){ cat.x = px; cat.y = py; cat.path.shift(); } else { cat.x += dx / d * sp; cat.y += dy / d * sp; }
     cat.walk += dt; return;
@@ -91,8 +92,8 @@ function stepCat(cat, dt){
   if (cat.mode === 'follow'){
     const who = cat.tgt === ME.id ? Room.me : Room.others.get(cat.tgt);
     if (!who){ cat.mode = 'rest'; cat.restPose = 'sit'; return; }
-    const tx = who.x + (cat.x < who.x ? -18 : 18), ty = who.y + 2;
-    if (Math.hypot(tx - cat.x, ty - cat.y) > 30 && (cat.repath || 0) < now){ cat.path = catRoute(cat, [tx, ty]); cat.repath = now + 1200; }
+    const tx = who.x + (cat.x < who.x ? -60 : 60), ty = who.y + 6;
+    if (Math.hypot(tx - cat.x, ty - cat.y) > 80 && (cat.repath || 0) < now){ cat.path = catRoute(cat, [tx, ty]); cat.repath = now + 1200; }
     else if (!cat.path.length) cat.dir = who.x < cat.x ? 2 : 3;
     return;
   }
@@ -156,12 +157,14 @@ function catSprite(coat, pose, frame, happy){
   } else if (pose === 'groom'){
     R(8, 6, 9, 10, C.base); R(9, 10, 5, 6, C.belly); stripes(12, 7, 6); R(16, 13, 5, 3, C.base);
     head(5, 2 + (frame % 2), true); R(6, 8 - (frame % 2), 2, 3, C.base); R(6, 7 - (frame % 2), 2, 1, '#f3a6a0');
-  } else { // sleep: curled up donut
-    const b = frame === 1 ? 1 : 0;
-    R(4, 9 - b, 17, 7 + b, C.base); R(5, 8 - b, 15, 1, C.base); R(6, 9 - b, 13, 1, C.light); stripes(10, 9 - b, 10);
-    R(4, 14, 17, 2, C.dark); R(14, 13, 8, 2, C.base); R(20, 12, 2, 2, C.dark); // tail wrapped round
-    R(3, 10, 8, 5, C.base); R(3, 8, 2, 3, C.base); R(8, 8, 2, 3, C.base); R(4, 9, 1, 1, '#f3a6a0'); R(8, 9, 1, 1, '#f3a6a0');
-    R(4, 12, 2, 1, '#2b1a14'); R(7, 12, 2, 1, '#2b1a14'); R(5, 14, 2, 1, '#f3a6a0');
+  } else { // sleep: curled into a round ball, head resting on the tail
+    const b = frame === 1 ? 1 : 0, E = (cx, cy, rx, ry, col) => { for (let yy = -ry; yy <= ry; yy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (yy / (ry + .5)) ** 2))); R(cx - hw, cy + yy, hw * 2, 1, col); } };
+    E(13, 12 - b, 9, 5 + b, C.base); E(14, 11 - b, 6, 2, C.light);
+    if (coat === 'orange') for (let i = 0; i < 4; i++) R(11 + i * 3, 8 - b, 1, 4, C.mark);
+    if (coat === 'white'){ E(16, 10 - b, 3, 2, C.mark); }
+    R(7, 15, 14, 2, C.base); R(9, 16, 12, 1, coat === 'black' ? '#56505e' : C.dark); R(19, 13, 3, 3, C.dark); // tail wrapped round the front
+    E(7, 13, 4, 3, C.base); R(3, 9, 2, 3, C.base); R(8, 9, 2, 3, C.base); R(3, 10, 1, 1, '#f3a6a0'); R(9, 10, 1, 1, '#f3a6a0'); // head + ears
+    R(5, 13, 2, 1, '#2b1a14'); R(8, 13, 2, 1, '#2b1a14'); R(6, 15, 2, 1, '#f3a6a0'); R(4, 14, 7, 1, C.belly);
   }
   outlineSprite(c);
   catCache.set(key, c); return c;
@@ -170,12 +173,13 @@ function drawCat(g, cat, t){
   const pose = catPose(cat, t), happy = cat.happy > performance.now();
   const frame = pose === 'walk' ? Math.floor(cat.walk * 8) % 4 : pose === 'sleep' ? Math.floor(t / 1400) % 2 : pose === 'groom' ? Math.floor(t / 300) % 2 : (Math.floor((t + hashStr(cat.id) % 3000) / 2600) % 5 === 0 ? 1 : 0);
   const spr = catSprite(cat.coat, pose, frame, happy ? 1 : 0), x = Math.round(cat.x), y = Math.round(cat.y - (cat.lift || 0));
-  if (!cat.lift){ g.fillStyle = 'rgba(30,15,10,.25)'; g.fillRect(x - 8, y - 1, 16, 2); }
-  if (cat.dir === 3){ g.save(); g.translate(x, 0); g.scale(-1, 1); g.drawImage(spr, -13, y - 19); g.restore(); }
-  else g.drawImage(spr, x - 13, y - 19);
+  g.imageSmoothingEnabled = false;
+  if (!cat.lift){ g.fillStyle = 'rgba(30,15,10,.28)'; g.beginPath(); g.ellipse(x, y, 8 * SC, 2 * SC, 0, 0, Math.PI * 2); g.fill(); }
+  if (cat.dir === 3){ g.save(); g.translate(x, 0); g.scale(-1, 1); g.drawImage(spr, -13 * SC, y - 19 * SC, 26 * SC, 20 * SC); g.restore(); }
+  else g.drawImage(spr, x - 13 * SC, y - 19 * SC, 26 * SC, 20 * SC);
   if (pose === 'sleep' && !happy){
     const p = (t / 2400 + hashStr(cat.id) % 7 / 7) % 1; g.globalAlpha = p < .8 ? 1 - p / .8 : 0; g.fillStyle = '#fff8ea';
-    const zx = x + (cat.dir === 3 ? 8 : -12) - p * 4, zy = y - 18 - p * 12; g.fillRect(zx, zy, 4, 1); g.fillRect(zx + 2, zy + 1, 1, 1); g.fillRect(zx + 1, zy + 2, 1, 1); g.fillRect(zx, zy + 3, 4, 1); g.globalAlpha = 1;
+    const zx = x + (cat.dir === 3 ? 8 : -12) * SC - p * 12, zy = y - 18 * SC - p * 36, k = SC; g.fillRect(zx, zy, 4 * k, k); g.fillRect(zx + 2 * k, zy + k, k, k); g.fillRect(zx + k, zy + 2 * k, k, k); g.fillRect(zx, zy + 3 * k, 4 * k, k); g.globalAlpha = 1;
   }
 }
 /* hearts float up in room space */
@@ -184,15 +188,15 @@ function drawPetHearts(g, t){
   Pets.hearts = Pets.hearts.filter(h => now - h.at < 1600);
   Pets.hearts.forEach(h => {
     const cat = Pets.cats.find(c => c.id === h.cat); if (!cat) return;
-    const p = (now - h.at) / 1600, x = Math.round(cat.x + h.dx + Math.sin(p * 8 + h.dx) * 3), y = Math.round(cat.y - 22 - (cat.lift || 0) - p * 26);
-    g.globalAlpha = 1 - p; g.fillStyle = '#2b1a14'; g.fillRect(x - 1, y, 7, 4); g.fillRect(x, y + 4, 5, 2); g.fillRect(x + 1, y + 6, 3, 1); g.fillRect(x, y - 1, 2, 1); g.fillRect(x + 3, y - 1, 2, 1);
+    const p = (now - h.at) / 1600, x0 = cat.x + h.dx * SC + Math.sin(p * 8 + h.dx) * 9, y0 = cat.y - 22 * SC - (cat.lift || 0) - p * 78;
+    if (p < 0) return; g.save(); g.translate(Math.round(x0), Math.round(y0)); g.scale(SC, SC); const x = 0, y = 0; g.globalAlpha = 1 - p; g.fillStyle = '#2b1a14'; g.fillRect(x - 1, y, 7, 4); g.fillRect(x, y + 4, 5, 2); g.fillRect(x + 1, y + 6, 3, 1); g.fillRect(x, y - 1, 2, 1); g.fillRect(x + 3, y - 1, 2, 1);
     g.fillStyle = '#ec6a8a'; g.fillRect(x, y, 2, 4); g.fillRect(x + 3, y, 2, 4); g.fillRect(x + 1, y + 1, 3, 4); g.fillRect(x + 2, y + 5, 1, 1);
-    g.fillStyle = '#ffc0d0'; g.fillRect(x, y, 1, 1); g.globalAlpha = 1;
+    g.fillStyle = '#ffc0d0'; g.fillRect(x, y, 1, 1); g.globalAlpha = 1; g.restore();
   });
 }
 function catAt(lx, ly){
-  let best = null, bd = 18;
-  Pets.cats.forEach(c => { const d = Math.hypot(c.x - lx, c.y - 8 - (c.lift || 0) - ly); if (d < bd){ bd = d; best = c; } });
+  let best = null, bd = 18 * SC;
+  Pets.cats.forEach(c => { const d = Math.hypot(c.x - lx, c.y - 8 * SC - (c.lift || 0) - ly); if (d < bd){ bd = d; best = c; } });
   return best;
 }
 const sfxMeow = () => { tone(620, 0, .12, 'triangle', .1, 900); tone(900, .1, .22, 'triangle', .09, 520); };

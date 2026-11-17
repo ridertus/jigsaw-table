@@ -556,7 +556,7 @@ function disconnect(){ if (S.chan){ const c = S.chan; S.chan = null; S.connected
 /* ---------- start ---------- */
 async function enterLobby(){
   const [sx, sy] = SPAWN;
-  Room.me = makeAvatar(ME.id, ME.name, ME.color, ME.hair, sx * T + 12 + (Math.random() * 2 | 0) * T, sy * T + 22, { hc: ME.hc, acc: ME.acc });
+  Room.me = makeAvatar(ME.id, ME.name, ME.color, ME.hair, sx + (Math.random() * 60 - 30 | 0), sy, { hc: ME.hc, acc: ME.acc }); Room.me.dir = 1;
   Room.me.dir = 1;
   S.players = [{ key: ME.id, name: ME.name, color: ME.color, me: true }]; renderPlayers();
   if (L.pin){ try { const { data } = await sb.rpc('check_owner', { p_pin: L.pin }); L.isOwner = data === true; if (!L.isOwner){ L.pin = null; LS.set('jt-owner-pin', null); } } catch(e){} }

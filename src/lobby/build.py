@@ -47,4 +47,13 @@ html = f'''<!doctype html>
 </body>
 </html>
 '''
-(pathlib.Path(__file__).parent.parent.parent / 'lobby.html').write_text(html, encoding="utf-8")
+root = pathlib.Path(__file__).parent.parent.parent
+(root / 'lobby.html').write_text(html, encoding="utf-8")
+# python src/lobby/build.py --inline OUT.html  -> single file with the room pictures embedded (for previews)
+import sys, base64
+if '--inline' in sys.argv:
+    out = sys.argv[sys.argv.index('--inline') + 1]
+    for name, mime in (('room-day.webp', 'image/webp'), ('room-night.webp', 'image/webp'), ('room-front-mask.png', 'image/png')):
+        data = base64.b64encode((root / 'assets' / 'room' / name).read_bytes()).decode()
+        html = html.replace("'assets/room/" + name + "'", "'data:" + mime + ";base64," + data + "'")
+    pathlib.Path(out).write_text(html, encoding="utf-8")
