@@ -22,7 +22,7 @@
       <button class="btn soft" id="lookBtn" type="button">เปลี่ยนชื่อ / ตัวละคร</button>
     </div>
   </header>
-  <p class="hint" id="hint">แตะพื้นเพื่อเดิน · แตะโซฟาหรือเบาะเพื่อนั่ง · แตะของในห้อง หรือใช้ปุ่มมุมขวาล่าง</p>
+  <p class="hint" id="hint">แตะพื้นเพื่อเดิน · แตะโต๊ะเล่นเกม · แตะโซฟา/เบาะเพื่อนั่ง · แตะแมวเพื่อลูบ</p>
 
   <!-- radio mini player: the YouTube iframe lives here for the whole session and is never moved -->
   <div class="mini" id="mini" hidden>
@@ -59,9 +59,8 @@
       </form>
     </div>
     <nav class="dock" id="dock" aria-label="ของในห้อง">
-      <button class="dk" id="dkPuzzle" type="button"><canvas class="px" data-px="puzzle" aria-hidden="true"></canvas><span>จิ๊กซอว์</span></button>
+      <button class="dk" id="dkTable" type="button"><canvas class="px" data-px="dice" aria-hidden="true"></canvas><span>โต๊ะเกม</span></button>
       <button class="dk" id="dkDraw" type="button"><canvas class="px" data-px="palette" aria-hidden="true"></canvas><span>วาดรูป</span></button>
-      <button class="dk" id="dkGuess" type="button"><canvas class="px" data-px="pad" aria-hidden="true"></canvas><span>วาดทายคำ</span></button>
       <button class="dk" id="dkRadio" type="button"><canvas class="px" data-px="radio" aria-hidden="true"></canvas><span>วิทยุ</span></button>
       <button class="dk" id="wxBtn" type="button"><canvas class="px" data-px="weather" aria-hidden="true"></canvas><span>อากาศ</span></button>
     </nav>
@@ -242,6 +241,13 @@
 </section>
 
 <!-- window: shared weather + this device's ambient mixer -->
+<section id="tableSheet" class="sheet-bg" hidden>
+  <div class="ib wide" role="dialog" aria-labelledby="tgTitle">
+    <div class="ib-head"><h2 id="tgTitle">โต๊ะเกม</h2><button class="round sm" id="tgClose" aria-label="ปิด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="note">ใครก็สลับเกมได้ ทุกคนในห้องจะเห็นโต๊ะเปลี่ยนพร้อมกัน</p>
+    <div class="tg-list" id="tgList"></div>
+  </div>
+</section>
 <section id="weather" class="sheet-bg" hidden>
   <div class="ib wide" role="dialog" aria-labelledby="wxTitle">
     <div class="ib-head"><h2 id="wxTitle">หน้าต่าง</h2><button class="round sm" id="wxClose" aria-label="ปิด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>

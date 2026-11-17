@@ -367,15 +367,6 @@ function buildProps(){
   list.push(makeProp('catbed', 2, 228, 60, 46, 272, g => {
     const { R, E } = kit(g);
     E(32, 258, 27, 13, P.orangeD); E(32, 256, 25, 11, P.orange, false); E(32, 258, 19, 8, '#f2d5a8', false);
-    // cat curled up
-    E(32, 254, 13, 7, P.orange); E(30, 252, 9, 4, P.orangeL, false); E(22, 252, 6, 5, P.orange);
-    R(17, 246, 3, 3, P.out); R(25, 246, 3, 3, P.out); R(18, 247, 1, 2, P.orange); R(26, 247, 1, 2, P.orange);
-    R(19, 252, 2, 1, P.out); R(24, 252, 2, 1, P.out); R(22, 254, 1, 1, P.pink);
-    for (let x = 30; x < 44; x += 4) R(x, 250, 2, 1, P.orangeD);
-    R(40, 258, 6, 2, P.orange); R(44, 256, 3, 3, P.orange); R(46, 255, 1, 4, P.out);
-  }, (g, t) => {
-    const p = (t / 2400) % 1; g.globalAlpha = p < .8 ? 1 - p / .8 : 0; g.fillStyle = P.white;
-    const x = 14 - p * 6, y = 242 - p * 14; g.fillRect(x, y, 4, 1); g.fillRect(x + 2, y + 1, 1, 1); g.fillRect(x + 1, y + 2, 1, 1); g.fillRect(x, y + 3, 4, 1); g.globalAlpha = 1;
   }));
   // the jigsaw table
   list.push(makeProp('table', 188, 154, 152, 82, 232, g => {
@@ -383,12 +374,7 @@ function buildProps(){
     B(192, 166, 144, 48, 10, P.woodT, P.wood); R(193, 167, 142, 2, P.woodL);
     for (let y = 172; y < 212; y += 9) R(196, y, 136, 1, 'rgba(110,60,30,.25)');
     R(198, 224, 6, 10, P.out); R(324, 224, 6, 10, P.out); R(199, 224, 4, 9, P.woodD); R(325, 224, 4, 9, P.woodD);
-    // board + scattered pieces
-    O(216, 171, 96, 38, P.woodD); R(218, 173, 92, 34, P.cream);
-    const rnd = rng(5);
-    for (let i = 0; i < 16; i++){ const x = 198 + Math.floor(rnd() * 130), y = 170 + Math.floor(rnd() * 40); if (x > 212 && x < 314 && y > 166 && y < 212) continue; R(x, y, 4, 4, P.out); R(x, y, 3, 3, [P.sofaL, P.curL, P.orangeL, P.musL, P.rugL][i % 5]); R(x + 1, y - 1, 1, 1, P.out); }
-    mugArt(g, 200, 170, P.cream); mugArt(g, 318, 198, P.blue);
-    O(314, 174, 18, 14, P.curD); R(315, 175, 16, 4, P.leafL); R(315, 179, 16, 8, P.curL); R(317, 181, 6, 3, P.orangeL); // puzzle box lid
+    mugArt(g, 200, 170, P.cream); mugArt(g, 320, 202, P.blue);
     plantArt(g, 206, 212, 6, 33, 7);
   }, (g, t) => drawTable(g, t)));
   // cabinet with cat lamp (right)
@@ -423,15 +409,36 @@ function buildProps(){
 
 /* ---- live bits ---- */
 function drawTable(g, t){
-  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-  if (Room.tableImg){
-    const img = Room.tableImg, k = Math.min(90 / img.width, 32 / img.height), w = Math.round(img.width * k), h = Math.round(img.height * k);
-    g.imageSmoothingEnabled = true; g.drawImage(img, 264 - w / 2, 190 - h / 2, w, h); g.imageSmoothingEnabled = false;
-    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(264 - w / 2, 190 - h / 2, w, 1);
+  const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
+  const O = (x, y, w, h, c) => { R(x, y, w, h, P.out); R(x + 1, y + 1, w - 2, h - 2, c); };
+  if (Table.mode === 'guess'){
+    // sketch paper, a doodle in progress, pencils and word cards
+    R(215, 172, 98, 38, 'rgba(60,30,10,.25)'); O(213, 169, 98, 38, '#fffdf6');
+    for (let y = 176; y < 204; y += 6) R(216, y, 92, 1, '#e4ecf6');
+    const k = Math.floor(t / 900) % 3;
+    R(236, 186, 14, 1, P.ink); R(234, 187, 2, 6, P.ink); R(250, 187, 2, 6, P.ink); R(236, 193, 14, 1, P.ink); R(239, 180, 8, 1, P.ink); R(237, 181, 2, 5, P.ink); R(247, 181, 2, 5, P.ink); // a little house
+    if (k > 0){ R(262, 182, 10, 10, P.musL); R(264, 180, 6, 1, P.musL); R(270, 186, 1, 1, P.ink); R(265, 186, 1, 1, P.ink); }
+    if (k > 1) for (let i = 0; i < 6; i++) R(282 + i * 3, 192 - (i % 2) * 2, 3, 1, P.leaf);
+    O(318, 176, 12, 16, P.mus); R(320, 179, 8, 1, P.musD); R(320, 182, 6, 1, P.musD); // word cards
+    O(196, 196, 12, 14, '#f4c0c8'); R(198, 200, 8, 1, P.redD);
+    for (let i = 0; i < 4; i++){ const c = [P.red, P.cur, P.leaf, P.mus][i]; R(290 + i * 5, 199 - i, 2, 9, P.out); R(290 + i * 5, 199 - i, 1, 8, c); R(290 + i * 5, 207 - i, 1, 1, P.cream); }
   } else {
-    for (let y = 0; y < 32; y += 4) for (let x = (y / 4) % 2 * 4; x < 90; x += 8) R(219 + x, 174 + y, 4, 4, '#ead6aa');
+    O(216, 171, 96, 38, P.woodD); R(218, 173, 92, 34, P.cream);
+    const rnd = rng(5);
+    for (let i = 0; i < 16; i++){ const x = 198 + Math.floor(rnd() * 130), y = 170 + Math.floor(rnd() * 40); if (x > 212 && x < 314 && y > 166 && y < 212) continue; R(x, y, 4, 4, P.out); R(x, y, 3, 3, [P.sofaL, P.curL, P.orangeL, P.musL, P.rugL][i % 5]); R(x + 1, y - 1, 1, 1, P.out); }
+    O(314, 174, 18, 14, P.curD); R(315, 175, 16, 4, P.leafL); R(315, 179, 16, 8, P.curL); R(317, 181, 6, 3, P.orangeL); // puzzle box lid
+    if (Room.tableImg){
+      const img = Room.tableImg, k = Math.min(90 / img.width, 32 / img.height), w = Math.round(img.width * k), h = Math.round(img.height * k);
+      g.imageSmoothingEnabled = true; g.drawImage(img, 264 - w / 2, 190 - h / 2, w, h); g.imageSmoothingEnabled = false;
+      g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(264 - w / 2, 190 - h / 2, w, 1);
+    } else {
+      for (let y = 0; y < 32; y += 4) for (let x = (y / 4) % 2 * 4; x < 90; x += 8) R(219 + x, 174 + y, 4, 4, '#ead6aa');
+    }
   }
+  // sparkle when someone is close, puff of dust right after switching games
   if (Math.floor(t / 400) % 2 && [...Room.others.values(), Room.me].some(a => a && Math.abs(a.x - 264) < 96 && Math.abs(a.y - 200) < 60)){ R(310, 168, 3, 3, '#fff'); R(309, 169, 5, 1, '#fff'); }
+  const fx = (performance.now() - Table.fx) / 700;
+  if (fx < 1) for (let i = 0; i < 10; i++){ const a = i / 10 * Math.PI * 2, r = 20 + fx * 50; g.globalAlpha = 1 - fx; R(264 + Math.cos(a) * r * 1.4, 190 + Math.sin(a) * r * .6, 5 - fx * 3, 5 - fx * 3, '#fff3dc'); g.globalAlpha = 1; }
 }
 function drawTvScreen(g, t){
   const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
@@ -464,19 +471,23 @@ function drawWallLive(g, t){
 
 /* ---- avatars: outlined chibi sprites, cached per look/pose ---- */
 const spriteCache = new Map();
+/* 1px dark outline around every opaque pixel of a sprite canvas */
+function outlineSprite(c){
+  const W = c.width, H = c.height, g = c.getContext('2d'), d = g.getImageData(0, 0, W, H), px = d.data, out = new Uint8ClampedArray(px);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){
+    const i = (y * W + x) * 4; if (px[i + 3]) continue;
+    const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const nx = x + dx, ny = y + dy; return nx >= 0 && ny >= 0 && nx < W && ny < H && px[(ny * W + nx) * 4 + 3] > 200; });
+    if (near){ out[i] = 43; out[i + 1] = 26; out[i + 2] = 20; out[i + 3] = 255; }
+  }
+  d.data.set(out); g.putImageData(d, 0, 0);
+}
 const SPR_W = 26, SPR_H = 42;
 function charSprite(look, dir, frame, pose){
   const key = [look.color, look.hair, look.hc, look.acc, dir, frame, pose].join('|');
   let c = spriteCache.get(key); if (c) return c;
   c = document.createElement('canvas'); c.width = SPR_W; c.height = SPR_H;
   const g = c.getContext('2d'); drawChar(g, SPR_W / 2, SPR_H - 2, look, dir, frame, pose);
-  const d = g.getImageData(0, 0, SPR_W, SPR_H), px = d.data, out = new Uint8ClampedArray(px);
-  for (let y = 0; y < SPR_H; y++) for (let x = 0; x < SPR_W; x++){
-    const i = (y * SPR_W + x) * 4; if (px[i + 3]) continue;
-    const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const nx = x + dx, ny = y + dy; return nx >= 0 && ny >= 0 && nx < SPR_W && ny < SPR_H && px[(ny * SPR_W + nx) * 4 + 3] > 200; });
-    if (near){ out[i] = 43; out[i + 1] = 26; out[i + 2] = 20; out[i + 3] = 255; }
-  }
-  d.data.set(out); g.putImageData(d, 0, 0);
+  outlineSprite(c);
   if (spriteCache.size > 400) spriteCache.clear();
   spriteCache.set(key, c); return c;
 }

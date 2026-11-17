@@ -46,6 +46,10 @@ const ICONS = {
     E(5, 15, 3, 3, P.out, false); E(15, 15, 3, 3, P.out, false); E(5, 15, 2, 2, P.purple, false); E(15, 15, 2, 2, P.purple, false);
     R(4, 10, 5, 1, P.white); R(6, 8, 1, 5, P.white); R(12, 9, 2, 2, P.red); R(15, 9, 2, 2, P.mus); R(13, 12, 2, 2, P.leafL); R(16, 12, 2, 2, '#4aa8f0');
   },
+  dice(R, E, RR){
+    RR(1, 5, 11, 11, 3, P.white); R(4, 8, 2, 2, P.red); R(7, 11, 2, 2, P.red); R(2, 13, 9, 1, '#d8d0c4');
+    RR(9, 2, 10, 10, 3, P.mus); R(11, 4, 2, 2, P.out); R(15, 4, 2, 2, P.out); R(11, 8, 2, 2, P.out); R(15, 8, 2, 2, P.out); R(10, 10, 8, 1, P.musD);
+  },
   radio(R, E, RR){
     for (let i = 0; i < 6; i++) R(13 + i * .6, 6 - i, 1, 1, P.out);
     RR(1, 6, 18, 12, 3, P.red); R(3, 7, 14, 1, P.redL);

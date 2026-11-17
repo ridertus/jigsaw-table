@@ -34,6 +34,8 @@ html = f'''<!doctype html>
 {r('room.js')}
 {r('art.js')}
 {r('icons.js')}
+{r('pets.js')}
+{r('table-games.js')}
 {r('puzzle.js')}
 {r('hud.js')}
 {r('ambient.js')}

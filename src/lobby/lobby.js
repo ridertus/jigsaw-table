@@ -505,9 +505,8 @@ document.addEventListener('pointerdown', e => { if (!$('#peoplePop').hidden && !
 $('#lookBtn').onclick = () => { $('#peoplePop').hidden = true; $('#peopleBtn').setAttribute('aria-expanded', false); buildEnter(); $('#enter').hidden = false; };
 /* dock */
 function openDrawGuess(){ dgOpen(); }
-$('#dkPuzzle').onclick = () => { audioInit(); strollTo('table'); tableTapped(); };
+$('#dkTable').onclick = () => { strollTo('table'); openTableSheet(); };
 $('#dkDraw').onclick = () => { audioInit(); strollTo('easel'); openBoard(); };
-$('#dkGuess').onclick = () => { audioInit(); strollTo('tv'); openDrawGuess(); };
 $('#dkRadio').onclick = () => { audioInit(); strollTo('radio'); Radio.openPanel(); };
 
 /* ---------- realtime channel (one for the whole living room) ---------- */
@@ -526,6 +525,9 @@ function connect(){
     .on('broadcast', { event: 'weather' }, mine(m => applyWeather(m.w, m.by)))
     .on('broadcast', { event: 'emo' }, mine(onEmoji))
     .on('broadcast', { event: 'typing' }, mine(onTyping))
+    .on('broadcast', { event: 'pet' }, mine(onPet))
+    .on('broadcast', { event: 'table' }, mine(onTable))
+    .on('broadcast', { event: 'table?' }, mine(onTableAsk))
     .on('broadcast', { event: 'bd' }, mine(onBoard))
     .on('broadcast', { event: 'drag' }, mine(onDrag))
     .on('broadcast', { event: 'release' }, mine(onRelease))
@@ -537,7 +539,7 @@ function connect(){
       if (status === 'SUBSCRIBED'){
         S.connected = true; retry = 0; clearTimeout(joinTimer); setConn(true);
         ch.track({ name: ME.name, color: ME.color }).catch(() => {});
-        sendPos(true); refreshLobby(); if (!$('#game').hidden) refetch(); if (Board.open) loadBoard();
+        sendPos(true); askTable(); refreshLobby(); if (!$('#game').hidden) refetch(); if (Board.open) loadBoard();
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'){
         S.connected = false; setConn(false); scheduleReconnect();
       }

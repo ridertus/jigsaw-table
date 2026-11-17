@@ -35,6 +35,8 @@ build แค่ต่อไฟล์เข้าด้วยกัน (ไม่
   `SEATS` ที่นั่ง (โซฟา 4, บีนแบ็ก, เบาะรอบโต๊ะ 5) แตะแล้วเดินไปนั่ง, BFS เดิน, กล้อง, บับเบิลแชทแบบพิกเซล + "…" ตอนเพื่อนพิมพ์ + ♪ ตอนนั่งฟังวิทยุ, ส่ง `pos` (มี `sit`, `hc`, `acc`, **`v:2`** เพราะพิกัดห้องใหม่ไม่ตรงกับเวอร์ชันเก่า)
 - `art.js` ภาพห้อง: `paintRoom` วาดพื้น/ผนัง/ของแบน ๆ ลง `bg`, ของที่เดินอ้อมหลังได้เป็น prop (`makeProp` แต่ละชิ้นมี canvas + `base` เส้นฐาน) แล้ว `frame` เรียงวาดตาม y ร่วมกับตัวละคร,
   ส่วนที่ขยับ (`live`): จานเสียง, ทีวี, จิ๊กซอว์บนโต๊ะ, กระดานบนขาตั้ง, พัดลม, แมวหลับ, นาฬิกา/อีควอไลเซอร์ (`drawWallLive`), sprite ตัวละครมีเส้นขอบ (`charSprite` cache)
+- `pets.js` แมว 3 ตัว (โมจิ ข้าวปั้น โกโก้) ตารางเวลาคำนวณจาก `serverNow()` ทุกคนจึงเห็นแมวตรงกันโดยไม่ต้องส่งข้อมูล: แบ่งเวลาเป็นช่อง ช่องละ ~1 นาที แต่ละช่องแมวเดินไปจุด `CAT_SPOTS` (กระโดดขึ้นโซฟา/โต๊ะ/ตู้/ทีวี) แล้วนอน/นั่ง หรือบางช่องเดินตามคน, แตะแมว = ลูบ (broadcast `pet` หัวใจลอยทุกจอ)
+- `table-games.js` โต๊ะเกม: `TABLE_GAMES` (จิ๊กซอว์, วาดภาพทายคำ — เพิ่มเกมใหม่ที่นี่ + วาดใน `drawTable`), ใครก็สลับได้ (broadcast `table`, คนเข้าใหม่ถาม `table?`), แต่ละเกมเก็บสถานะของตัวเอง
 - `icons.js` ไอคอนพิกเซล 20×20 ของ HUD (วาดด้วยชุดเครื่องมือเดียวกับ art.js ลง `<canvas class="px" data-px="...">`)
 - `puzzle.js` เอนจินจิ๊กซอว์ร่วมกัน: ลาก/วาง/หมุน, `write` -> RPC `move_piece`, รับ `drag`/`release`, `refetch` ทุก 10 วิ
 - `hud.js` แถบความคืบหน้า เครื่องมือ (ภาพจาง ชิ้นขอบ เก็บกลับถาด สลับถาด) จอต่อเสร็จ
@@ -70,7 +72,7 @@ RPC: `create_room`, `open_room`, `list_rooms`, `move_piece` (ชิ้นที�
 `board_add(p_items jsonb[])` (upsert), `board_del(p_ids)`, `board_clear()`
 
 ### Realtime (สำคัญ: เคยพังเพราะเรื่องนี้)
-- ใช้ channel เดียว `lobby:main` เป็น broadcast ล้วน: `pos` `chat` `typing` `radio` `mode` `puzzle` `drag` `release` `weather` `emo` `bd`
+- ใช้ channel เดียว `lobby:main` เป็น broadcast ล้วน: `pos` `chat` `typing` `pet` `table` `table?` `radio` `mode` `puzzle` `drag` `release` `weather` `emo` `bd`
 - `bd` = กระดาน: op `ink` (จุดของเส้นที่กำลังวาด ส่งทุก 100ms) `add` `del` `clear` `reload` (ของเยอะเกิน broadcast ให้โหลดจากฐานข้อมูลใหม่)
 - **ไม่ใช้ postgres_changes** และ **track presence ครั้งเดียวตอนเข้าห้อง** เท่านั้น
   เคยเรียก `track()` ทุกครั้งที่หยิบชิ้น -> โดน `ClientPresenceRateLimitReached` -> ค้าง "กำลังเชื่อมต่อ…"

@@ -32,7 +32,7 @@ const L = { puzzle: null, radio: {}, mode: 'all', hasOwner: false, offset: 0, pi
 const serverNow = () => Date.now() + L.offset;
 
 /* ---------- pixel characters (chibi, ~24x34, outlined later by charSprite) ---------- */
-const SKIN = '#f6d0ab', SKIN_D = '#e2ad86', SKIN_S = '#cf946d', PANTS = '#3a3850', PANTS_D = '#2a283c', SHOE = '#2a2230', SHOE_L = '#f2ece2', EYE = '#2a2030';
+const SKIN = '#f6d0ab', SKIN_D = '#e2ad86', SKIN_S = '#cf946d', PANTS = '#46527e', PANTS_D = '#323c60', SHOE = '#2a2230', SHOE_L = '#f2ece2', EYE = '#2a2030';
 const HC = ['#4a2f22', '#2b2230', '#c27a3a', '#7a4a2e', '#e8c46a', '#d98aa8', '#6f84d6', '#eee4d8'];
 const HAIR_NAMES = ['สั้น', 'ยาว', 'หางม้า', 'บ๊อบ', 'ยุ่ง ๆ', 'ดังโงะ'];
 const ACC_NAMES = ['ไม่มี', 'หูฟัง', 'แว่น', 'หูแมว', 'หมวกไหมพรม', 'กิ๊บดอกไม้'];
@@ -49,16 +49,16 @@ function drawChar(g, x, y, look, dir, frame, pose){
   const st = look.hair % HAIRS, acc = look.acc || 0;
   const walkF = frame < 4 ? frame : 0, bob = !sit && (walkF === 1 || walkF === 3) ? -1 : 0, blink = frame === 4;
   const dy = (sit ? 5 : 0) + bob; // upper body offset
-  const H = (a, b, w, h) => R(a, b + dy, w, h, hc), HD = (a, b, w, h) => R(a, b + dy, w, h, hcD);
+  const H = (a, b, w, h) => R(a, b, w, h, hc), HD = (a, b, w, h) => R(a, b, w, h, hcD); // y already includes the sit/bob offset
 
   /* ---- back layer: long hair / ponytail behind the body ---- */
   if (dir === 0){
-    if (st === 1){ H(3, 6, 4, 19); H(17, 6, 4, 19); HD(3, 22, 4, 3); HD(17, 22, 4, 3); }
-    if (st === 2){ H(19, 4, 4, 13); H(20, 16, 3, 3); R(19, 5 + dy, 3, 2, look.color); }
+    if (st === 1){ H(3, 6 + dy, 4, 19); H(17, 6 + dy, 4, 19); HD(3, 22 + dy, 4, 3); HD(17, 22 + dy, 4, 3); }
+    if (st === 2){ H(19, 4 + dy, 4, 13); H(20, 16 + dy, 3, 3); R(19, 5 + dy, 3, 2, look.color); }
   }
   if (dir === 2){
-    if (st === 1){ H(11, 6, 9, 19); HD(12, 22, 7, 3); }
-    if (st === 2){ H(18, 5, 4, 14); H(19, 18, 3, 2); R(17, 6 + dy, 2, 3, look.color); }
+    if (st === 1){ H(11, 6 + dy, 9, 19); HD(12, 22 + dy, 7, 3); }
+    if (st === 2){ H(18, 5 + dy, 4, 14); H(19, 18 + dy, 3, 2); R(17, 6 + dy, 2, 3, look.color); }
   }
 
   /* ---- legs ---- */

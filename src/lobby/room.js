@@ -143,6 +143,7 @@ roomCv.addEventListener('pointerdown', e => {
   const lx = (e.clientX - Room.ox) / Room.s, ly = (e.clientY - Room.oy) / Room.s;
   if (lx < -PAD || ly < -PAD || lx > LW + PAD || ly > LH + PAD) return;
   $('#hint').classList.add('fade');
+  const cat = catAt(lx, ly); if (cat){ petCat(cat); return; }
   const f = furnAt(lx, ly);
   if (f){ Room.me.sitGoal = null; goUse(f); return; }
   Room.me.goal = null; Room.me.sitGoal = null;
@@ -160,11 +161,10 @@ function useFurn(f){
     sendPos(true); return;
   }
   faceToward(me, f); sendPos(true);
-  if (f.act === 'table') tableTapped();
-  if (f.act === 'radio') Radio.openPanel();
+  if (f.act === 'table') openTableSheet();
+  if (f.act === 'radio' || f.act === 'tv') Radio.openPanel();
   if (f.act === 'window') openWindowSheet();
   if (f.act === 'board') openBoard();
-  if (f.act === 'tv') openDrawGuess();
 }
 /* dock buttons: open right away, and stroll over so friends see where you went */
 function strollTo(id){
@@ -195,6 +195,7 @@ function frame(t){
   Room.s = s;
   if (Room.me){ if (stepAvatar(Room.me, dt) && Room.me.goal){ const f = Room.me.goal; Room.me.goal = null; if (atFurn(f)) useFurn(f); } }
   Room.others.forEach(a => { if (stepAvatar(a, dt) && a.sitGoal && SEATS[a.sitGoal]) sitDown(a, SEATS[a.sitGoal]); });
+  stepCats(dt);
   // camera follows me horizontally when the room is wider than the screen
   const rw = TW * s, rh = TH * s;
   let fx;
@@ -208,8 +209,9 @@ function frame(t){
   const all = [...Room.others.values()]; if (Room.me) all.push(Room.me);
   const items = Room.props.map(p => ({ z: p.base, p }));
   all.forEach(a => items.push({ z: a.sit && a.sit.z ? a.sit.z : a.y, a }));
-  items.sort((p, q) => p.z - q.z).forEach(it => { if (it.p){ g.drawImage(it.p.cv, it.p.x, it.p.y); if (it.p.live) it.p.live(g, t); } else drawAvatar(g, it.a, t); });
-  drawRoomLight(g, t);
+  Pets.cats.forEach(c => items.push({ z: catZ(c) + .5, c }));
+  items.sort((p, q) => p.z - q.z).forEach(it => { if (it.p){ g.drawImage(it.p.cv, it.p.x, it.p.y); if (it.p.live) it.p.live(g, t); } else if (it.c) drawCat(g, it.c, t); else drawAvatar(g, it.a, t); });
+  drawRoomLight(g, t); drawPetHearts(g, t);
   g.restore();
   // names and bubbles in screen space
   g.textAlign = 'center'; g.textBaseline = 'bottom';
