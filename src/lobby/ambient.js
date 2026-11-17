@@ -187,54 +187,76 @@ setInterval(() => {
 }, 250);
 
 /* ----- drawing (called from the room frame) ----- */
-const WINS = [54, 100];
 const SKY = {
-  sun: ['#9fdcf2', '#d8f1fa'], sunset: ['#f2a65a', '#f7d48a'], night: ['#1d2950', '#33406e'],
-  drizzle: ['#9fb4c2', '#c3d1d9'], rain: ['#7f93a3', '#a3b3bf'], storm: ['#4d5a68', '#6d7987']
+  sun: ['#8fd3f0', '#d4f0fa'], sunset: ['#e98a5a', '#f8cf86'], night: ['#141c3c', '#2c3566'],
+  drizzle: ['#93a8b8', '#c0ced8'], rain: ['#56677e', '#8494a8'], storm: ['#373f52', '#5a6378']
 };
+/* houses seen through the window: [x, w, roofH, bodyH, color] relative to the glass */
+const TOWN = [[-2, 22, 6, 16, 0], [18, 18, 7, 22, 1], [34, 26, 5, 14, 2], [58, 16, 8, 24, 0], [72, 24, 6, 17, 1], [94, 20, 7, 21, 2], [112, 24, 5, 15, 0]];
 function drawWindows(g, t){
-  const w = L.weather, [top, bot] = SKY[w] || SKY.sun;
-  WINS.forEach(x => {
-    const gx = x + 2, gy = 7, gw = 22, gh = 15;
-    const gr = g.createLinearGradient(0, gy, 0, gy + gh); gr.addColorStop(0, top); gr.addColorStop(1, bot);
-    g.fillStyle = gr; g.fillRect(gx, gy, gw, gh);
-    if (w === 'sun'){ g.fillStyle = '#fff'; g.fillRect(gx + 3, gy + 3, 6, 2); g.fillRect(gx + 5, gy + 2, 3, 1); g.fillRect(gx + 14, gy + 5, 5, 1); }
-    if (w === 'sunset'){ g.fillStyle = '#ffe9a8'; g.fillRect(gx + 15, gy + 9, 4, 3); g.fillStyle = '#e07f4a'; g.fillRect(gx, gy + 12, gw, 3); }
-    if (w === 'night'){
-      g.fillStyle = '#fff3c4'; g.fillRect(gx + 16, gy + 2, 3, 5); g.fillRect(gx + 15, gy + 3, 1, 3); g.fillRect(gx + 19, gy + 2, 1, 1); g.fillRect(gx + 19, gy + 6, 1, 1); g.fillStyle = SKY.night[0]; g.fillRect(gx + 18, gy + 3, 2, 3);
-      g.fillStyle = '#fff'; [[3, 3], [8, 6], [5, 11], [13, 4], [19, 10], [10, 12]].forEach(([sx, sy], i) => { if ((Math.floor(t / 700) + i) % 4) g.fillRect(gx + sx, gy + sy, 1, 1); });
+  const w = L.weather, [top, bot] = SKY[w] || SKY.sun, { x: gx, y: gy, w: gw, h: gh } = WIN;
+  const dark = w === 'night' || w === 'rain' || w === 'storm', R = (x, y, ww, hh, c) => { g.fillStyle = c; g.fillRect(gx + x, gy + y, ww, hh); };
+  const gr = g.createLinearGradient(0, gy, 0, gy + gh); gr.addColorStop(0, top); gr.addColorStop(1, bot);
+  g.fillStyle = gr; g.fillRect(gx, gy, gw, gh);
+  if (w === 'sun'){ R(98, 8, 12, 12, '#fff3b0'); R(100, 6, 8, 16, '#fff3b0'); R(96, 10, 16, 8, '#fff3b0'); [[10, 10, 18], [44, 6, 14], [70, 16, 20]].forEach(([x, y, l]) => { R(x, y, l, 3, '#fff'); R(x + 3, y - 2, l - 7, 2, '#fff'); }); }
+  if (w === 'sunset'){ R(88, 34, 16, 8, '#ffe39a'); R(90, 32, 12, 2, '#ffe39a'); R(0, 40, gw, 3, 'rgba(255,170,110,.6)'); [[14, 12, 22], [60, 20, 18]].forEach(([x, y, l]) => R(x, y, l, 2, 'rgba(255,220,190,.8)')); }
+  if (w === 'night'){
+    R(100, 8, 8, 10, '#fff1bf'); R(98, 10, 2, 6, '#fff1bf'); R(103, 8, 6, 8, SKY.night[0]);
+    [[6, 6], [20, 14], [34, 4], [52, 12], [70, 6], [84, 18], [118, 8], [126, 20], [62, 22], [12, 24]].forEach(([sx, sy], i) => { if ((Math.floor(t / 650) + i) % 5) R(sx, sy, 1, 1, '#fff'); });
+  }
+  if (w === 'drizzle' || w === 'rain' || w === 'storm'){ const c = w === 'storm' ? '#2c3344' : '#6f7f92'; [[0, 4, 40], [30, 10, 50], [80, 2, 54]].forEach(([x, y, l]) => { R(x, y, l, 6, c); R(x + 6, y - 3, l - 14, 3, c); }); }
+  // distant town
+  const houseC = dark ? ['#1c2236', '#23293f', '#1a1f30'] : w === 'sunset' ? ['#7c4a52', '#8a5660', '#6e4048'] : ['#7d8ea6', '#8c9cb2', '#71829a'];
+  R(0, gh - 18, gw, 18, dark ? '#151a2a' : w === 'sunset' ? '#5e3a40' : '#6d7f96');
+  TOWN.forEach(([x, ww, rh, bh, ci], i) => {
+    const by = gh - bh, c = houseC[ci];
+    R(x, by, ww, bh, c);
+    for (let k = 0; k < rh; k++) R(x - 1 + k, by - rh + k, ww + 2 - k * 2, 1, c);
+    for (let wy = by + 4; wy < gh - 4; wy += 7) for (let wx = x + 3; wx < x + ww - 4; wx += 6){
+      const lit = dark || w === 'sunset' ? (hashStr(i + ':' + wx + ':' + wy) % 3 !== 0) : false;
+      R(wx, wy, 3, 3, lit ? (hashStr(wx + 'w' + wy) % 2 ? '#ffd47a' : '#ffb85a') : (dark ? '#2a3048' : 'rgba(255,255,255,.35)'));
     }
-    if (w === 'drizzle' || w === 'rain' || w === 'storm'){
-      g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(gx + 2, gy + 1, 9, 2); g.fillRect(gx + 12, gy + 2, 8, 2);
-      const n = w === 'drizzle' ? 6 : 14, sp = w === 'drizzle' ? .05 : .11;
-      g.fillStyle = 'rgba(235,245,255,.75)';
-      for (let i = 0; i < n; i++){
-        const sx = (i * 7.3 + x) % gw, sy = (t * sp + i * 37) % (gh + 4) - 4;
-        g.fillRect(gx + Math.floor(sx), gy + Math.max(0, Math.floor(sy)), 1, w === 'drizzle' ? 2 : 3);
-      }
-    }
-    if (w === 'storm' && performance.now() - Wx.flash < 220){ g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(gx, gy, gw, gh); }
-    // window bars on top of the sky
-    g.fillStyle = P.trim; g.fillRect(x + 12, 7, 2, 15); g.fillRect(x + 2, 14, 22, 1);
   });
+  // trees in front of the houses
+  for (let x = 0; x < gw; x += 9){ const h = 6 + (hashStr('t' + x) % 7); R(x, gh - h, 9, h, dark ? '#122018' : w === 'sunset' ? '#3e3a2a' : '#4f8a4a'); R(x + 2, gh - h - 2, 5, 2, dark ? '#122018' : w === 'sunset' ? '#3e3a2a' : '#4f8a4a'); }
+  if (w === 'drizzle' || w === 'rain' || w === 'storm'){
+    const n = w === 'drizzle' ? 14 : 34, sp = w === 'drizzle' ? .06 : .14;
+    g.fillStyle = 'rgba(220,235,255,.65)';
+    for (let i = 0; i < n; i++){ const sx = (i * 13.7) % gw, sy = (t * sp + i * 37) % (gh + 8) - 8; g.fillRect(gx + Math.floor(sx - sy * .15), gy + Math.max(0, Math.floor(sy)), 1, w === 'drizzle' ? 3 : 5); }
+    g.fillStyle = 'rgba(255,255,255,.18)'; for (let i = 0; i < 6; i++){ const dx = (hashStr('d' + i) % gw), dy = (t * .02 + i * 23) % gh; g.fillRect(gx + dx, gy + dy, 1, 2); }
+  }
+  if (w === 'storm' && performance.now() - Wx.flash < 220){ g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(gx, gy, gw, gh); }
+  g.drawImage(winOver, 178, 2);
 }
 function drawSunbeams(g){
   if (L.weather !== 'sun' && L.weather !== 'sunset') return;
-  g.fillStyle = L.weather === 'sun' ? 'rgba(255,248,220,.10)' : 'rgba(255,190,120,.12)';
-  WINS.forEach(x => { g.beginPath(); g.moveTo(x + 2, 25); g.lineTo(x + 24, 25); g.lineTo(x + 40, 70); g.lineTo(x + 12, 70); g.closePath(); g.fill(); });
+  g.fillStyle = L.weather === 'sun' ? 'rgba(255,246,210,.12)' : 'rgba(255,180,110,.13)';
+  g.beginPath(); g.moveTo(204, 84); g.lineTo(330, 84); g.lineTo(400, 240); g.lineTo(250, 240); g.closePath(); g.fill();
 }
-function drawRoomLight(g){
-  const w = L.weather, fullW = LW + PAD * 2, fullH = LH + PAD * 2;
-  const tint = { sunset: 'rgba(255,140,60,.10)', night: 'rgba(16,24,60,.42)', drizzle: 'rgba(60,80,110,.10)', rain: 'rgba(40,60,90,.18)', storm: 'rgba(25,35,60,.28)' }[w];
-  if (tint){ g.fillStyle = tint; g.fillRect(-PAD, -PAD, fullW, fullH); }
-  g.save(); g.beginPath(); g.rect(0, 0, LW, LH); g.clip();
-  if (w === 'night' || w === 'storm' || w === 'rain'){
-    const glow = (cx, cy, r, a) => { const gr = g.createRadialGradient(cx, cy, 2, cx, cy, r); gr.addColorStop(0, `rgba(255,214,140,${a})`); gr.addColorStop(1, 'rgba(255,214,140,0)'); g.fillStyle = gr; g.fillRect(cx - r, cy - r, r * 2, r * 2); };
-    glow(233, 18, 46, w === 'night' ? .32 : .18);
-    if (Radio.isPlaying()) glow(197, 16, 24, .15);
+const TINT = { sunset: '#f6cfa8', night: '#86688a', drizzle: '#d8d8de', rain: '#a690a6', storm: '#8c7c98' };
+const LIGHT = { sun: 0, sunset: .35, night: 1, drizzle: .25, rain: .75, storm: .75 };
+function drawRoomLight(g, t){
+  const w = L.weather, fullW = LW + PAD * 2, fullH = LH + PAD * 2, k = LIGHT[w] || 0;
+  if (TINT[w]){ g.globalCompositeOperation = 'multiply'; g.fillStyle = TINT[w]; g.fillRect(-PAD, -PAD, fullW, fullH); g.globalCompositeOperation = 'source-over'; }
+  const R = (x, y, ww, hh, c) => { g.fillStyle = c; g.fillRect(x, y, ww, hh); };
+  // pendant lamp (drawn after the tint so it reads as lit)
+  R(394, 28, 21, 2, P.out); R(392, 30, 25, 9, P.out); R(393, 30, 23, 8, k ? '#f2b65e' : P.mus); R(395, 31, 19, 2, k ? '#ffe2a0' : P.musL); R(400, 39, 9, 3, k ? P.lampL : P.cream);
+  if (k){
+    g.save(); g.beginPath(); g.rect(-PAD, -PAD, fullW, fullH); g.clip();
+    g.globalCompositeOperation = 'screen';
+    const glow = (cx, cy, r, a, c) => { const gr = g.createRadialGradient(cx, cy, 1, cx, cy, r); gr.addColorStop(0, `rgba(${c},${a})`); gr.addColorStop(.45, `rgba(${c},${a * .45})`); gr.addColorStop(1, `rgba(${c},0)`); g.fillStyle = gr; g.fillRect(cx - r, cy - r, r * 2, r * 2); };
+    const flick = 1 + Math.sin(t / 900) * .03;
+    glow(404, 46, 150, .5 * k * flick, '255,170,80');
+    glow(264, 196, 170, .3 * k, '255,160,80');
+    glow(512, 158, 80, .55 * k, '255,190,100');
+    glow(110, 210, 120, .16 * k, '255,150,80');
+    glow(40, 124, 56, .25 * k, '140,190,255');
+    glow(80, 23, 20, .14 * k, '255,200,120');
+    if (Radio.isPlaying()) glow(118, 44, 50, .4 * k * (1 + Math.sin(t / 200) * .1), '110,190,255');
+    glow(267, 46, 80, .14 * k, w === 'night' ? '120,140,220' : '150,170,210');
+    g.globalCompositeOperation = 'source-over'; g.restore();
   }
-  g.restore();
-  if (w === 'storm'){ const k = performance.now() - Wx.flash; if (k < 260){ g.fillStyle = `rgba(230,240,255,${.35 * (1 - k / 260)})`; g.fillRect(-PAD, -PAD, fullW, fullH); } }
+  if (w === 'storm'){ const f = performance.now() - Wx.flash; if (f < 260){ g.fillStyle = `rgba(230,240,255,${.35 * (1 - f / 260)})`; g.fillRect(-PAD, -PAD, fullW, fullH); } }
 }
 
 /* ----- weather sync ----- */
@@ -307,7 +329,7 @@ function drawEmojis(g){
   Room.emos.forEach(m => {
     const a = m.k === ME.id ? Room.me : Room.others.get(m.k); if (!a) return;
     const p = (now - m.t0) / 2400, n = counts.get(m.k) || 0; counts.set(m.k, n + 1);
-    const sx = Room.ox + a.x * Room.s + m.dx + Math.sin(p * 9) * 4, sy = Room.oy + (a.y - 24) * Room.s - 26 - p * 70;
+    const sx = Room.ox + a.x * Room.s + m.dx + Math.sin(p * 9) * 4, sy = Room.oy + (a.y - (a.sit ? 30 : 36)) * Room.s - 40 - p * 70;
     g.globalAlpha = p < .15 ? p / .15 : Math.min(1, (1 - p) / .35);
     const sc = p < .12 ? .6 + p / .12 * .5 : 1.1 - Math.min(.1, (p - .12));
     g.save(); g.translate(sx, sy); g.scale(sc, sc); g.fillText(m.e, 0, 0); g.restore();

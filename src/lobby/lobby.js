@@ -4,20 +4,28 @@ function addMsg(m, fresh){
   if (Chat.list.some(x => x.id && x.id === m.id && m.id)) return;
   Chat.list.push(m); if (Chat.list.length > 80) Chat.list.shift();
   const el = document.createElement('div'); el.className = 'msg';
-  const b = document.createElement('b'); b.textContent = m.name || 'เพื่อน'; b.style.color = m.color || '#3b2b20';
+  const b = document.createElement('b'); b.textContent = m.name || 'เพื่อน'; b.style.color = nameInk(m.color);
   const t = document.createElement('time'); const d = new Date(m.at || Date.now()); t.textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-  el.append(b, ' ', document.createTextNode(m.body), t);
+  const tx = document.createElement('span'); tx.className = 'mt'; tx.append(b, ': ', document.createTextNode(m.body), t);
+  el.append(headIcon(m.k === ME.id ? ME : Room.others.get(m.k) || { color: m.color || colorOf(m.k), hair: hashStr(m.k + '') % 6, hc: hashStr(m.k + 'h') % 4, acc: 0 }), tx);
   const box = $('#chatlogIn'); const empty = box.querySelector('.empty'); if (empty) empty.remove();
   box.appendChild(el); while (box.children.length > 80) box.firstChild.remove();
   box.scrollTop = box.scrollHeight;
   if (!fresh) return;
   const a = m.k === ME.id ? Room.me : Room.others.get(m.k);
-  if (a) a.bubble = { text: m.body, until: Date.now() + 7000 };
+  if (a){ a.bubble = { text: m.body, until: Date.now() + 7000 }; a.typing = 0; }
   if (document.body.matches('.puzzle-open,.draw-open') || !a) ticker(m);
   if (m.k !== ME.id) tone(880, 0, .06, 'sine', .05);
 }
+/* name colour readable on the dark panel */
+function nameInk(c){ if (!c || c[0] !== '#') return '#ffd9a8'; const n = parseInt(c.slice(1), 16), l = (n >> 16) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11; return l < 110 ? shade(c, 1.7) : c; }
+/* a little face for the chat log */
+function headIcon(look){
+  const cv = document.createElement('canvas'); cv.width = 20; cv.height = 20;
+  const g = cv.getContext('2d'); g.drawImage(charSprite(look, 0, 0, 'stand'), -3, -7); return cv;
+}
 function ticker(m){
-  if (!$('#chatlog').hidden) return;
+  if (!document.body.matches('.puzzle-open,.draw-open') || $('#chatPanel').classList.contains('expanded')) return;
   const tk = document.createElement('div'); tk.className = 'tk';
   const b = document.createElement('b'); b.textContent = (m.name || 'เพื่อน') + ' '; b.style.color = m.color || '';
   tk.append(b, document.createTextNode(m.body));
@@ -27,16 +35,27 @@ function ticker(m){
 $('#chatForm').addEventListener('submit', async e => {
   e.preventDefault();
   const body = $('#chatIn').value.trim(); if (!body || !Room.me) return;
-  $('#chatIn').value = '';
+  $('#chatIn').value = ''; typingSent = 0;
   const m = { k: ME.id, name: ME.name, color: ME.color, body: body.slice(0, 200), at: Date.now() };
   addMsg(m, true);
   if (S.chan) S.chan.send({ type: 'broadcast', event: 'chat', payload: m }).catch(() => {});
   try { const { error } = await sb.rpc('send_message', { p_author: ME.id, p_name: ME.name, p_color: ME.color, p_body: m.body }); if (error) throw error; } catch(err){ toast('บันทึกข้อความไม่สำเร็จ แต่เพื่อนที่อยู่ในห้องยังเห็นอยู่'); }
 });
 $('#logBtn').onclick = () => {
-  const open = $('#chatlog').hidden; $('#chatlog').hidden = !open; $('#logBtn').setAttribute('aria-pressed', open);
-  if (open){ $('#ticker').innerHTML = ''; const box = $('#chatlogIn'); if (!box.children.length) box.innerHTML = '<div class="empty">ยังไม่มีข้อความ ทักเพื่อนได้เลย</div>'; box.scrollTop = box.scrollHeight; }
+  const open = !$('#chatPanel').classList.contains('expanded'); $('#chatPanel').classList.toggle('expanded', open); $('#logBtn').setAttribute('aria-pressed', open);
+  if (open) $('#ticker').innerHTML = '';
+  const box = $('#chatlogIn'); setTimeout(() => box.scrollTop = box.scrollHeight, 220);
 };
+(() => { const box = $('#chatlogIn'); if (!box.children.length) box.innerHTML = '<div class="empty">ยังไม่มีข้อความ ทักเพื่อนได้เลย</div>'; })();
+/* "…" bubble while someone is typing */
+let typingSent = 0;
+$('#chatIn').addEventListener('input', () => {
+  const now = Date.now(); if (!$('#chatIn').value.trim() || now - typingSent < 2500 || !S.chan) return; typingSent = now;
+  if (Room.me) Room.me.typing = now + 3000;
+  S.chan.send({ type: 'broadcast', event: 'typing', payload: { k: ME.id } }).catch(() => {});
+});
+$('#chatIn').addEventListener('blur', () => { if (Room.me) Room.me.typing = 0; });
+function onTyping(m){ const a = m && Room.others.get(m.k); if (a) a.typing = Date.now() + 3500; }
 async function loadHistory(){
   try {
     const { data } = await sb.from('messages').select('id,author,name,color,body,created_at').eq('lobby', 'main').order('id', { ascending: false }).limit(40);
@@ -470,10 +489,26 @@ function syncPresence(){
 }
 function renderPlayers(){
   const box = $('#players'); box.innerHTML = '';
-  const list = S.players, max = 4;
-  list.slice(0, max).forEach(pl => { const d = document.createElement('div'); d.className = 'av'; d.style.background = pl.color; d.textContent = [...(pl.name || '?')][0]; d.title = (pl.name || 'เพื่อน') + (pl.me ? ' (คุณ)' : ''); box.appendChild(d); });
-  if (list.length > max){ const d = document.createElement('div'); d.className = 'av more'; d.textContent = '+' + (list.length - max); box.appendChild(d); }
+  $('#onlineN').textContent = S.players.length;
+  S.players.forEach(pl => {
+    const a = pl.me ? Room.me : Room.others.get(pl.key), look = pl.me ? ME : a || { color: pl.color, hair: 0, acc: 0 };
+    const row = document.createElement('div'); row.className = 'pp';
+    const cv = headIcon(look);
+    const nm = document.createElement('span'); nm.textContent = pl.name || 'เพื่อน'; nm.style.color = nameInk(pl.color);
+    const where = document.createElement('small'); where.textContent = pl.me ? 'คุณ' : a && a.sit ? 'นั่งเล่นอยู่' : '';
+    row.append(cv, nm, where); box.appendChild(row);
+  });
 }
+function setConn(ok){ $('#conn').hidden = ok; $('#connDot').classList.toggle('off', !ok); }
+$('#peopleBtn').onclick = e => { e.stopPropagation(); const open = $('#peoplePop').hidden; renderPlayers(); $('#peoplePop').hidden = !open; $('#peopleBtn').setAttribute('aria-expanded', open); };
+document.addEventListener('pointerdown', e => { if (!$('#peoplePop').hidden && !$('#peoplePop').contains(e.target) && !$('#peopleBtn').contains(e.target)){ $('#peoplePop').hidden = true; $('#peopleBtn').setAttribute('aria-expanded', false); } });
+$('#lookBtn').onclick = () => { $('#peoplePop').hidden = true; $('#peopleBtn').setAttribute('aria-expanded', false); buildEnter(); $('#enter').hidden = false; };
+/* dock */
+function openDrawGuess(){ dgOpen(); }
+$('#dkPuzzle').onclick = () => { audioInit(); strollTo('table'); tableTapped(); };
+$('#dkDraw').onclick = () => { audioInit(); strollTo('easel'); openBoard(); };
+$('#dkGuess').onclick = () => { audioInit(); strollTo('tv'); openDrawGuess(); };
+$('#dkRadio').onclick = () => { audioInit(); strollTo('radio'); Radio.openPanel(); };
 
 /* ---------- realtime channel (one for the whole living room) ---------- */
 let joinTimer = 0, retry = 0;
@@ -490,6 +525,7 @@ function connect(){
     .on('broadcast', { event: 'puzzle' }, mine(m => { if (m.code !== L.puzzle){ const open = !$('#game').hidden; setPuzzle(m.code, true, m.by).then(() => { if (open) openPuzzle(); }); } }))
     .on('broadcast', { event: 'weather' }, mine(m => applyWeather(m.w, m.by)))
     .on('broadcast', { event: 'emo' }, mine(onEmoji))
+    .on('broadcast', { event: 'typing' }, mine(onTyping))
     .on('broadcast', { event: 'bd' }, mine(onBoard))
     .on('broadcast', { event: 'drag' }, mine(onDrag))
     .on('broadcast', { event: 'release' }, mine(onRelease))
@@ -499,14 +535,14 @@ function connect(){
       if (err) console.warn('realtime', status, err);
       if (S.chan !== ch) return;
       if (status === 'SUBSCRIBED'){
-        S.connected = true; retry = 0; clearTimeout(joinTimer); $('#conn').hidden = true;
+        S.connected = true; retry = 0; clearTimeout(joinTimer); setConn(true);
         ch.track({ name: ME.name, color: ME.color }).catch(() => {});
         sendPos(true); refreshLobby(); if (!$('#game').hidden) refetch(); if (Board.open) loadBoard();
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED'){
-        S.connected = false; $('#conn').hidden = false; scheduleReconnect();
+        S.connected = false; setConn(false); scheduleReconnect();
       }
     });
-  clearTimeout(joinTimer); joinTimer = setTimeout(() => { if (S.chan === ch && !S.connected){ $('#conn').hidden = false; scheduleReconnect(); } }, 12000);
+  clearTimeout(joinTimer); joinTimer = setTimeout(() => { if (S.chan === ch && !S.connected){ setConn(false); scheduleReconnect(); } }, 12000);
 }
 function scheduleReconnect(){
   clearTimeout(joinTimer);
@@ -518,7 +554,7 @@ function disconnect(){ if (S.chan){ const c = S.chan; S.chan = null; S.connected
 /* ---------- start ---------- */
 async function enterLobby(){
   const [sx, sy] = SPAWN;
-  Room.me = makeAvatar(ME.id, ME.name, ME.color, ME.hair, sx * T + 6 + (Math.random() * 3 - 1 | 0) * T, sy * T + 11);
+  Room.me = makeAvatar(ME.id, ME.name, ME.color, ME.hair, sx * T + 12 + (Math.random() * 2 | 0) * T, sy * T + 22, { hc: ME.hc, acc: ME.acc });
   Room.me.dir = 1;
   S.players = [{ key: ME.id, name: ME.name, color: ME.color, me: true }]; renderPlayers();
   if (L.pin){ try { const { data } = await sb.rpc('check_owner', { p_pin: L.pin }); L.isOwner = data === true; if (!L.isOwner){ L.pin = null; LS.set('jt-owner-pin', null); } } catch(e){} }

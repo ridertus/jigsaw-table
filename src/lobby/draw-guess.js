@@ -59,7 +59,7 @@ function dgAvatar(id, name, cls){ const a = dgEl('i', cls || 'dg-avatar', [...(n
 
 /* ============================ โครงหน้าจอ ============================ */
 function dgBuildUI(){
-  const topbar = document.querySelector('.topbar');
+  const topbar = null; // opened from the dock button / the TV in the room now
   if (topbar && !DG.$('dgLauncher')){
     const b = dgEl('button', 'round'); b.type = 'button'; b.id = 'dgLauncher'; b.textContent = '🎨';
     b.setAttribute('aria-label', 'มินิเกมวาดภาพทายคำ'); b.title = 'วาดภาพทายคำ';

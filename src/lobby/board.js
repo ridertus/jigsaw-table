@@ -211,7 +211,7 @@ function updateThumb(){
 }
 function drawWallBoard(g){
   updateThumb();
-  g.imageSmoothingEnabled = true; g.drawImage(bdThumb, 160, 8, 16, 11); g.imageSmoothingEnabled = false;
+  g.imageSmoothingEnabled = true; g.drawImage(bdThumb, 432, 52, 56, 38); g.imageSmoothingEnabled = false;
 }
 
 /* ----- local changes: apply, persist, broadcast ----- */

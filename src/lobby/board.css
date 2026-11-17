@@ -5,10 +5,9 @@
 #drawCv[data-tool="eraser"]{cursor:none}
 #drawCv[data-tool="text"]{cursor:text}
 #drawCv[data-tool="note"]{cursor:copy}
-body.draw-open .hint,body.draw-open .topbar{display:none}
+body.draw-open .hint,body.draw-open .topbar,body.draw-open .people-pop{display:none}
 body.draw-open .mini{top:auto;bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px) + 140px)}
-body.draw-open .ticker,body.draw-open .chatlog{bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px) + 140px)}
-body.draw-open .chatlog{max-height:min(36vh,300px);width:min(340px, calc(100% - 24px))}
+body.draw-open .ticker{bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px) + 140px)}
 .bd-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;pointer-events:none;
   padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px, env(safe-area-inset-right,0px)) 0 max(12px, env(safe-area-inset-left,0px))}
 .bd-top > *{pointer-events:auto}

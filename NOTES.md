@@ -29,12 +29,16 @@ build แค่ต่อไฟล์เข้าด้วยกัน (ไม่
 - `body.html` โครง HTML ทั้งหมด: `#room` canvas, แชท, mini player, `#game` (หน้าต่างจิ๊กซอว์), `#enter` `#setup` `#radio` `#settings`
 - `prelude.js` utilities, `$`, `COUNTS`, `MAXN=500`
 - `common.js` รูปทรงชิ้น (`BASE`, `makeEdges`, `edgePts`, `piecePath`), รูปตัวอย่าง `paintSample`, เสียง (Web Audio)
-- `head.js` Supabase client, `ME` (id/ชื่อ/สี/ผม ใน localStorage `jt-me`), `S` (สถานะจิ๊กซอว์), `L` (สถานะห้อง), `drawChar` ตัวละครพิกเซล, หน้าเลือกตัวละคร
-- `room.js` ห้อง 20×12 ช่อง ช่องละ 12px, `FURN` เฟอร์นิเจอร์+จุดแตะ, BFS เดิน, กล้อง, วาดชื่อ/บอลลูนแชท, ส่งตำแหน่ง `pos`
-- `art.js` ภาพห้อง (`paintRoom`, `drawTable`, `drawRadio`, sprite ตัวละครมีเส้นขอบ)
+- `head.js` Supabase client, `ME` (id/ชื่อ/สี/ทรงผม `hair` 0–5/สีผม `hc` 0–7/ของแต่งตัว `acc` 0–5 ใน localStorage `jt-me`), `S` (สถานะจิ๊กซอว์), `L` (สถานะห้อง),
+  `drawChar(g, x, y, look, dir, frame, pose)` ตัวละคร chibi ~24×34 (dir 0 ลง 1 ขึ้น 2 ซ้าย 3 ขวา=กลับด้านของซ้าย, frame 0–3 เดิน 4 กะพริบตา, pose `stand`/`sit`), หน้าเลือกตัวละคร
+- `room.js` ห้อง 22×13 ช่อง ช่องละ 24px (ผนัง 4 แถวบน), `FURN` = จุดแตะ (`hit` สี่เหลี่ยมพิกเซล, `block` ช่องที่เดินไม่ได้, `spots` ช่องที่ต้องยืนใช้, `act` table/radio/window/board/tv/sit),
+  `SEATS` ที่นั่ง (โซฟา 4, บีนแบ็ก, เบาะรอบโต๊ะ 5) แตะแล้วเดินไปนั่ง, BFS เดิน, กล้อง, บับเบิลแชทแบบพิกเซล + "…" ตอนเพื่อนพิมพ์ + ♪ ตอนนั่งฟังวิทยุ, ส่ง `pos` (มี `sit`, `hc`, `acc`, **`v:2`** เพราะพิกัดห้องใหม่ไม่ตรงกับเวอร์ชันเก่า)
+- `art.js` ภาพห้อง: `paintRoom` วาดพื้น/ผนัง/ของแบน ๆ ลง `bg`, ของที่เดินอ้อมหลังได้เป็น prop (`makeProp` แต่ละชิ้นมี canvas + `base` เส้นฐาน) แล้ว `frame` เรียงวาดตาม y ร่วมกับตัวละคร,
+  ส่วนที่ขยับ (`live`): จานเสียง, ทีวี, จิ๊กซอว์บนโต๊ะ, กระดานบนขาตั้ง, พัดลม, แมวหลับ, นาฬิกา/อีควอไลเซอร์ (`drawWallLive`), sprite ตัวละครมีเส้นขอบ (`charSprite` cache)
+- `icons.js` ไอคอนพิกเซล 20×20 ของ HUD (วาดด้วยชุดเครื่องมือเดียวกับ art.js ลง `<canvas class="px" data-px="...">`)
 - `puzzle.js` เอนจินจิ๊กซอว์ร่วมกัน: ลาก/วาง/หมุน, `write` -> RPC `move_piece`, รับ `drag`/`release`, `refetch` ทุก 10 วิ
 - `hud.js` แถบความคืบหน้า เครื่องมือ (ภาพจาง ชิ้นขอบ เก็บกลับถาด สลับถาด) จอต่อเสร็จ
-- `ambient.js` สภาพอากาศ (แชร์ทั้งห้อง: `L.weather`, RPC `set_weather`, broadcast `weather`), วาดหน้าต่าง/แสงห้อง/ฟ้าแลบ, มิกเซอร์เสียงบรรยากาศสังเคราะห์ด้วย Web Audio (ไม่มีไฟล์เสียง, ตั้งค่าต่อเครื่องใน localStorage `jt-amb`), อีโมจิด่วน (broadcast `emo`)
+- `ambient.js` สภาพอากาศ (แชร์ทั้งห้อง: `L.weather`, RPC `set_weather`, broadcast `weather`), วาดวิวหน้าต่าง (ฟ้า+บ้านไกล ๆ+ฝน), แสงห้อง (multiply ตามอากาศ + แสงโคมแบบ screen), ฟ้าแลบ, มิกเซอร์เสียงบรรยากาศสังเคราะห์ด้วย Web Audio (ไม่มีไฟล์เสียง, ตั้งค่าต่อเครื่องใน localStorage `jt-amb`), อีโมจิด่วน (broadcast `emo`)
 - `board.js` กระดานวาดร่วมกัน (เปิดจากกระดานบนผนังในห้อง หรือ `openBoard()`): กระดาษไม่สิ้นสุด เลื่อน/ซูม (สองนิ้ว, ล้อเมาส์, Ctrl+ล้อ = ซูม, Space+ลาก),
   เครื่องมือ มือ (เลื่อน + ลากโน้ต/ข้อความ, แตะสองครั้งแก้) ปากกา ปากกาเน้น ยางลบ (ลบทั้งเส้น) ข้อความ โน้ตแปะ, undo/redo (เฉพาะของตัวเอง ย้อนการล้างกระดานได้)
   ถ้าเคยใช้ Apple Pencil นิ้วเดียวจะกลายเป็นเลื่อนกระดานแทน, ภาพย่อกระดานโชว์บนผนังห้อง (`drawWallBoard`)
@@ -43,7 +47,9 @@ build แค่ต่อไฟล์เข้าด้วยกัน (ไม่
   ตารางและ RPC ชุด `dg3_*` (ดูรายละเอียด/วิธีติดตั้ง/วิธีเพิ่มคำใน `DRAW_GUESS_DEPLOY.md`), ชุดเก่า `draw_guess_*`/`dg_*` เก็บไว้ ใช้คลังคำ `draw_guess_words` ร่วมกัน
   เส้นวาดใช้พิกัด 0–1 บนผ้าใบ 4:3, ยางลบเฉพาะจุด = เส้น `erase:true` (destination-out), ลบทั้งเส้น = `dg3_delete_strokes`
   ทดสอบแบบไม่ต้องมี Supabase จริงด้วย pglite + playwright (mock client ส่ง rpc เข้า pglite) ถ้ากลับมาแก้อีก
-- `lobby.js` แชท, วิทยุ (`Radio` + YouTube IFrame API), โต๊ะ/รูปใหม่, ตั้งค่าเจ้าของบ้าน, presence, channel `lobby:main`, `enterLobby`
+- HUD (body.html + lobby.css ส่วน HUD): ป้ายห้องซ้ายบน, ปุ่มกลมขวาบน (คนในห้อง/ตั้งค่า/ออก), แชทพาเนลซ้ายล่าง, dock ขวาล่าง (จิ๊กซอว์ วาดรูป วาดทายคำ วิทยุ อากาศ) มือถือจะซ้อนเป็นสองแถว
+  ตอนเปิดจิ๊กซอว์/กระดาน แชทจะกลายเป็นแถบเต็มความกว้างด้านล่าง (`--chatH`) และ dock ซ่อน
+- `lobby.js` แชท (มีหน้าเล็ก ๆ ของคนพูด, broadcast `typing`), วิทยุ (`Radio` + YouTube IFrame API), โต๊ะ/รูปใหม่, ตั้งค่าเจ้าของบ้าน, presence, channel `lobby:main`, `enterLobby`
 
 ## Supabase
 - โปรเจกต์ `jigsaw-table` id `slbgazdgvhjqhwwjifus` (สิงคโปร์, แพ็กเกจฟรี) ใน org "ridertus's Org"
@@ -64,7 +70,7 @@ RPC: `create_room`, `open_room`, `list_rooms`, `move_piece` (ชิ้นที�
 `board_add(p_items jsonb[])` (upsert), `board_del(p_ids)`, `board_clear()`
 
 ### Realtime (สำคัญ: เคยพังเพราะเรื่องนี้)
-- ใช้ channel เดียว `lobby:main` เป็น broadcast ล้วน: `pos` `chat` `radio` `mode` `puzzle` `drag` `release` `weather` `emo` `bd`
+- ใช้ channel เดียว `lobby:main` เป็น broadcast ล้วน: `pos` `chat` `typing` `radio` `mode` `puzzle` `drag` `release` `weather` `emo` `bd`
 - `bd` = กระดาน: op `ink` (จุดของเส้นที่กำลังวาด ส่งทุก 100ms) `add` `del` `clear` `reload` (ของเยอะเกิน broadcast ให้โหลดจากฐานข้อมูลใหม่)
 - **ไม่ใช้ postgres_changes** และ **track presence ครั้งเดียวตอนเข้าห้อง** เท่านั้น
   เคยเรียก `track()` ทุกครั้งที่หยิบชิ้น -> โดน `ClientPresenceRateLimitReached` -> ค้าง "กำลังเชื่อมต่อ…"

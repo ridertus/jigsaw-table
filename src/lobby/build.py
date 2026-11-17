@@ -9,7 +9,7 @@ html = f'''<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="โต๊ะจิ๊กซอว์">
-<meta name="theme-color" content="#1a3c43">
+<meta name="theme-color" content="#1c1114">
 <meta name="description" content="ห้องนั่งเล่นพิกเซลสำหรับต่อจิ๊กซอว์กับเพื่อน คุยกันได้ และเปิดวิทยุฟังพร้อมกัน">
 <title>โต๊ะจิ๊กซอว์ · ห้องนั่งเล่น</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='14' width='40' height='40' rx='6' fill='%2338b2a6'/%3E%3Ccircle cx='26' cy='12' r='8' fill='%2338b2a6'/%3E%3Ccircle cx='48' cy='34' r='8' fill='%23e2b06e'/%3E%3C/svg%3E">
@@ -33,6 +33,7 @@ html = f'''<!doctype html>
 {r('head.js')}
 {r('room.js')}
 {r('art.js')}
+{r('icons.js')}
 {r('puzzle.js')}
 {r('hud.js')}
 {r('ambient.js')}
