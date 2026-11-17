@@ -122,7 +122,7 @@ def walk_frame(f, k, side):
         s = {0: 0, 1: 2, 2: 0, 3: -2}[k]
         place(R, -s, 1 if k == 1 else 0); place(L, s, 1 if k == 3 else 0)
     else:
-        place(L, 0, 1 if k == 1 else 0); place(R, 0, 1 if k == 3 else 0)
+        place(L, 0, 2 if k == 1 else 0); place(R, 0, 2 if k == 3 else 0)
     return out
 
 COLS = 8 + 16 + 8

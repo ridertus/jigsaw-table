@@ -6,14 +6,14 @@
 const CAT_SPOTS = [
   // x,y = where the cat rests; floor = where it stands before hopping up (omit for floor spots); z = draw order
   { id: 'bed', x: 32, y: 257, z: 273, pose: 'sleep' },
-  { id: 'sofaArm', x: 336, y: 82, z: 129, pose: 'loaf', floor: [348, 136] },
-  { id: 'sofaSeat', x: 214, y: 102, z: 129, pose: 'sleep', floor: [208, 138] },
+  { id: 'sofaArm', x: 336, y: 84, z: 129, pose: 'loaf', floor: [348, 136] },
+  { id: 'sofaSeat', x: 214, y: 104, z: 129, pose: 'sleep', floor: [208, 138] },
   { id: 'sofaBack', x: 300, y: 64, z: 129, pose: 'sleep', floor: [300, 136] },
-  { id: 'table', x: 326, y: 214, z: 233, pose: 'loaf', floor: [346, 236] },
+  { id: 'table', x: 322, y: 206, z: 233, pose: 'loaf', floor: [346, 236] },
   { id: 'cabR', x: 494, y: 166, z: 233, pose: 'sleep', floor: [472, 190] },
-  { id: 'tvTop', x: 68, y: 148, z: 191, pose: 'sit', floor: [84, 166] },
+  { id: 'tvTop', x: 40, y: 104, z: 191, pose: 'sit', floor: [84, 166] },
   { id: 'bean', x: 96, y: 200, z: 229, pose: 'sleep', floor: [120, 236] },
-  { id: 'musicTop', x: 178, y: 70, z: 121, pose: 'loaf', floor: [180, 136] },
+  { id: 'musicTop', x: 152, y: 74, z: 121, pose: 'loaf', floor: [160, 136] },
   { id: 'rug', x: 300, y: 270, pose: 'groom' },
   { id: 'window', x: 360, y: 150, pose: 'sit' },
   { id: 'door', x: 254, y: 286, pose: 'loaf' }
@@ -136,7 +136,8 @@ const CAT_D8 = { 0: 0, 1: 4, 2: 6, 3: 2 }, CAT_W4 = { 0: 0, 3: 1, 1: 2, 2: 3 };
 function drawCat(g, cat, t){
   const pose = catPose(cat, t), happy = cat.happy > performance.now(), lap = lapSeat(cat);
   const x = Math.round(lap ? lap.x + 1 : cat.x), y = Math.round(lap ? lap.y + 7 : cat.y - (cat.lift || 0));
-  if (!cat.lift && !lap){ g.fillStyle = 'rgba(30,15,10,.25)'; g.fillRect(x - 10, y - 1, 20, 2); g.fillRect(x - 7, y + 1, 14, 1); }
+  // contact shadow right under the paws (shrinks while jumping, none on a lap)
+  if (!lap){ const k = cat.lift ? Math.max(.35, 1 - cat.lift / 30) : 1, gy = cat.lift ? Math.round(cat.y) : y; g.fillStyle = `rgba(30,15,10,${.34 * k})`; g.beginPath(); g.ellipse(x, gy + 1, 10 * k, 3 * k, 0, 0, Math.PI * 2); g.fill(); }
   if (!catReady) return;
   // resting cats face the room at three-quarters: SW when they last walked left, SE otherwise
   const rest = cat.dir === 2 ? 7 : 1;

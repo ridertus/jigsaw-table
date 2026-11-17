@@ -37,20 +37,29 @@ def recolor(f, coat):
             elif k == 'cream' and C['cream']: o[y, x, :3] = C['cream'][0]
             elif k == 'deep': o[y, x, :3] = C['deep']
     return o
-LEG0 = 23
-def walk(f, k):
-    out = np.zeros_like(f); up = 1 if k in (1, 3) else 0
-    out[0:LEG0 - up] = f[up:LEG0]; out[LEG0 - 1] = np.where(out[LEG0 - 1][..., 3:4] > 0, out[LEG0 - 1], f[LEG0 - 1])
-    legs = f[LEG0:N].copy(); cols = np.where(legs[..., 3].max(0) > 0)[0]
-    if not len(cols): out[LEG0:] = legs; return out
-    mid = (cols.min() + cols.max()) // 2
-    L = legs.copy(); L[:, mid + 1:] = 0; R = legs.copy(); R[:, :mid + 1] = 0
-    for part, lift in ((L, k == 1), (R, k == 3)):
-        o = out[LEG0 - (1 if lift else 0):N - (1 if lift else 0)]; m = part[..., 3] > 0; o[m] = part[m]
+def walk(f, k, side):
+    """4-frame walk from a standing frame. Legs = rows below where the silhouette splits into two leg groups.
+       side views: legs scissor (front pair forward, back pair back, then swap); front/back views: alternate steps."""
+    a = f[..., 3] > 0; ys = np.where(a.any(1))[0]; bottom = ys.max()
+    L0 = bottom - 3
+    for y in range(bottom - 6, bottom + 1):          # first row with a gap inside the silhouette
+        xs = np.where(a[y])[0]
+        if len(xs) and (xs.max() - xs.min() + 1) > len(xs): L0 = y; break
+    xs = np.where(a[L0])[0]; run = [x for x in range(xs.min(), xs.max()) if not a[L0, x]]
+    mid = (run[0] + run[-1]) // 2 if run else (xs.min() + xs.max()) // 2
+    bob = 1 if k in (1, 3) else 0
+    out = np.zeros_like(f); out[0:L0 - bob] = f[bob:L0]
+    if bob: out[L0 - 1] = np.where(out[L0 - 1][..., 3:4] > 0, out[L0 - 1], f[L0 - 1])
+    legs = f[L0:N].copy(); A = legs.copy(); A[:, mid + 1:] = 0; B = legs.copy(); B[:, :mid + 1] = 0
+    def put(part, dx, up):
+        p = np.roll(part, dx, 1); y0 = L0 - up; seg = out[y0:y0 + p.shape[0]]; m = p[:seg.shape[0], :, 3] > 0; seg[m] = p[:seg.shape[0]][m]
+    s = {0: 0, 1: 2, 2: 0, 3: -2}[k]
+    if side: put(A, -s, 1 if k == 3 else 0); put(B, s, 1 if k == 1 else 0)
+    else: put(A, 0, 2 if k == 1 else 0); put(B, 0, 2 if k == 3 else 0)
     return out
 def row(fi, fs):
     r = list(fi)
-    for d in (0, 2, 4, 6): r += [walk(fi[d], k) for k in range(4)]
+    for d in (0, 2, 4, 6): r += [walk(fi[d], k, d in (2, 6)) for k in range(4)]
     return r + list(fs)
 rows = [row(idle, sleep), row([recolor(f, 'white') for f in idle], [recolor(f, 'white') for f in sleep]), row([recolor(f, 'black') for f in idle], [recolor(f, 'black') for f in sleep])]
 atlas = np.zeros((N * 3, N * 32, 4), np.uint8)
