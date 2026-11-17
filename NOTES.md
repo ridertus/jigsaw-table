@@ -55,6 +55,14 @@ build แค่ต่อไฟล์เข้าด้วยกัน (ไม่
   ตอนเปิดจิ๊กซอว์/กระดาน แชทจะกลายเป็นแถบเต็มความกว้างด้านล่าง (`--chatH`) และ dock ซ่อน
 - `lobby.js` แชท (มีหน้าเล็ก ๆ ของคนพูด, broadcast `typing`), วิทยุ (`Radio` + YouTube IFrame API), โต๊ะ/รูปใหม่, ตั้งค่าเจ้าของบ้าน, presence, channel `lobby:main`, `enterLobby`
 
+## ตัวละครแต่งตัวได้ (กำลังทำ, 17 พ.ย. 2026)
+- หุ่นเปล่าจาก PixelLab (template mannequin, 48×48, 8 ทิศ, low top-down) อยู่ที่ `assets/doll/pixellab/`
+  export นี้ **ไม่มี animation** (แต่ละท่าเป็นภาพนิ่ง 8 ทิศ): `Idle`, `walking_small_arm_s` (ท่าก้าว), `sitting_on_a_floor_c` (มีเบาะติดมา โค้ดลบให้), `standing_idle_gentl` (ยังไม่ใช้)
+  หัวอยู่ตำแหน่งเดียวกันทุกท่า ทุกท่าใช้ชุดสี 35 สีเดียวกัน จึงแยกผิว/เสื้อขาว/เส้นขอบด้วยสีได้
+- `tools/doll/`: `seg.py` แยกส่วน + ลบเบาะ, `doll.py` วาดตา (ลบตา PixelLab ก่อน), สีผิว, ผม 6 ทรง (ผมหน้า/ผมหลังวาดหลังตัว), เสื้อ, กางเกง, รองเท้า, แว่น ทีละเฟรมจากรูปทรงของเฟรมนั้น,
+  `build.py looks.json out.png [--gif x.gif]` สร้าง atlas แบบเดียวกับ `chars.png` (ท่าเดิน = ก้าว / ยืนยกขึ้น 1px / ก้าวกลับด้าน (S,N) / ยืน), `options.py` แผ่นรวมตัวเลือก
+- ยังไม่ได้ต่อเข้าเกม
+
 ## Supabase
 - โปรเจกต์ `jigsaw-table` id `slbgazdgvhjqhwwjifus` (สิงคโปร์, แพ็กเกจฟรี) ใน org "ridertus's Org"
 - แพ็กเกจฟรีจะพักโปรเจกต์ถ้าไม่มีใครใช้ราว 7 วัน กดเปิดใหม่ในหน้า Supabase ได้

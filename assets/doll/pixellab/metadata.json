@@ -1,0 +1,123 @@
+{
+  "group_id": "3e35beb3-0882-4c86-822c-0dd89902f553",
+  "states": [
+    {
+      "character": {
+        "id": "4a001121-4fd9-4070-94ef-121e04c70c33",
+        "name": "Idle",
+        "prompt": "cute chibi kid mannequin base body for a dress-up game, completely bald smooth round head, simple small eyes, tiny neutral mouth, warm light skin tone, plain white tank top, plain white short shorts, barefoot, arms relaxed and slightly away from the body, standing straight, no hair, no accessories, no logo, clean dark outline, simple flat shading, cozy pixel art game sprite",
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-11-17T11:57:36.599475+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "4031d1e8-5f6e-4324-a3dd-203a39c44c47",
+        "name": "standing idle, gentl",
+        "prompt": "cute chibi kid mannequin base body for a dress-up game, completely bald smooth round head, simple small eyes, tiny neutral mouth, warm light skin tone, plain white tank top, plain white short shorts, barefoot, arms relaxed and slightly away from the body, standing straight, no hair, no accessories, no logo, clean dark outline, simple flat shading, cozy pixel art game sprite",
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-11-17T12:05:08.918891+00:00"
+      },
+      "folder": "standing_idle_gentl",
+      "frames": {
+        "rotations": {
+          "south": "standing_idle_gentl/rotations/south.png",
+          "south-east": "standing_idle_gentl/rotations/south-east.png",
+          "east": "standing_idle_gentl/rotations/east.png",
+          "north-east": "standing_idle_gentl/rotations/north-east.png",
+          "north": "standing_idle_gentl/rotations/north.png",
+          "north-west": "standing_idle_gentl/rotations/north-west.png",
+          "west": "standing_idle_gentl/rotations/west.png",
+          "south-west": "standing_idle_gentl/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "30debc81-c1c5-457f-8ccb-e60390dd1bc6",
+        "name": "walking, small arm s",
+        "prompt": "cute chibi kid mannequin base body for a dress-up game, completely bald smooth round head, simple small eyes, tiny neutral mouth, warm light skin tone, plain white tank top, plain white short shorts, barefoot, arms relaxed and slightly away from the body, standing straight, no hair, no accessories, no logo, clean dark outline, simple flat shading, cozy pixel art game sprite",
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-11-17T12:07:58.710645+00:00"
+      },
+      "folder": "walking_small_arm_s",
+      "frames": {
+        "rotations": {
+          "south": "walking_small_arm_s/rotations/south.png",
+          "south-east": "walking_small_arm_s/rotations/south-east.png",
+          "east": "walking_small_arm_s/rotations/east.png",
+          "north-east": "walking_small_arm_s/rotations/north-east.png",
+          "north": "walking_small_arm_s/rotations/north.png",
+          "north-west": "walking_small_arm_s/rotations/north-west.png",
+          "west": "walking_small_arm_s/rotations/west.png",
+          "south-west": "walking_small_arm_s/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "4832ffb4-1105-4276-bf95-2818da1b6d2f",
+        "name": "sitting on a floor c",
+        "prompt": "cute chibi kid mannequin base body for a dress-up game, completely bald smooth round head, simple small eyes, tiny neutral mouth, warm light skin tone, plain white tank top, plain white short shorts, barefoot, arms relaxed and slightly away from the body, standing straight, no hair, no accessories, no logo, clean dark outline, simple flat shading, cozy pixel art game sprite",
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-11-17T12:11:59.225858+00:00"
+      },
+      "folder": "sitting_on_a_floor_c",
+      "frames": {
+        "rotations": {
+          "south": "sitting_on_a_floor_c/rotations/south.png",
+          "south-east": "sitting_on_a_floor_c/rotations/south-east.png",
+          "east": "sitting_on_a_floor_c/rotations/east.png",
+          "north-east": "sitting_on_a_floor_c/rotations/north-east.png",
+          "north": "sitting_on_a_floor_c/rotations/north.png",
+          "north-west": "sitting_on_a_floor_c/rotations/north-west.png",
+          "west": "sitting_on_a_floor_c/rotations/west.png",
+          "south-west": "sitting_on_a_floor_c/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-11-17T12:13:33.792857"
+}

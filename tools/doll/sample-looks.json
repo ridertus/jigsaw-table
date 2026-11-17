@@ -1,0 +1,8 @@
+[
+  {"skin":"peach","hair":"buns","hairc":"#e07090","eyes":"sparkle","iris":"pink","top":"hoodie","topc":"#e07890","bottom":"shorts","botc":"#c0d8f0","shoes":"sneakers","shoec":"#ffffff"},
+  {"skin":"warm","hair":"short","hairc":"#4a3020","top":"tee","topc":"#3d5a8a","bottom":"shorts","botc":"#2c2c3a","shoes":"sneakers","shoec":"#d04040"},
+  {"skin":"peach","hair":"long","hairc":"#1e1a22","eyes":"classic","top":"tank","topc":"#f2ead8","bottom":"shorts","botc":"#7aa0d0","shoes":"sneakers","shoec":"#f0f0f0","glasses":"#3a2a30"},
+  {"skin":"porcelain","hair":"bob","hairc":"#d88a3a","eyes":"sharp","iris":"green","top":"tee","topc":"#5aa060","bottom":"pants","botc":"#7a5034","shoes":"boots","shoec":"#3a2a22"},
+  {"skin":"tan","hair":"spiky","hairc":"#e8c060","eyes":"happy","top":"tee","topc":"#ffffff","bottom":"pants","botc":"#3a4a70","shoes":"sneakers","shoec":"#2a2a2a"},
+  {"skin":"brown","hair":"pony","hairc":"#2a1a14","eyes":"bean","iris":"black","top":"dress","topc":"#f0c040","shoes":"sneakers","shoec":"#ffffff"}
+]
