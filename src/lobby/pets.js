@@ -6,14 +6,14 @@
 const CAT_SPOTS = [
   // x,y = where the cat rests; floor = where it stands before hopping up (omit for floor spots); z = draw order
   { id: 'bed', x: 32, y: 257, z: 273, pose: 'sleep' },
-  { id: 'sofaArm', x: 336, y: 84, z: 129, pose: 'loaf', floor: [348, 136] },
-  { id: 'sofaSeat', x: 214, y: 104, z: 129, pose: 'sleep', floor: [208, 138] },
+  { id: 'sofaArm', x: 336, y: 82, z: 129, pose: 'loaf', floor: [348, 136] },
+  { id: 'sofaSeat', x: 214, y: 102, z: 129, pose: 'sleep', floor: [208, 138] },
   { id: 'sofaBack', x: 300, y: 64, z: 129, pose: 'sleep', floor: [300, 136] },
-  { id: 'table', x: 322, y: 206, z: 233, pose: 'loaf', floor: [346, 236] },
+  { id: 'table', x: 326, y: 214, z: 233, pose: 'loaf', floor: [346, 236] },
   { id: 'cabR', x: 494, y: 166, z: 233, pose: 'sleep', floor: [472, 190] },
-  { id: 'tvTop', x: 40, y: 104, z: 191, pose: 'sit', floor: [84, 166] },
+  { id: 'tvTop', x: 68, y: 148, z: 191, pose: 'sit', floor: [84, 166] },
   { id: 'bean', x: 96, y: 200, z: 229, pose: 'sleep', floor: [120, 236] },
-  { id: 'musicTop', x: 152, y: 74, z: 121, pose: 'loaf', floor: [160, 136] },
+  { id: 'musicTop', x: 178, y: 70, z: 121, pose: 'loaf', floor: [180, 136] },
   { id: 'rug', x: 300, y: 270, pose: 'groom' },
   { id: 'window', x: 360, y: 150, pose: 'sit' },
   { id: 'door', x: 254, y: 286, pose: 'loaf' }
@@ -84,7 +84,6 @@ function stepCat(cat, dt){
   if (cat.path.length){
     const [px, py] = cat.path[0], dx = px - cat.x, dy = py - cat.y, d = Math.hypot(dx, dy), sp = (cat.mode === 'follow' ? 52 : 38) * dt;
     if (Math.abs(dx) > .5) cat.dir = dx < 0 ? 2 : 3;
-    cat.face = Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 2 : 3) : (dy < 0 ? 1 : 0);
     if (d <= sp){ cat.x = px; cat.y = py; cat.path.shift(); } else { cat.x += dx / d * sp; cat.y += dy / d * sp; }
     cat.walk += dt; return;
   }
@@ -129,30 +128,65 @@ function catZ(cat){
   return cat.y;
 }
 
-/* PixelLab cat sprites (tools/cats-build.py): rows orange/white/black; cols idle 8 dirs | walk S,E,N,W x4 | sleep 8 dirs */
-const CAT_ATLAS = new Image(), CAT_FEET = /*CAT_FEET*/null, CAT_CELL = 32, COAT_ROW = { orange: 0, white: 1, black: 2 };
-let catReady = false; CAT_ATLAS.onload = () => { catReady = true; }; CAT_ATLAS.src = 'assets/chars/cats.png';
-const CAT_D8 = { 0: 0, 1: 4, 2: 6, 3: 2 }, CAT_W4 = { 0: 0, 3: 1, 1: 2, 2: 3 };
+/* ----- drawing: 24x18 side-view sprites (facing left; mirrored for right) ----- */
+const catCache = new Map();
+function catSprite(coat, pose, frame, happy){
+  const key = coat + pose + frame + happy; let c = catCache.get(key); if (c) return c;
+  c = document.createElement('canvas'); c.width = 26; c.height = 20;
+  const g = c.getContext('2d'), C = COATS[coat], R = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x + 1, y + 1, w, h); };
+  const head = (hx, hy, closed) => {
+    R(hx, hy + 1, 8, 6, C.base); R(hx + 1, hy, 6, 1, C.base); R(hx, hy - 2, 2, 3, C.base); R(hx + 6, hy - 2, 2, 3, C.base);
+    R(hx + 1, hy - 1, 1, 1, '#f3a6a0'); R(hx + 6, hy - 1, 1, 1, '#f3a6a0');
+    R(hx + 1, hy + 1, 6, 1, C.light);
+    if (coat === 'orange'){ R(hx + 3, hy, 2, 2, C.mark); }
+    if (coat === 'white'){ R(hx + 5, hy - 1, 3, 3, C.mark); }
+    if (closed || happy){ R(hx + 1, hy + 4, 2, 1, '#2b1a14'); R(hx + 5, hy + 4, 2, 1, '#2b1a14'); if (happy){ R(hx + 1, hy + 3, 1, 1, '#2b1a14'); R(hx + 6, hy + 3, 1, 1, '#2b1a14'); } }
+    else { R(hx + 1, hy + 3, 2, 2, C.eye); R(hx + 5, hy + 3, 2, 2, C.eye); R(hx + 1, hy + 3, 1, 1, '#1d1a24'); R(hx + 5, hy + 3, 1, 1, '#1d1a24'); }
+    R(hx + 3, hy + 5, 2, 1, '#f3a6a0'); R(hx, hy + 6, 8, 1, C.belly);
+  };
+  const stripes = (x, y, w) => { if (coat === 'orange') for (let i = 2; i < w - 1; i += 3) R(x + i, y, 1, 3, C.mark); if (coat === 'white') R(x + 3, y, 5, 3, C.mark); };
+  if (pose === 'walk' || pose === 'jump'){
+    const f = pose === 'jump' ? 1 : frame % 4, up = f === 1 || f === 3 ? 1 : 0;
+    R(6, 7 - up, 12, 6, C.base); R(6, 7 - up, 12, 1, C.light); R(7, 12 - up, 10, 1, C.belly); stripes(8, 7 - up, 10);
+    const legs = pose === 'jump' ? [[5, 13, 2, 3], [16, 11, 2, 3]] : [[7 + (f === 1 ? -1 : f === 3 ? 1 : 0), 13 - up, 2, 4], [10, 13 - up, 2, 3 + up], [14 + (f === 1 ? 1 : f === 3 ? -1 : 0), 13 - up, 2, 4], [17, 13 - up, 2, 3 + up]];
+    legs.forEach(([x, y, w, h]) => { R(x, y, w, h, C.base); R(x, y + h - 1, w, 1, coat === 'black' ? '#f2ece2' : C.dark); });
+    R(18, 4 - up + (f % 2), 2, 5, C.base); R(19, 2 - up + (f % 2), 2, 3, C.base); R(20, 1 - up, 1, 2, C.dark); // tail up
+    head(0, 3 - up, false);
+  } else if (pose === 'sit'){
+    R(8, 6, 9, 10, C.base); R(9, 6, 7, 1, C.light); R(9, 10, 5, 6, C.belly); stripes(12, 7, 6);
+    R(8, 15, 3, 2, C.base); R(12, 15, 3, 2, C.base); R(16, 13, 5, 3, C.base); R(20, 11, 2, 3, C.base); R(17, 15, 4, 1, C.dark);
+    if (coat === 'black'){ R(8, 16, 3, 1, '#f2ece2'); R(12, 16, 3, 1, '#f2ece2'); }
+    head(5, 1, frame === 1);
+  } else if (pose === 'loaf'){
+    R(5, 8, 15, 8, C.base); R(6, 8, 13, 1, C.light); R(5, 15, 15, 1, C.dark); stripes(9, 8, 10);
+    R(18, 13, 5, 2, C.base); R(22, 12, 1, 2, C.dark);
+    head(1, 5, frame === 1);
+  } else if (pose === 'groom'){
+    R(8, 6, 9, 10, C.base); R(9, 10, 5, 6, C.belly); stripes(12, 7, 6); R(16, 13, 5, 3, C.base);
+    head(5, 2 + (frame % 2), true); R(6, 8 - (frame % 2), 2, 3, C.base); R(6, 7 - (frame % 2), 2, 1, '#f3a6a0');
+  } else { // sleep: curled into a round ball, head resting on the tail
+    const b = frame === 1 ? 1 : 0, E = (cx, cy, rx, ry, col) => { for (let yy = -ry; yy <= ry; yy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (yy / (ry + .5)) ** 2))); R(cx - hw, cy + yy, hw * 2, 1, col); } };
+    E(13, 12 - b, 9, 5 + b, C.base); E(14, 11 - b, 6, 2, C.light);
+    if (coat === 'orange') for (let i = 0; i < 4; i++) R(11 + i * 3, 8 - b, 1, 4, C.mark);
+    if (coat === 'white'){ E(16, 10 - b, 3, 2, C.mark); }
+    R(7, 15, 14, 2, C.base); R(9, 16, 12, 1, coat === 'black' ? '#56505e' : C.dark); R(19, 13, 3, 3, C.dark); // tail wrapped round the front
+    E(7, 13, 4, 3, C.base); R(3, 9, 2, 3, C.base); R(8, 9, 2, 3, C.base); R(3, 10, 1, 1, '#f3a6a0'); R(9, 10, 1, 1, '#f3a6a0'); // head + ears
+    R(5, 13, 2, 1, '#2b1a14'); R(8, 13, 2, 1, '#2b1a14'); R(6, 15, 2, 1, '#f3a6a0'); R(4, 14, 7, 1, C.belly);
+  }
+  outlineSprite(c);
+  catCache.set(key, c); return c;
+}
 function drawCat(g, cat, t){
-  const pose = catPose(cat, t), happy = cat.happy > performance.now(), lap = lapSeat(cat);
-  const x = Math.round(lap ? lap.x + 1 : cat.x), y = Math.round(lap ? lap.y + 7 : cat.y - (cat.lift || 0));
-  // contact shadow right under the paws (shrinks while jumping, none on a lap)
-  if (!lap){ const k = cat.lift ? Math.max(.35, 1 - cat.lift / 30) : 1, gy = cat.lift ? Math.round(cat.y) : y; g.fillStyle = `rgba(30,15,10,${.34 * k})`; g.beginPath(); g.ellipse(x, gy + 1, 10 * k, 3 * k, 0, 0, Math.PI * 2); g.fill(); }
-  if (!catReady) return;
-  // resting cats face the room at three-quarters: SW when they last walked left, SE otherwise
-  const rest = cat.dir === 2 ? 7 : 1;
-  let col;
-  if (pose === 'walk') col = 8 + CAT_W4[cat.face == null ? cat.dir : cat.face] * 4 + Math.floor(cat.walk * 8) % 4;
-  else if (pose === 'jump') col = cat.dir === 2 ? 6 : 2;
-  else if (pose === 'sleep' && !happy) col = 24 + (lap ? 0 : rest);
-  else col = happy ? 0 : rest;
-  const row = COAT_ROW[cat.coat] || 0, feet = CAT_FEET ? (col >= 8 && col < 24 ? CAT_FEET[row][CAT_D8[[0, 3, 1, 2][Math.floor((col - 8) / 4)]]] : CAT_FEET[row][col]) : 28;
-  // gentle breathing while asleep
-  const breathe = pose === 'sleep' && !happy && Math.floor(t / 1400 + hashStr(cat.id) % 5) % 2 ? 1 : 0;
-  g.drawImage(CAT_ATLAS, col * CAT_CELL, row * CAT_CELL, CAT_CELL, CAT_CELL - breathe, x - CAT_CELL / 2, y - feet - 1 + breathe, CAT_CELL, CAT_CELL - breathe);
+  const pose = catPose(cat, t), happy = cat.happy > performance.now();
+  const frame = pose === 'walk' ? Math.floor(cat.walk * 8) % 4 : pose === 'sleep' ? Math.floor(t / 1400) % 2 : pose === 'groom' ? Math.floor(t / 300) % 2 : (Math.floor((t + hashStr(cat.id) % 3000) / 2600) % 5 === 0 ? 1 : 0);
+  const lap = lapSeat(cat), lp = lap ? (pose === 'sleep' ? 'loaf' : pose) : pose;
+  const spr = catSprite(cat.coat, lp, frame, happy ? 1 : 0), x = Math.round(lap ? lap.x + 1 : cat.x), y = Math.round(lap ? lap.y - 2 : cat.y - (cat.lift || 0));
+  if (!cat.lift && !lap){ g.fillStyle = 'rgba(30,15,10,.25)'; g.fillRect(x - 8, y - 1, 16, 2); }
+  if (cat.dir === 3){ g.save(); g.translate(x, 0); g.scale(-1, 1); g.drawImage(spr, -13, y - 19); g.restore(); }
+  else g.drawImage(spr, x - 13, y - 19);
   if (pose === 'sleep' && !happy){
     const p = (t / 2400 + hashStr(cat.id) % 7 / 7) % 1; g.globalAlpha = p < .8 ? 1 - p / .8 : 0; g.fillStyle = '#fff8ea';
-    const zx = x + 10 - p * 4, zy = y - 26 - p * 12; g.fillRect(zx, zy, 4, 1); g.fillRect(zx + 2, zy + 1, 1, 1); g.fillRect(zx + 1, zy + 2, 1, 1); g.fillRect(zx, zy + 3, 4, 1); g.globalAlpha = 1;
+    const zx = x + (cat.dir === 3 ? 8 : -12) - p * 4, zy = y - 18 - p * 12; g.fillRect(zx, zy, 4, 1); g.fillRect(zx + 2, zy + 1, 1, 1); g.fillRect(zx + 1, zy + 2, 1, 1); g.fillRect(zx, zy + 3, 4, 1); g.globalAlpha = 1;
   }
 }
 /* hearts float up in room space */
@@ -161,15 +195,15 @@ function drawPetHearts(g, t){
   Pets.hearts = Pets.hearts.filter(h => now - h.at < 1600);
   Pets.hearts.forEach(h => {
     const cat = Pets.cats.find(c => c.id === h.cat); if (!cat) return;
-    const p = (now - h.at) / 1600, x = Math.round(cat.x + h.dx + Math.sin(p * 8 + h.dx) * 3), y = Math.round(cat.y - 30 - (cat.lift || 0) - p * 26);
+    const p = (now - h.at) / 1600, x = Math.round(cat.x + h.dx + Math.sin(p * 8 + h.dx) * 3), y = Math.round(cat.y - 22 - (cat.lift || 0) - p * 26);
     g.globalAlpha = 1 - p; g.fillStyle = '#2b1a14'; g.fillRect(x - 1, y, 7, 4); g.fillRect(x, y + 4, 5, 2); g.fillRect(x + 1, y + 6, 3, 1); g.fillRect(x, y - 1, 2, 1); g.fillRect(x + 3, y - 1, 2, 1);
     g.fillStyle = '#ec6a8a'; g.fillRect(x, y, 2, 4); g.fillRect(x + 3, y, 2, 4); g.fillRect(x + 1, y + 1, 3, 4); g.fillRect(x + 2, y + 5, 1, 1);
     g.fillStyle = '#ffc0d0'; g.fillRect(x, y, 1, 1); g.globalAlpha = 1;
   });
 }
 function catAt(lx, ly){
-  let best = null, bd = 20;
-  Pets.cats.forEach(c => { const d = Math.hypot(c.x - lx, c.y - 12 - (c.lift || 0) - ly); if (d < bd){ bd = d; best = c; } });
+  let best = null, bd = 18;
+  Pets.cats.forEach(c => { const d = Math.hypot(c.x - lx, c.y - 8 - (c.lift || 0) - ly); if (d < bd){ bd = d; best = c; } });
   return best;
 }
 const sfxMeow = () => { tone(620, 0, .12, 'triangle', .1, 900); tone(900, .1, .22, 'triangle', .09, 520); };
