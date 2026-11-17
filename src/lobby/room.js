@@ -230,7 +230,7 @@ function frame(t){
     g.fillStyle = '#fff'; g.fillText(a.name || '', sx, sy - 5);
     if (a.bubble && a.bubble.until > now) drawBubble(g, sx, sy - 30, a.bubble.text, a.bubble.until - now);
     else if (a.typing > now) drawIconBubble(g, sx, sy - 30, 'dots', t);
-    else if (a.sit && Radio.isPlaying() && (hashStr(a.k + '') + Math.floor(now / 9000)) % 3 === 0) drawIconBubble(g, sx, sy - 30, 'note', t);
+    else if (a.sit && Radio.isPlaying() && (hashStr(a.k + '') + Math.floor(now / 9000)) % 3 === 0){ const w = now % 9000; drawMusicNotes(g, sx, sy - 22, t, Math.min(1, w / 700, (9000 - w) / 700)); }
   });
   drawEmojis(g);
   requestAnimationFrame(frame);
@@ -267,7 +267,35 @@ function drawIconBubble(g, x, y, kind, t){
   const [bx, by] = balloon(g, x, y, 34, 26);
   g.fillStyle = '#3b2b20';
   if (kind === 'dots') for (let i = 0; i < 3; i++){ const up = Math.floor(t / 180) % 4 === i ? 2 : 0; g.fillRect(bx + 8 + i * 7, by + 12 - up, 4, 4); }
-  if (kind === 'note'){ const k = Math.floor(t / 400) % 2; g.fillRect(bx + 12, by + 15 - k, 5, 4); g.fillRect(bx + 16, by + 5 - k, 2, 13); g.fillRect(bx + 16, by + 5 - k, 7, 2); g.fillRect(bx + 21, by + 5 - k, 2, 4); }
+}
+/* music notes floating up from someone who is listening to the radio: no box, so it doesn't fight the chat balloons on the sofa.
+   Pixel sprites on the room's own pixel grid, 1px dark outline like the room art, mint + amber from the UI palette. */
+const NOTE_SPR = {
+  single: ['..XX..', '..XXX.', '..X.XX', '..X..X', '..X...', '..X...', '..X...', 'XLX...', 'XXX...', '.X....'],
+  pair: ['..XXXXXXX', '..XXXXXXX', '..X.....X', '..X.....X', '..X.....X', '..X.....X', '..X.....X', 'XLX...XLX', 'XXX...XXX', '.X.....X.']
+};
+const noteCache = new Map();
+function noteSprite(kind, fill, light, u){
+  const key = kind + fill + u; let cv = noteCache.get(key); if (cv) return cv;
+  const rows = NOTE_SPR[kind], w = rows[0].length, h = rows.length, on = (x, y) => x >= 0 && y >= 0 && x < w && y < h && rows[y][x] !== '.';
+  cv = document.createElement('canvas'); cv.width = (w + 2) * u; cv.height = (h + 2) * u;
+  const c = cv.getContext('2d');
+  for (let y = -1; y <= h; y++) for (let x = -1; x <= w; x++){
+    if (on(x, y)){ c.fillStyle = rows[y][x] === 'L' ? light : fill; c.fillRect((x + 1) * u, (y + 1) * u, u, u); }
+    else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)){ c.fillStyle = '#2b1a14'; c.fillRect((x + 1) * u, (y + 1) * u, u, u); }
+  }
+  noteCache.set(key, cv); return cv;
+}
+function drawMusicNotes(g, x, y, t, env){
+  const u = Math.max(2, Math.round(Room.s)), snap = v => Math.round(v / u) * u;
+  const notes = [['single', '#38b2a6', '#9fe6dc', -11, 0], ['pair', '#e89a3c', '#ffd79a', 11, .5]];
+  g.imageSmoothingEnabled = false;
+  notes.forEach(([kind, fill, light, dx, off]) => {
+    const p = (t / 2800 + off) % 1, cv = noteSprite(kind, fill, light, u);
+    g.globalAlpha = env * (p < .15 ? p / .15 : p > .7 ? (1 - p) / .3 : 1);
+    g.drawImage(cv, snap(x + dx + Math.sin(p * Math.PI * 2) * 3 - cv.width / 2), snap(y - 2 * u - p * 6 * u - cv.height));
+  });
+  g.globalAlpha = 1;
 }
 
 /* ----- network: positions ----- */
