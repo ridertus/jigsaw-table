@@ -72,10 +72,15 @@ function findPath(from, to){
   while (cur && !(cur[0] === from[0] && cur[1] === from[1])){ out.unshift(cur); cur = prev.get(key(...cur)); }
   return out.map(([c, r]) => [c * T + T / 2, r * T + T - 2]);
 }
+/* getting up from a sofa/bean bag: step down in front of it first, so you're never drawn behind the furniture */
+function standUp(a){
+  const st = a.sit; a.sit = null; if (!st || !st.z) return;
+  const f = nearestFree(...tileOf(st.x, st.y + T)); if (f){ a.x = f[0] * T + T / 2; a.y = f[1] * T + T - 2; }
+}
 function walkTo(a, tx, ty){
+  if (a.sit) standUp(a);
   const from = nearestFree(...tileOf(a.x, a.y)), to = nearestFree(...tileOf(tx, ty));
   if (!from || !to) return;
-  a.sit = null;
   a.path = findPath(from, to);
   if (!a.path.length && (from[0] !== to[0] || from[1] !== to[1])) return;
   if (!a.path.length) a.path = [[from[0] * T + T / 2, from[1] * T + T - 2]];
@@ -288,7 +293,7 @@ function onPos(m){
     return;
   }
   a.sitGoal = null;
-  if (a.sit){ a.sit = null; const f = nearestFree(...tileOf(a.x, a.y)); if (f){ a.x = f[0] * T + 12; a.y = f[1] * T + 22; } }
+  if (a.sit) standUp(a);
   if (Math.hypot(a.x - m.x, a.y - m.y) > T * 4){ a.x = m.x; a.y = m.y; a.path = []; }
   const d = a.dest || [a.x, a.y];
   if (Math.hypot(d[0] - m.tx, d[1] - m.ty) > 2) walkTo(a, m.tx, m.ty);
