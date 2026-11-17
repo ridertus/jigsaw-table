@@ -211,7 +211,7 @@ function updateThumb(){
 }
 function drawWallBoard(g){
   updateThumb();
-  g.imageSmoothingEnabled = true; g.drawImage(bdThumb, 0, 0, 64, 44); // drawn inside the easel's canvas (see drawEasel)
+  g.imageSmoothingEnabled = true; g.drawImage(bdThumb, 432, 52, 56, 38); g.imageSmoothingEnabled = false;
 }
 
 /* ----- local changes: apply, persist, broadcast ----- */
