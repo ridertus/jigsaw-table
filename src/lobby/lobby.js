@@ -7,7 +7,7 @@ function addMsg(m, fresh){
   const b = document.createElement('b'); b.textContent = m.name || 'เพื่อน'; b.style.color = nameInk(m.color);
   const t = document.createElement('time'); const d = new Date(m.at || Date.now()); t.textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
   const tx = document.createElement('span'); tx.className = 'mt'; tx.append(b, ': ', document.createTextNode(m.body), t);
-  el.append(headIcon(m.k === ME.id ? ME : Room.others.get(m.k) || { color: m.color || colorOf(m.k), hair: hashStr(m.k + '') % 6, hc: hashStr(m.k + 'h') % 4, acc: 0 }), tx);
+  el.append(headIcon(m.k === ME.id ? ME : Room.others.get(m.k) || { k: m.k }), tx);
   const box = $('#chatlogIn'); const empty = box.querySelector('.empty'); if (empty) empty.remove();
   box.appendChild(el); while (box.children.length > 80) box.firstChild.remove();
   box.scrollTop = box.scrollHeight;
@@ -22,7 +22,7 @@ function nameInk(c){ if (!c || c[0] !== '#') return '#ffd9a8'; const n = parseIn
 /* a little face for the chat log */
 function headIcon(look){
   const cv = document.createElement('canvas'); cv.width = 34; cv.height = 30;
-  const g = cv.getContext('2d'); g.drawImage(charSprite(look, 0, 0, 'stand'), -1, -2); return cv;
+  const g = cv.getContext('2d'); g.drawImage(charSprite(look, 0, 0, 'stand'), -7, -1); return cv;
 }
 function ticker(m){
   if (!document.body.matches('.puzzle-open,.draw-open') || $('#chatPanel').classList.contains('expanded')) return;
@@ -491,7 +491,7 @@ function renderPlayers(){
   const box = $('#players'); box.innerHTML = '';
   $('#onlineN').textContent = S.players.length;
   S.players.forEach(pl => {
-    const a = pl.me ? Room.me : Room.others.get(pl.key), look = pl.me ? ME : a || { color: pl.color, hair: 0, acc: 0 };
+    const a = pl.me ? Room.me : Room.others.get(pl.key), look = pl.me ? ME : a || { k: pl.key };
     const row = document.createElement('div'); row.className = 'pp';
     const cv = headIcon(look);
     const nm = document.createElement('span'); nm.textContent = pl.name || 'เพื่อน'; nm.style.color = nameInk(pl.color);
@@ -556,7 +556,7 @@ function disconnect(){ if (S.chan){ const c = S.chan; S.chan = null; S.connected
 /* ---------- start ---------- */
 async function enterLobby(){
   const [sx, sy] = SPAWN;
-  Room.me = makeAvatar(ME.id, ME.name, ME.color, ME.hair, sx * T + 12 + (Math.random() * 2 | 0) * T, sy * T + 22, { hc: ME.hc, acc: ME.acc });
+  Room.me = makeAvatar(ME.id, ME.name, ME.color, 0, sx * T + 12 + (Math.random() * 2 | 0) * T, sy * T + 22, { ch: ME.ch });
   Room.me.dir = 1;
   S.players = [{ key: ME.id, name: ME.name, color: ME.color, me: true }]; renderPlayers();
   if (L.pin){ try { const { data } = await sb.rpc('check_owner', { p_pin: L.pin }); L.isOwner = data === true; if (!L.isOwner){ L.pin = null; LS.set('jt-owner-pin', null); } } catch(e){} }

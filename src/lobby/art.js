@@ -499,19 +499,20 @@ function outlineSprite(c){
   }
   d.data.set(out); g.putImageData(d, 0, 0);
 }
-const SPR_W = 36, SPR_H = 54;
-function charSprite(look, dir, frame, pose){
-  const key = [look.color, look.hair, look.hc, look.acc, dir, frame, pose].join('|');
+const SPR_W = CELL, SPR_H = CELL;
+/* one frame as its own canvas (chat faces, people list, character picker) */
+function charSprite(look, dir, frame, pose, moving){
+  const ch = chOf(look), col = charCol(dir, frame, pose, moving), key = ch + '|' + col;
   let c = spriteCache.get(key); if (c) return c;
-  c = document.createElement('canvas'); c.width = SPR_W; c.height = SPR_H;
-  const g = c.getContext('2d'); drawChar(g, SPR_W / 2, SPR_H - 2, look, dir, frame, pose);
-  outlineSprite(c);
-  if (spriteCache.size > 400) spriteCache.clear();
+  c = document.createElement('canvas'); c.width = CELL; c.height = CELL;
+  if (!charReady) return c;
+  c.getContext('2d').drawImage(CHAR_ATLAS, col * CELL, ch * CELL, CELL, CELL, 0, 0, CELL, CELL);
   spriteCache.set(key, c); return c;
 }
 function drawAvatar(g, a, t){
-  const x = Math.round(a.x), y = Math.round(a.y), pose = a.sit ? 'sit' : 'stand';
-  if (!a.sit || a.sit.kind === 'floor'){ g.fillStyle = 'rgba(30,15,10,.28)'; g.fillRect(x - 9, y - 1, 18, 2); g.fillRect(x - 7, y + 1, 14, 1); }
-  const frame = a.path.length ? Math.floor(a.walk * 9) % 4 : (pose === 'stand' && Math.floor((t + hashStr(a.k + '') % 1000) / 700) % 6 === 0 ? 4 : 0);
-  g.drawImage(charSprite(a, a.dir, frame, pose), x - SPR_W / 2, y - SPR_H + 2);
+  const x = Math.round(a.x), y = Math.round(a.y), pose = a.sit ? 'sit' : 'stand', moving = !a.sit && a.path.length > 0;
+  if (!a.sit || a.sit.kind === 'floor'){ g.fillStyle = 'rgba(30,15,10,.28)'; g.fillRect(x - 10, y - 1, 20, 2); g.fillRect(x - 8, y + 1, 16, 1); }
+  if (!charReady) return;
+  const ch = chOf(a), col = charCol(a.dir, Math.floor(a.walk * 8), pose, moving), feet = charFeet(ch, col);
+  g.drawImage(CHAR_ATLAS, col * CELL, ch * CELL, CELL, CELL, x - CELL / 2, y - feet - 1, CELL, CELL);
 }

@@ -145,7 +145,7 @@ body.puzzle-open .ticker{bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0
 #enter .card{width:min(560px,100%)}
 #setup.sheet-bg{background:rgba(14,38,44,.55)}
 .enter-grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
-#avPrev{width:140px;height:196px;image-rendering:pixelated;background:linear-gradient(180deg,#e9cd9c 0 58%,#b8773f 58%);border-radius:14px;box-shadow:inset 0 0 0 3px #d9b98a}
+#avPrev{width:168px;height:182px;image-rendering:pixelated;background:linear-gradient(180deg,#e9cd9c 0 58%,#b8773f 58%);border-radius:14px;box-shadow:inset 0 0 0 3px #d9b98a}
 #enter .swatches{gap:6px}
 #enter .sw{width:32px;height:32px}
 @media (max-width:420px){.enter-grid{grid-template-columns:1fr;justify-items:center}.enter-grid .opts{width:100%}}
@@ -197,3 +197,10 @@ input[type=range]{width:100%;accent-color:var(--mint)}
 .mix.on{background:var(--mint-soft)}
 .mix-ic{font-size:22px;text-align:center}
 .mix input,.vol input{width:100%;accent-color:var(--mint);height:28px}
+
+.charpick{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.cpick{display:grid;justify-items:center;gap:2px;padding:6px 2px 6px;border-radius:12px;background:#f3e6d2;box-shadow:0 2px 0 #dccab0}
+.cpick canvas{width:64px;height:64px;image-rendering:pixelated;max-width:100%}
+.cpick small{font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cpick[aria-pressed="true"]{background:#fbe3c2;box-shadow:inset 0 0 0 2px var(--accent),0 2px 0 #dccab0}
+@media (max-width:420px){ .charpick{grid-template-columns:repeat(3,minmax(0,1fr))} }

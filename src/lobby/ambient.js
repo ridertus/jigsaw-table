@@ -332,7 +332,7 @@ function drawEmojis(g){
   Room.emos.forEach(m => {
     const a = m.k === ME.id ? Room.me : Room.others.get(m.k); if (!a) return;
     const p = (now - m.t0) / 2400, n = counts.get(m.k) || 0; counts.set(m.k, n + 1);
-    const sx = Room.ox + a.x * Room.s + m.dx + Math.sin(p * 9) * 4, sy = Room.oy + (a.y - (a.sit ? 42 : 50)) * Room.s - 40 - p * 70;
+    const sx = Room.ox + a.x * Room.s + m.dx + Math.sin(p * 9) * 4, sy = Room.oy + (a.y - 48) * Room.s - 40 - p * 70;
     g.globalAlpha = p < .15 ? p / .15 : Math.min(1, (1 - p) / .35);
     const sc = p < .12 ? .6 + p / .12 * .5 : 1.1 - Math.min(.1, (p - .12));
     g.save(); g.translate(sx, sy); g.scale(sc, sc); g.fillText(m.e, 0, 0); g.restore();

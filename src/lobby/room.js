@@ -217,7 +217,7 @@ function frame(t){
   g.textAlign = 'center'; g.textBaseline = 'bottom';
   const now = Date.now();
   all.forEach(a => {
-    const hgt = a.sit ? 42 : 50, sx = Room.ox + a.x * s, sy = Room.oy + (a.y - hgt) * s;
+    const hgt = 48, sx = Room.ox + a.x * s, sy = Room.oy + (a.y - hgt) * s;
     g.font = '700 12px Nunito, Mitr, system-ui, sans-serif';
     const nw = g.measureText(a.name || '').width + 14;
     g.fillStyle = a === Room.me ? 'rgba(232,154,60,.95)' : 'rgba(26,18,24,.72)';
@@ -271,14 +271,14 @@ function sendPos(force){
   if (!S.chan || !Room.me) return;
   const now = Date.now(); if (!force && now - posSent < 3500) return; posSent = now;
   const a = Room.me, d = a.dest || [a.x, a.y];
-  S.chan.send({ type: 'broadcast', event: 'pos', payload: { k: ME.id, name: ME.name, color: ME.color, hair: ME.hair, hc: ME.hc, acc: ME.acc, x: Math.round(a.x), y: Math.round(a.y), tx: Math.round(d[0]), ty: Math.round(d[1]), dir: a.dir, sit: a.sit ? a.sit.id : (a.sitGoal || null), v: 2 } }).catch(() => {});
+  S.chan.send({ type: 'broadcast', event: 'pos', payload: { k: ME.id, name: ME.name, color: ME.color, ch: ME.ch, x: Math.round(a.x), y: Math.round(a.y), tx: Math.round(d[0]), ty: Math.round(d[1]), dir: a.dir, sit: a.sit ? a.sit.id : (a.sitGoal || null), v: 2 } }).catch(() => {});
 }
 setInterval(() => sendPos(false), 4000);
 function onPos(m){
   if (!m || m.k === ME.id || m.v !== 2) return; // v1 clients use the old, smaller room
   let a = Room.others.get(m.k);
   if (!a){ a = makeAvatar(m.k, m.name, m.color, m.hair, m.x, m.y); Room.others.set(m.k, a); }
-  a.name = m.name; a.color = m.color; a.hair = m.hair || 0; a.hc = m.hc == null ? null : m.hc; a.acc = m.acc || 0; a.seen = Date.now();
+  a.name = m.name; a.color = m.color; a.ch = m.ch; a.seen = Date.now();
   const seat = m.sit && SEATS[m.sit];
   if (seat){
     if (a.sit === seat) return;
