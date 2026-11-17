@@ -53,4 +53,7 @@ import base64, json as _json
 _atlas = base64.b64encode((root / 'assets' / 'chars' / 'chars.png').read_bytes()).decode()
 html = html.replace("CHAR_ATLAS.src = 'assets/chars/chars.png';", "CHAR_ATLAS.src = 'data:image/png;base64," + _atlas + "';")
 html = html.replace("/*CHAR_FEET*/null", _json.dumps(_json.loads((root / 'assets' / 'chars' / 'chars.json').read_text())['feet']))
+_cats = base64.b64encode((root / 'assets' / 'chars' / 'cats.png').read_bytes()).decode()
+html = html.replace("CAT_ATLAS.src = 'assets/chars/cats.png';", "CAT_ATLAS.src = 'data:image/png;base64," + _cats + "';")
+html = html.replace("/*CAT_FEET*/null", _json.dumps(_json.loads((root / 'assets' / 'chars' / 'cats.json').read_text())['feet']))
 (root / 'lobby.html').write_text(html, encoding="utf-8")
