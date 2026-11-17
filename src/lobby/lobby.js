@@ -65,7 +65,7 @@ async function loadHistory(){
 
 /* ---------- radio ---------- */
 const Radio = {
-  st: {}, player: null, ready: false, apiLoading: false, muted: true, small: LS.get('jt-mini-small', false), folded: LS.get('jt-mini-fold', false), vol: LS.get('jt-vol', 80), lastLoaded: null, liveMode: false, lastSeekAt: 0, lastLiveAnchorAt: 0, lastLiveCorrectionAt: 0, pausedLiveSyncKey: '',
+  st: {}, player: null, ready: false, apiLoading: false, muted: true, small: LS.get('jt-mini-small', false), folded: LS.get('jt-mini-fold', false), tv: LS.get('jt-tv', true), vol: LS.get('jt-vol', 80), lastLoaded: null, liveMode: false, lastSeekAt: 0, lastLiveAnchorAt: 0, lastLiveCorrectionAt: 0, pausedLiveSyncKey: '',
   isPlaying(){ return !!(this.st.vid && this.st.playing); },
   canControl(){ return L.mode === 'all' || L.isOwner; },
   expected(){ const s = this.st; if (!s.vid) return 0; return s.playing ? (s.pos || 0) + Math.max(0, serverNow() - (s.at || 0)) / 1000 : (s.pos || 0); },
@@ -212,7 +212,8 @@ const Radio = {
   render(){
     const s = this.st;
     $('#unmuteBtn').hidden = !(s.vid && this.muted);
-    $('#miniTitle').textContent = s.vid ? this.title() : '';
+    $('#miniTitle').textContent = s.vid ? ((this.tv && this.muted ? 'แตะเพื่อเปิดเสียง · ' : '') + this.title()) : '';
+    $('#mini').classList.toggle('tv', this.tv && !!s.vid); $('#miniTv').setAttribute('aria-pressed', !!this.tv);
     $('#miniPlay').innerHTML = s.playing ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
     $('#mini').classList.toggle('small', this.small);
     $('#mini').classList.toggle('folded', this.folded); $('#mini').classList.toggle('on', !!s.playing);
@@ -297,6 +298,7 @@ $('#miniPlay').onclick = () => Radio.toggle();
 $('#rdNext').onclick = () => Radio.next();
 $('#miniOpen').onclick = () => Radio.openPanel();
 $('#miniFold').onclick = $('#miniFab').onclick = () => { Radio.folded = !Radio.folded; LS.set('jt-mini-fold', Radio.folded); Radio.render(); };
+$('#miniTv').onclick = () => { Radio.tv = !Radio.tv; LS.set('jt-tv', Radio.tv); Radio.render(); };
 $('#miniSize').onclick = () => { Radio.small = !Radio.small; LS.set('jt-mini-small', Radio.small); Radio.render(); };
 $('#unmuteBtn').onclick = () => Radio.userGesture();
 $('#rdClose').onclick = () => { $('#radio').hidden = true; };

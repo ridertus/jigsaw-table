@@ -460,6 +460,7 @@ function drawTable(g, t){
 }
 function drawTvScreen(g, t){
   const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  if (Radio.tv && Radio.st.vid){ R(16, 106, 48, 32, '#0b1018'); return; }
   const live = typeof DG !== 'undefined' && DG.mineRoom;
   // a little landscape with a play button (like a paused video), or the game logo when you're in a room
   R(16, 106, 48, 20, '#7cc4ec'); R(16, 118, 48, 8, '#bfe6f6');

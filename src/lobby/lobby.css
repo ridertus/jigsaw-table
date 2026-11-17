@@ -110,31 +110,43 @@ body.puzzle-open .chatlog,body.draw-open .chatlog{display:none}
 body.puzzle-open .chatpanel.expanded .chatlog,body.draw-open .chatpanel.expanded .chatlog{display:flex;position:absolute;left:12px;bottom:calc(var(--chatH) + 120px);width:min(340px, calc(100vw - 24px));max-height:min(36vh,300px);background:var(--hud-2);border:1.5px solid var(--hud-b);padding:8px;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.4)}
 body.puzzle-open .chatbar,body.draw-open .chatbar{height:44px}
 
-/* radio mini player */
-.mini{position:absolute;right:max(12px, env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 62px);z-index:38;width:216px;border-radius:14px;padding:8px;
-  background:rgba(255,250,241,.97);box-shadow:0 10px 24px rgba(0,0,0,.3);display:grid;gap:6px;color:var(--ink)}
-.yt-wrap{position:relative;width:200px;height:113px;border-radius:8px;overflow:hidden;background:#000}
-.mini.small{width:146px}
-.mini.small .yt-wrap{width:130px;height:73px}
+/* radio mini player: dark HUD panel like the dock/chat; with "TV mode" the video plays on the TV in the room and only the control row stays */
+.mini{position:absolute;right:max(12px, env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 62px);z-index:38;width:232px;border-radius:14px;padding:8px;
+  background:rgba(46,30,32,.97);border:1.5px solid var(--hud-b);box-shadow:0 8px 22px rgba(0,0,0,.4);display:grid;gap:8px;color:var(--hud-ink)}
+.yt-wrap{position:relative;width:214px;height:120px;border-radius:8px;overflow:hidden;background:#000;box-shadow:0 0 0 2px #2b1a14}
+.mini.small{width:178px}
+.mini.small .yt-wrap{width:160px;height:90px}
 .yt-wrap iframe,#ytHost{width:100%;height:100%;display:block;border:0}
-.unmute{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(0,0,0,.55);color:#fff;font-weight:700;font-size:14px}
-.unmute svg{width:22px;height:22px}
+.unmute{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(20,12,14,.62);color:var(--hud-ink);font-weight:800;font-size:14px}
+.unmute svg{width:22px;height:22px;color:var(--accent)}
 /* minmax(0,1fr) + min-width:0: otherwise a long video title widens the grid track and pushes the buttons out of the box */
 .mini{grid-template-columns:minmax(0,1fr)}
-.mini-row{display:flex;align-items:center;gap:4px;min-width:0}
-.mini-btn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--mint-ink);background:var(--mint-soft);flex:none}
+.mini-row{display:flex;align-items:center;gap:3px;min-width:0}
+.mini-btn{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--hud-ink);background:rgba(255,244,230,.1);flex:none;transition:background .15s, transform .1s}
+.mini-btn:hover{background:rgba(255,240,220,.2)}
+.mini-btn:active{transform:translateY(1px)}
 .mini-btn svg{width:16px;height:16px}
-.mini-title{flex:1;min-width:0;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-btn[aria-pressed="true"]{background:rgba(232,154,60,.32);color:#ffd79a}
+#miniPlay{background:var(--accent);color:#2b1a14;box-shadow:0 2px 0 var(--accent-ink)}
+#miniPlay:active{transform:translateY(1px);box-shadow:none}
+.mini-title{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--hud-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
 .mini.small .mini-title{display:none}
-/* folded: only a round music button shows; the iframe keeps playing off-screen (never display:none, or YouTube may stop) */
+/* folded: only the radio icon shows; the iframe keeps playing off-screen (never display:none, or YouTube may stop) */
 .mini-fab{display:none}
-.mini.folded{width:auto;padding:0;background:none;box-shadow:none}
+.mini.folded{width:auto;padding:0;background:none;border:0;box-shadow:none}
 .mini.folded .mini-row{display:none}
 .mini.folded .yt-wrap{position:absolute;left:-10000px;top:0}
-.mini.folded .mini-fab{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#fff;color:var(--mint-ink);box-shadow:0 3px 0 #bfe3dd,0 8px 16px rgba(0,0,0,.3)}
-.mini.folded .mini-fab svg{width:24px;height:24px}
-.mini.folded.on .mini-fab{background:var(--mint);color:#fff;box-shadow:0 3px 0 var(--mint-ink),0 8px 16px rgba(0,0,0,.3);animation:fabBeat 1.6s ease-in-out infinite}
+.mini.folded .mini-fab{display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:var(--hud);border:1.5px solid var(--hud-b);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.mini-fab canvas.px{width:36px;height:36px}
+.mini.folded.on .mini-fab{border-color:var(--accent);box-shadow:0 0 0 2px rgba(232,154,60,.35),0 8px 20px rgba(0,0,0,.4);animation:fabBeat 1.6s ease-in-out infinite}
 @keyframes fabBeat{50%{transform:scale(1.07)}}
+/* TV mode: .yt-wrap is a fixed 320x180 box that frame() scales/moves onto the TV screen (YouTube wants >=200px, so we scale instead of shrinking) */
+.mini.tv:not(.folded){width:204px}
+.mini.tv .yt-wrap,.mini.tv.folded .yt-wrap{position:fixed;left:0;top:0;width:320px;height:180px;border-radius:0;box-shadow:none;transform-origin:0 0;pointer-events:none;background:#0b1018}
+.mini.tv .yt-wrap iframe,.mini.tv #ytHost{width:320px;height:180px;pointer-events:none}
+.mini.tv .yt-wrap::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.16) 0 14%,transparent 14%),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5))}
+.mini.tv .unmute,.mini.tv #miniSize{display:none}
+body.puzzle-open .mini.tv .yt-wrap,body.draw-open .mini.tv .yt-wrap{transform:translate(-10000px,0)!important}
 
 /* puzzle overlay */
 #game{position:fixed;left:0;right:0;top:0;bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px));height:auto;z-index:30;background:var(--night);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);

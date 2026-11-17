@@ -207,6 +207,7 @@ function frame(t){
   if (rw <= W) fx = (W - rw) / 2;
   else { const target = clamp(W / 2 - ((Room.me ? Room.me.x : LW / 2) + PAD) * s, W - rw, 0); Room.cam += (target - Room.cam) * Math.min(1, dt * 6); fx = Room.cam; }
   Room.ox = fx + PAD * s; Room.oy = top + Math.max(0, (availH - rh) / 2) + PAD * s;
+  placeTv();
   const g = rg; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingEnabled = false;
   g.fillStyle = '#140d10'; g.fillRect(0, 0, W, H);
   g.save(); g.translate(Math.round(Room.ox), Math.round(Room.oy)); g.scale(s, s);
@@ -234,6 +235,14 @@ function frame(t){
   });
   drawEmojis(g);
   requestAnimationFrame(frame);
+}
+/* TV mode: the YouTube iframe wrapper is moved/scaled onto the TV screen (room px x16..64, y106..138; video is 16:9 so 48x27 with black bars) */
+let tvKey = '';
+function placeTv(){
+  if (!Radio.tv || !Radio.st.vid){ if (tvKey){ tvKey = ''; $('#ytWrap').style.transform = ''; } return; }
+  const r = roomCv.getBoundingClientRect(), k = 48 * Room.s / 320;
+  const x = Math.round(r.left + Room.ox + 16 * Room.s), y = Math.round(r.top + Room.oy + 108.5 * Room.s), key = x + ',' + y + ',' + k.toFixed(4);
+  if (key !== tvKey){ tvKey = key; $('#ytWrap').style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + k + ')'; }
 }
 function roundRect(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 function wrapText(g, text, maxW){
