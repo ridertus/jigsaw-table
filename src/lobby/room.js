@@ -217,7 +217,7 @@ function frame(t){
   g.textAlign = 'center'; g.textBaseline = 'bottom';
   const now = Date.now();
   all.forEach(a => {
-    const hgt = a.sit ? 30 : 36, sx = Room.ox + a.x * s, sy = Room.oy + (a.y - hgt) * s;
+    const hgt = a.sit ? 42 : 50, sx = Room.ox + a.x * s, sy = Room.oy + (a.y - hgt) * s;
     g.font = '700 12px Nunito, Mitr, system-ui, sans-serif';
     const nw = g.measureText(a.name || '').width + 14;
     g.fillStyle = a === Room.me ? 'rgba(232,154,60,.95)' : 'rgba(26,18,24,.72)';

@@ -82,6 +82,7 @@ function booksArt(g, x, y, w, h, seed){
 }
 function mugArt(g, x, y, c){ const { R, O } = kit(g); O(x, y, 6, 6, c); R(x + 1, y + 1, 4, 1, P.white); R(x + 1, y + 1, 4, 1, '#6b3f22'); R(x + 6, y + 2, 2, 3, P.out); R(x + 6, y + 3, 1, 1, c); }
 
+const FAIRY = []; // fairy-light bulb positions, filled by paintRoom
 /* ---- the background (wall, floor, flat decor) ---- */
 function paintRoom(){
   const g = bg.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -134,6 +135,17 @@ function paintRoom(){
   R(55, 8, 1, 12, P.ink); R(52, 18, 7, 1, P.ink);
   plantArt(g, 55, 32, 9, 21, 9);
   for (let i = 0; i < 3; i++){ const vx = 50 + i * 4; for (let y = 32; y < 46 + i * 4; y += 3) R(vx + (y % 6 ? 0 : 1), y, 2, 2, (y / 3) % 2 ? P.leaf : P.leafD); }
+  // small framed landscape between the clock and the sign
+  O(98, 10, 36, 26, P.woodD); R(100, 12, 32, 22, '#9fd0e8'); R(100, 24, 32, 10, '#7fb860'); R(100, 30, 32, 4, '#5a9a48');
+  for (let i = 0; i < 32; i++){ const h = Math.round(4 + Math.sin(i * .45) * 3); R(100 + i, 24 - h, 1, h, '#7a8cb8'); }
+  R(122, 15, 4, 4, '#fff1b8'); R(102, 30, 6, 2, '#82c25e'); R(101, 11, 32, 1, P.woodL);
+  // second hanging plant between the cat picture and the pendant lamp
+  R(390, 8, 1, 12, P.ink); plantArt(g, 390, 30, 8, 44, 8);
+  for (let i = 0; i < 3; i++){ const vx = 385 + i * 5; for (let y = 30; y < 50 + i * 5; y += 3) R(vx + (y % 6 ? 0 : 1), y, 2, 2, (y / 3) % 2 ? P.leaf : P.leafD); }
+  // fairy lights along the top beam (they glow at night, see drawRoomLight)
+  for (let x = 0; x < LW; x++){ const k = (x % 66) / 66, y = 9 + Math.round(Math.sin(k * Math.PI) * 5); R(x, y, 1, 1, '#3a2a20'); }
+  FAIRY.length = 0;
+  for (let x = 6; x < LW; x += 11){ const k = (x % 66) / 66, y = 10 + Math.round(Math.sin(k * Math.PI) * 5); R(x, y, 2, 2, ['#ffe28a', '#ffb870', '#ffd0a0'][x % 3]); FAIRY.push([x + 1, y + 1]); }
   // cat picture above the side table
   O(352, 20, 26, 24, P.woodD); R(354, 22, 22, 20, '#f2d7a8'); R(354, 36, 22, 6, '#e7b77e');
   E(365, 32, 6, 5, P.orange); R(359, 26, 3, 3, P.out); R(368, 26, 3, 3, P.out); R(360, 27, 1, 1, P.orange); R(369, 27, 1, 1, P.orange);
@@ -166,6 +178,13 @@ function paintRoom(){
   for (let k = 0; k < 4; k++) E(98, 236, 44 - k * 10, 23 - k * 5, k % 2 ? '#d9b28a' : '#a77a58', false);
   E(98, 236, 6, 3, P.cream, false);
 
+  // soft contact shadows under furniture
+  const blob = (cx, cy, rx, ry, a) => { g.save(); g.translate(cx, cy); g.scale(1, ry / rx); const gr = g.createRadialGradient(0, 0, 0, 0, 0, rx); gr.addColorStop(0, `rgba(40,18,8,${a})`); gr.addColorStop(.65, `rgba(40,18,8,${a * .55})`); gr.addColorStop(1, 'rgba(40,18,8,0)'); g.fillStyle = gr; g.fillRect(-rx, -rx, rx * 2, rx * 2); g.restore(); };
+  const band = (x0, x1, y, h, a) => { const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, `rgba(40,18,8,${a})`); gr.addColorStop(1, 'rgba(40,18,8,0)'); g.fillStyle = gr; g.fillRect(x0, y, x1 - x0, h); };
+  band(2, 52, 120, 14, .45); band(54, 188, 118, 14, .45); band(188, 348, 120, 18, .5); band(350, 384, 118, 10, .35);
+  blob(397, 121, 14, 4, .45); blob(458, 128, 34, 5, .35); blob(512, 121, 16, 4, .45);
+  band(2, 78, 186, 12, .45); blob(102, 222, 30, 9, .5); blob(91, 262, 24, 6, .45); blob(32, 268, 30, 7, .4);
+  blob(264, 232, 82, 12, .5); band(482, 528, 230, 12, .45); blob(510, 286, 14, 4, .45);
   // floor cushions (zabuton)
   const cushion = (cx, cy, c, cl, cd) => {
     RR(cx - 13, cy - 8, 26, 18, 4, cd); RR(cx - 12, cy - 8, 24, 14, 4, c, false); R(cx - 9, cy - 7, 18, 1, cl);
@@ -294,14 +313,13 @@ function buildProps(){
   }));
   // side table with cat figurine
   list.push(makeProp('side', 348, 66, 36, 58, 121, g => {
-    const { R, O, B, E } = kit(g);
+    const { R, O, B, E, RR } = kit(g);
     B(350, 96, 32, 5, 4, P.woodT, P.wood); R(353, 105, 3, 15, P.out); R(377, 105, 3, 15, P.out); R(354, 105, 1, 14, P.woodD); R(378, 105, 1, 14, P.woodD);
     R(354, 114, 26, 3, P.woodD);
     // cat figurine
     E(360, 92, 6, 5, P.white); R(355, 84, 3, 4, P.out); R(363, 84, 3, 4, P.out); R(356, 85, 1, 3, P.white); R(364, 85, 1, 3, P.white); E(360, 88, 5, 4, P.white);
     R(357, 88, 1, 1, P.out); R(362, 88, 1, 1, P.out); R(359, 90, 2, 1, P.pink);
-    mugArt(g, 368, 90, P.teal);
-    plantArt(g, 376, 96, 6, 5, 6);
+    R(373, 84, 2, 12, P.out); R(372, 94, 6, 2, P.woodD); RR(366, 74, 16, 11, 2, '#f3dcae'); R(368, 76, 12, 2, '#fff1c8'); R(366, 84, 16, 1, '#c9a873');
   }));
   // standing fan
   list.push(makeProp('fan', 382, 46, 30, 78, 122, g => {
@@ -481,7 +499,7 @@ function outlineSprite(c){
   }
   d.data.set(out); g.putImageData(d, 0, 0);
 }
-const SPR_W = 26, SPR_H = 42;
+const SPR_W = 36, SPR_H = 54;
 function charSprite(look, dir, frame, pose){
   const key = [look.color, look.hair, look.hc, look.acc, dir, frame, pose].join('|');
   let c = spriteCache.get(key); if (c) return c;
@@ -493,7 +511,7 @@ function charSprite(look, dir, frame, pose){
 }
 function drawAvatar(g, a, t){
   const x = Math.round(a.x), y = Math.round(a.y), pose = a.sit ? 'sit' : 'stand';
-  if (!a.sit || a.sit.kind === 'floor'){ g.fillStyle = 'rgba(30,15,10,.28)'; g.fillRect(x - 7, y - 1, 14, 2); g.fillRect(x - 5, y + 1, 10, 1); }
+  if (!a.sit || a.sit.kind === 'floor'){ g.fillStyle = 'rgba(30,15,10,.28)'; g.fillRect(x - 9, y - 1, 18, 2); g.fillRect(x - 7, y + 1, 14, 1); }
   const frame = a.path.length ? Math.floor(a.walk * 9) % 4 : (pose === 'stand' && Math.floor((t + hashStr(a.k + '') % 1000) / 700) % 6 === 0 ? 4 : 0);
   g.drawImage(charSprite(a, a.dir, frame, pose), x - SPR_W / 2, y - SPR_H + 2);
 }

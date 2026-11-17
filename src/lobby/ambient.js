@@ -233,7 +233,7 @@ function drawSunbeams(g){
   g.fillStyle = L.weather === 'sun' ? 'rgba(255,246,210,.12)' : 'rgba(255,180,110,.13)';
   g.beginPath(); g.moveTo(204, 84); g.lineTo(330, 84); g.lineTo(400, 240); g.lineTo(250, 240); g.closePath(); g.fill();
 }
-const TINT = { sunset: '#f6cfa8', night: '#86688a', drizzle: '#d8d8de', rain: '#a690a6', storm: '#8c7c98' };
+const TINT = { sunset: '#f8d4ae', night: '#9a7a8c', drizzle: '#dcdce2', rain: '#ad97a8', storm: '#958499' };
 const LIGHT = { sun: 0, sunset: .35, night: 1, drizzle: .25, rain: .75, storm: .75 };
 function drawRoomLight(g, t){
   const w = L.weather, fullW = LW + PAD * 2, fullH = LH + PAD * 2, k = LIGHT[w] || 0;
@@ -254,8 +254,11 @@ function drawRoomLight(g, t){
     glow(80, 23, 20, .14 * k, '255,200,120');
     if (Radio.isPlaying()) glow(118, 44, 50, .4 * k * (1 + Math.sin(t / 200) * .1), '110,190,255');
     glow(267, 46, 80, .14 * k, w === 'night' ? '120,140,220' : '150,170,210');
+    glow(374, 82, 46, .55 * k, '255,200,120');  // side-table lamp
+    FAIRY.forEach(([fx, fy], i) => glow(fx, fy, 9, (.5 + Math.sin(t / 700 + i) * .15) * k, '255,205,130'));
     g.globalCompositeOperation = 'source-over'; g.restore();
   }
+  { const vg = g.createRadialGradient(LW / 2, LH * .55, LH * .35, LW / 2, LH * .55, LW * .62); vg.addColorStop(0, 'rgba(30,12,6,0)'); vg.addColorStop(1, 'rgba(30,12,6,.32)'); g.fillStyle = vg; g.fillRect(-PAD, -PAD, fullW, fullH); }
   if (w === 'storm'){ const f = performance.now() - Wx.flash; if (f < 260){ g.fillStyle = `rgba(230,240,255,${.35 * (1 - f / 260)})`; g.fillRect(-PAD, -PAD, fullW, fullH); } }
 }
 
@@ -329,7 +332,7 @@ function drawEmojis(g){
   Room.emos.forEach(m => {
     const a = m.k === ME.id ? Room.me : Room.others.get(m.k); if (!a) return;
     const p = (now - m.t0) / 2400, n = counts.get(m.k) || 0; counts.set(m.k, n + 1);
-    const sx = Room.ox + a.x * Room.s + m.dx + Math.sin(p * 9) * 4, sy = Room.oy + (a.y - (a.sit ? 30 : 36)) * Room.s - 40 - p * 70;
+    const sx = Room.ox + a.x * Room.s + m.dx + Math.sin(p * 9) * 4, sy = Room.oy + (a.y - (a.sit ? 42 : 50)) * Room.s - 40 - p * 70;
     g.globalAlpha = p < .15 ? p / .15 : Math.min(1, (1 - p) / .35);
     const sc = p < .12 ? .6 + p / .12 * .5 : 1.1 - Math.min(.1, (p - .12));
     g.save(); g.translate(sx, sy); g.scale(sc, sc); g.fillText(m.e, 0, 0); g.restore();

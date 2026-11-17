@@ -156,12 +156,14 @@ function catSprite(coat, pose, frame, happy){
   } else if (pose === 'groom'){
     R(8, 6, 9, 10, C.base); R(9, 10, 5, 6, C.belly); stripes(12, 7, 6); R(16, 13, 5, 3, C.base);
     head(5, 2 + (frame % 2), true); R(6, 8 - (frame % 2), 2, 3, C.base); R(6, 7 - (frame % 2), 2, 1, '#f3a6a0');
-  } else { // sleep: curled up donut
-    const b = frame === 1 ? 1 : 0;
-    R(4, 9 - b, 17, 7 + b, C.base); R(5, 8 - b, 15, 1, C.base); R(6, 9 - b, 13, 1, C.light); stripes(10, 9 - b, 10);
-    R(4, 14, 17, 2, C.dark); R(14, 13, 8, 2, C.base); R(20, 12, 2, 2, C.dark); // tail wrapped round
-    R(3, 10, 8, 5, C.base); R(3, 8, 2, 3, C.base); R(8, 8, 2, 3, C.base); R(4, 9, 1, 1, '#f3a6a0'); R(8, 9, 1, 1, '#f3a6a0');
-    R(4, 12, 2, 1, '#2b1a14'); R(7, 12, 2, 1, '#2b1a14'); R(5, 14, 2, 1, '#f3a6a0');
+  } else { // sleep: curled into a round ball, head resting on the tail
+    const b = frame === 1 ? 1 : 0, E = (cx, cy, rx, ry, col) => { for (let yy = -ry; yy <= ry; yy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (yy / (ry + .5)) ** 2))); R(cx - hw, cy + yy, hw * 2, 1, col); } };
+    E(13, 12 - b, 9, 5 + b, C.base); E(14, 11 - b, 6, 2, C.light);
+    if (coat === 'orange') for (let i = 0; i < 4; i++) R(11 + i * 3, 8 - b, 1, 4, C.mark);
+    if (coat === 'white'){ E(16, 10 - b, 3, 2, C.mark); }
+    R(7, 15, 14, 2, C.base); R(9, 16, 12, 1, coat === 'black' ? '#56505e' : C.dark); R(19, 13, 3, 3, C.dark); // tail wrapped round the front
+    E(7, 13, 4, 3, C.base); R(3, 9, 2, 3, C.base); R(8, 9, 2, 3, C.base); R(3, 10, 1, 1, '#f3a6a0'); R(9, 10, 1, 1, '#f3a6a0'); // head + ears
+    R(5, 13, 2, 1, '#2b1a14'); R(8, 13, 2, 1, '#2b1a14'); R(6, 15, 2, 1, '#f3a6a0'); R(4, 14, 7, 1, C.belly);
   }
   outlineSprite(c);
   catCache.set(key, c); return c;

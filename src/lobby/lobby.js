@@ -21,8 +21,8 @@ function addMsg(m, fresh){
 function nameInk(c){ if (!c || c[0] !== '#') return '#ffd9a8'; const n = parseInt(c.slice(1), 16), l = (n >> 16) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11; return l < 110 ? shade(c, 1.7) : c; }
 /* a little face for the chat log */
 function headIcon(look){
-  const cv = document.createElement('canvas'); cv.width = 20; cv.height = 20;
-  const g = cv.getContext('2d'); g.drawImage(charSprite(look, 0, 0, 'stand'), -3, -7); return cv;
+  const cv = document.createElement('canvas'); cv.width = 34; cv.height = 30;
+  const g = cv.getContext('2d'); g.drawImage(charSprite(look, 0, 0, 'stand'), -1, -2); return cv;
 }
 function ticker(m){
   if (!document.body.matches('.puzzle-open,.draw-open') || $('#chatPanel').classList.contains('expanded')) return;
