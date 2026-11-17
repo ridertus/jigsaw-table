@@ -228,10 +228,11 @@
     <input type="range" id="rdSeek" min="0" max="1000" value="0" aria-label="ตำแหน่งที่กำลังเล่น" hidden>
     <label class="vol" for="rdVol">เสียงในเครื่องนี้ <input type="range" id="rdVol" min="0" max="100" value="80"></label>
     <div class="join">
-      <input class="text" id="rdUrl" placeholder="วางลิงก์ YouTube" inputmode="url" aria-label="ลิงก์ YouTube">
+      <input class="text" id="rdUrl" placeholder="วางลิงก์ YouTube หรือเพลย์ลิสต์" inputmode="url" aria-label="ลิงก์ YouTube หรือเพลย์ลิสต์">
       <button class="btn primary" id="rdPlayNow">เล่นเลย</button>
     </div>
     <button class="btn soft" id="rdQueueAdd">ต่อคิว</button>
+    <label class="rd-shuf"><input type="checkbox" id="rdShuffle"> สุ่มลำดับเพลง (ใช้กับลิงก์เพลย์ลิสต์) · เพิ่มได้สูงสุด 30 เพลงต่อคิว</label>
     <p class="err" id="rdErr" role="alert"></p>
     <div class="lbl">คิวถัดไป</div>
     <ol class="queue" id="rdQueue"></ol>

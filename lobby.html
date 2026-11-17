@@ -417,6 +417,8 @@ body.puzzle-open .ticker{bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0
 .ib-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .now{font-weight:700;font-size:15px;line-height:1.4;overflow-wrap:anywhere}
 .rd-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rd-shuf{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft)}
+.rd-shuf input{width:18px;height:18px;accent-color:var(--accent)}
 .rd-time{margin-left:auto;font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--mint)}
 .vol{display:grid;gap:4px;font-size:13px;color:var(--ink-soft)}
@@ -981,10 +983,11 @@ body.draw-open .ticker{bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0px
     <input type="range" id="rdSeek" min="0" max="1000" value="0" aria-label="ตำแหน่งที่กำลังเล่น" hidden>
     <label class="vol" for="rdVol">เสียงในเครื่องนี้ <input type="range" id="rdVol" min="0" max="100" value="80"></label>
     <div class="join">
-      <input class="text" id="rdUrl" placeholder="วางลิงก์ YouTube" inputmode="url" aria-label="ลิงก์ YouTube">
+      <input class="text" id="rdUrl" placeholder="วางลิงก์ YouTube หรือเพลย์ลิสต์" inputmode="url" aria-label="ลิงก์ YouTube หรือเพลย์ลิสต์">
       <button class="btn primary" id="rdPlayNow">เล่นเลย</button>
     </div>
     <button class="btn soft" id="rdQueueAdd">ต่อคิว</button>
+    <label class="rd-shuf"><input type="checkbox" id="rdShuffle"> สุ่มลำดับเพลง (ใช้กับลิงก์เพลย์ลิสต์) · เพิ่มได้สูงสุด 30 เพลงต่อคิว</label>
     <p class="err" id="rdErr" role="alert"></p>
     <div class="lbl">คิวถัดไป</div>
     <ol class="queue" id="rdQueue"></ol>
@@ -5443,7 +5446,7 @@ const Radio = {
       return true;
     } catch(e){ this.apply(prev); toast('เปลี่ยนวิทยุไม่สำเร็จ'); refreshLobby(); return false; }
   },
-  play(vid, title, liveHint){ this.set({ vid, title: title || '', playing: true, pos: 0, at: serverNow(), live_hint: !!liveHint, live_leader: ME.id, queue: this.st.queue || [] }); this.userGesture(); },
+  play(vid, title, liveHint, queue){ this.set({ vid, title: title || '', playing: true, pos: 0, at: serverNow(), live_hint: !!liveHint, live_leader: ME.id, queue: (queue || this.st.queue || []).slice(0, 30) }); this.userGesture(); },
   toggle(){ const s = this.st; if (!s.vid) return; let pos = this.expected(); if (this.liveMode && this.ready){ try { const t = this.player.getCurrentTime(); if (Number.isFinite(t)) pos = t; } catch(e){} } this.set({ ...s, live_hint: this.liveMode || !!s.live_hint, live_leader: s.live_leader || this.liveLeaderId(), playing: !s.playing, pos, at: serverNow() }); this.userGesture(); },
   seek(sec){ const s = this.st; if (!s.vid || this.liveMode) return; this.lastSeekAt = 0; this.set({ ...s, pos: Math.max(0, sec), at: serverNow() }); },
   next(fromVid){
@@ -5464,19 +5467,75 @@ function parseYouTube(u){
 async function fetchTitle(vid){
   try { const r = await fetch('https://noembed.com/embed?url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + vid)); const j = await r.json(); return (j && j.title) || ''; } catch(e){ return ''; }
 }
+/* ---- playlists: the shared radio state only knows a video + a queue of videos, so a playlist link is expanded into queue items.
+   No API key: a hidden YouTube player loads the list and getPlaylist() tells us the video ids. */
+function parseYouTubeList(u){ const m = String(u || '').match(/[?&]list=([\w-]+)/); return m ? m[1] : null; }
+function ytApiReady(){
+  return new Promise(res => {
+    if (window.YT && YT.Player) return res(true);
+    Radio.loadApi(); let n = 0;
+    const t = setInterval(() => { if (window.YT && YT.Player){ clearInterval(t); res(true); } else if (++n > 50){ clearInterval(t); res(false); } }, 200);
+  });
+}
+async function fetchPlaylistIds(list){
+  if (!(await ytApiReady())) return null;
+  return new Promise(res => {
+    const box = document.createElement('div'); box.style.cssText = 'position:fixed;left:-10000px;top:0;width:200px;height:200px';
+    const host = document.createElement('div'); box.appendChild(host); document.body.appendChild(box);
+    let p, done = false, tries = 0, poll;
+    const fin = ids => { if (done) return; done = true; clearInterval(poll); try { p && p.destroy(); } catch(e){} box.remove(); res(ids && ids.length ? ids : null); };
+    try {
+      p = new YT.Player(host, { width: 200, height: 200, playerVars: { listType: 'playlist', list, playsinline: 1, origin: location.origin },
+        events: { onReady: () => { try { p.mute(); } catch(e){} poll = setInterval(() => { let ids = null; try { ids = p.getPlaylist(); } catch(e){} if (ids && ids.length) fin(ids); else if (++tries > 30) fin(null); }, 300); },
+                  onError: () => fin(null) } });
+    } catch(e){ fin(null); }
+    setTimeout(() => fin(null), 12000);
+  });
+}
+/* link -> { ids, note }. A plain video link gives one id; a link with list= gives the whole list (from the clicked video onward, optionally shuffled).
+   If the list can't be opened (YouTube "Mix" lists often can't be embedded) we fall back to the single video: v=..., or the seed of an RD+videoId mix. */
+async function resolveRadioInput(raw){
+  const list = parseYouTubeList(raw), v = parseYouTube(raw), single = v || (list && (list.match(/^RD([\w-]{11})$/) || [])[1]) || null;
+  if (!list) return { ids: single ? [single] : [], note: '' };
+  toast('กำลังโหลดเพลย์ลิสต์…');
+  let ids = await fetchPlaylistIds(list); ids = ids && ids.filter(id => /^[\w-]{11}$/.test(id));
+  if (!ids || !ids.length) return { ids: single ? [single] : [], note: single ? 'เปิดทั้งเพลย์ลิสต์ไม่ได้ (Mix ของ YouTube มักฝังไม่ได้) เลยใช้เฉพาะเพลงต้นทางแทน' : '' };
+  if ($('#rdShuffle').checked){ for (let i = ids.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } }
+  else if (v){ const i = ids.indexOf(v); if (i > 0) ids = ids.slice(i).concat(ids.slice(0, i)); }
+  return { ids, note: '' };
+}
+async function fillQueueTitles(ids){ // titles for queue items arrive later so playing starts right away
+  const titles = {}; await Promise.all(ids.map(async id => { titles[id] = await fetchTitle(id); }));
+  const q = (Radio.st.queue || []);
+  if (q.some(it => !it.title && titles[it.vid])) Radio.set({ ...Radio.st, queue: q.map(it => it.title || !titles[it.vid] ? it : { ...it, title: titles[it.vid] }) });
+}
 $('#rdPlayNow').onclick = async () => {
-  const raw = $('#rdUrl').value, vid = parseYouTube(raw), liveHint = isYouTubeLiveUrl(raw); $('#rdErr').textContent = '';
-  if (!vid){ $('#rdErr').textContent = 'ลิงก์นี้ไม่ใช่ลิงก์ YouTube ลองคัดลอกลิงก์จากปุ่มแชร์ของ YouTube'; return; }
-  $('#rdUrl').value = ''; Radio.play(vid, '', liveHint); const t = await fetchTitle(vid); if (t && Radio.st.vid === vid && !Radio.st.title) Radio.set({ ...Radio.st, title: t, pos: Radio.liveMode ? (Radio.player.getCurrentTime() || 0) : Radio.expected(), at: serverNow() });
+  const raw = $('#rdUrl').value, liveHint = isYouTubeLiveUrl(raw); $('#rdErr').textContent = '';
+  const { ids, note } = await resolveRadioInput(raw);
+  if (!ids.length){ $('#rdErr').textContent = parseYouTubeList(raw) ? 'เปิดเพลย์ลิสต์นี้ไม่ได้ (อาจเป็นลิสต์ส่วนตัว หรือเจ้าของไม่อนุญาตให้ฝัง) ลองวางลิงก์คลิปเดี่ยวแทน' : 'ลิงก์นี้ไม่ใช่ลิงก์ YouTube ลองคัดลอกลิงก์จากปุ่มแชร์ของ YouTube'; return; }
+  $('#rdUrl').value = ''; if (note) toast(note);
+  const [vid, ...rest] = ids, queue = [...rest.map(id => ({ vid: id, title: '', live_hint: false })), ...(Radio.st.queue || [])];
+  if (queue.length > 30) toast('คิวเต็ม 30 เพลง เพลงท้าย ๆ ถูกตัดออก');
+  Radio.play(vid, '', liveHint && !rest.length, queue);
+  const t = await fetchTitle(vid); if (t && Radio.st.vid === vid && !Radio.st.title) Radio.set({ ...Radio.st, title: t, pos: Radio.liveMode ? (Radio.player.getCurrentTime() || 0) : Radio.expected(), at: serverNow() });
+  if (rest.length) fillQueueTitles(rest.slice(0, 30));
 };
 $('#rdQueueAdd').onclick = async () => {
-  const raw = $('#rdUrl').value, vid = parseYouTube(raw), liveHint = isYouTubeLiveUrl(raw); $('#rdErr').textContent = '';
-  if (!vid){ $('#rdErr').textContent = 'ลิงก์นี้ไม่ใช่ลิงก์ YouTube ลองคัดลอกลิงก์จากปุ่มแชร์ของ YouTube'; return; }
-  $('#rdUrl').value = '';
-  const title = await fetchTitle(vid);
-  if (!Radio.st.vid){ Radio.play(vid, title, liveHint); return; }
-  Radio.set({ ...Radio.st, pos: Radio.expected(), at: serverNow(), queue: [...(Radio.st.queue || []), { vid, title, live_hint: liveHint }].slice(0, 30) });
-  toast('เพิ่มเข้าคิวแล้ว');
+  const raw = $('#rdUrl').value, liveHint = isYouTubeLiveUrl(raw); $('#rdErr').textContent = '';
+  const { ids, note } = await resolveRadioInput(raw);
+  if (!ids.length){ $('#rdErr').textContent = parseYouTubeList(raw) ? 'เปิดเพลย์ลิสต์นี้ไม่ได้ (อาจเป็นลิสต์ส่วนตัว หรือเจ้าของไม่อนุญาตให้ฝัง) ลองวางลิงก์คลิปเดี่ยวแทน' : 'ลิงก์นี้ไม่ใช่ลิงก์ YouTube ลองคัดลอกลิงก์จากปุ่มแชร์ของ YouTube'; return; }
+  $('#rdUrl').value = ''; if (note) toast(note);
+  if (ids.length === 1){ // single video: titled before it joins the queue, as before
+    const title = await fetchTitle(ids[0]);
+    if (!Radio.st.vid){ Radio.play(ids[0], title, liveHint); return; }
+    Radio.set({ ...Radio.st, pos: Radio.expected(), at: serverNow(), queue: [...(Radio.st.queue || []), { vid: ids[0], title, live_hint: liveHint }].slice(0, 30) });
+    toast(note ? note + ' · เพิ่มเข้าคิวแล้ว' : 'เพิ่มเข้าคิวแล้ว'); return;
+  }
+  if (!Radio.st.vid){ const [vid, ...rest] = ids; Radio.play(vid, '', false, rest.map(id => ({ vid: id, title: '', live_hint: false }))); fillQueueTitles(rest.slice(0, 30)); toast('เพิ่ม ' + Math.min(ids.length, 31) + ' เพลงแล้ว'); return; }
+  const room = 30 - (Radio.st.queue || []).length, add = ids.slice(0, Math.max(0, room));
+  if (!add.length){ toast('คิวเต็ม 30 เพลงแล้ว'); return; }
+  Radio.set({ ...Radio.st, pos: Radio.expected(), at: serverNow(), queue: [...(Radio.st.queue || []), ...add.map(id => ({ vid: id, title: '', live_hint: false }))] });
+  toast('เพิ่ม ' + add.length + ' เพลงเข้าคิวแล้ว' + (add.length < ids.length ? ' (คิวเต็ม 30)' : '')); fillQueueTitles(add);
 };
 $('#rdPlay').onclick = () => Radio.toggle();
 $('#miniPlay').onclick = () => Radio.toggle();

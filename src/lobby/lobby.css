@@ -180,6 +180,8 @@ body.puzzle-open .ticker{bottom:calc(var(--chatH) + env(safe-area-inset-bottom,0
 .ib-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .now{font-weight:700;font-size:15px;line-height:1.4;overflow-wrap:anywhere}
 .rd-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rd-shuf{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft)}
+.rd-shuf input{width:18px;height:18px;accent-color:var(--accent)}
 .rd-time{margin-left:auto;font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--mint)}
 .vol{display:grid;gap:4px;font-size:13px;color:var(--ink-soft)}
