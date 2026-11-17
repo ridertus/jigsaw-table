@@ -32,9 +32,9 @@ const FURN = [
 ];
 /* places to sit: x,y = where the avatar's feet anchor, z = draw order (so a sofa never covers its sitter) */
 const SEATS = {
-  so1: { x: 228, y: 117, dir: 0, z: 128, kind: 'sofa' }, so2: { x: 254, y: 117, dir: 0, z: 128, kind: 'sofa' },
-  so3: { x: 280, y: 117, dir: 0, z: 128, kind: 'sofa' }, so4: { x: 306, y: 117, dir: 0, z: 128, kind: 'sofa' },
-  bean: { x: 102, y: 214, dir: 0, z: 228, kind: 'bean' },
+  so1: { x: 228, y: 109, dir: 0, z: 128, kind: 'sofa' }, so2: { x: 254, y: 109, dir: 0, z: 128, kind: 'sofa' },
+  so3: { x: 280, y: 109, dir: 0, z: 128, kind: 'sofa' }, so4: { x: 306, y: 109, dir: 0, z: 128, kind: 'sofa' },
+  bean: { x: 102, y: 210, dir: 0, z: 228, kind: 'bean' },
   cuL: { x: 178, y: 206, dir: 3, kind: 'floor' }, cuR: { x: 351, y: 206, dir: 2, kind: 'floor' },
   cuB1: { x: 240, y: 254, dir: 1, kind: 'floor' }, cuB2: { x: 290, y: 254, dir: 1, kind: 'floor' },
   cuT: { x: 264, y: 162, dir: 0, kind: 'floor' }

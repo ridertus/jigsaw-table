@@ -62,7 +62,7 @@ function buildEnter(){
   const box = $('#charPick'); box.innerHTML = '';
   CHARS.forEach((c, i) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'cpick'; b.setAttribute('aria-pressed', i === ME.ch); b.title = c.name;
-    const cv = document.createElement('canvas'); cv.width = 48; cv.height = 48; cv.getContext('2d').drawImage(charSprite({ ch: i }, 0, 0, 'stand'), 0, 0);
+    const cv = document.createElement('canvas'); cv.width = 36; cv.height = 48; cv.getContext('2d').drawImage(charSprite({ ch: i }, 0, 0, 'stand'), -6, 0); // trim the empty sides
     const nm = document.createElement('small'); nm.textContent = c.name;
     b.append(cv, nm); b.onclick = () => { ME.ch = i; ME.color = ME_COLOR = c.color; saveMe(); buildEnter(); };
     box.appendChild(b);

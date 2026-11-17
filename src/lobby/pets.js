@@ -114,7 +114,15 @@ function catPose(cat, t){
   if (cat.mode === 'follow') return 'sit';
   return cat.restPose || 'sit';
 }
+/* a cat napping where someone sits down moves onto their lap (drawn just in front of them) */
+function lapSeat(cat){
+  if (cat.mode !== 'rest' || cat.path.length || cat.hop) return null;
+  const all = [...Room.others.values(), Room.me];
+  for (const a of all) if (a && a.sit && Math.hypot(a.sit.x - cat.x, a.sit.y - cat.y) < 28) return a.sit;
+  return null;
+}
 function catZ(cat){
+  const lap = lapSeat(cat); if (lap) return (lap.z || lap.y) + 1;
   if (cat.mode === 'rest' && cat.spot && cat.spot.z && !cat.path.length && !cat.hop) return cat.spot.z;
   if (cat.hop && cat.spot && cat.spot.z) return Math.max(cat.y, cat.spot.z);
   return cat.y;
@@ -171,8 +179,9 @@ function catSprite(coat, pose, frame, happy){
 function drawCat(g, cat, t){
   const pose = catPose(cat, t), happy = cat.happy > performance.now();
   const frame = pose === 'walk' ? Math.floor(cat.walk * 8) % 4 : pose === 'sleep' ? Math.floor(t / 1400) % 2 : pose === 'groom' ? Math.floor(t / 300) % 2 : (Math.floor((t + hashStr(cat.id) % 3000) / 2600) % 5 === 0 ? 1 : 0);
-  const spr = catSprite(cat.coat, pose, frame, happy ? 1 : 0), x = Math.round(cat.x), y = Math.round(cat.y - (cat.lift || 0));
-  if (!cat.lift){ g.fillStyle = 'rgba(30,15,10,.25)'; g.fillRect(x - 8, y - 1, 16, 2); }
+  const lap = lapSeat(cat), lp = lap ? (pose === 'sleep' ? 'loaf' : pose) : pose;
+  const spr = catSprite(cat.coat, lp, frame, happy ? 1 : 0), x = Math.round(lap ? lap.x + 1 : cat.x), y = Math.round(lap ? lap.y - 2 : cat.y - (cat.lift || 0));
+  if (!cat.lift && !lap){ g.fillStyle = 'rgba(30,15,10,.25)'; g.fillRect(x - 8, y - 1, 16, 2); }
   if (cat.dir === 3){ g.save(); g.translate(x, 0); g.scale(-1, 1); g.drawImage(spr, -13, y - 19); g.restore(); }
   else g.drawImage(spr, x - 13, y - 19);
   if (pose === 'sleep' && !happy){

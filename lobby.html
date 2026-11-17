@@ -437,7 +437,7 @@ input[type=range]{width:100%;accent-color:var(--mint)}
 
 .charpick{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .cpick{display:grid;justify-items:center;gap:2px;padding:6px 2px 6px;border-radius:12px;background:#f3e6d2;box-shadow:0 2px 0 #dccab0}
-.cpick canvas{width:64px;height:64px;image-rendering:pixelated;max-width:100%}
+.cpick canvas{width:min(54px,100%);height:auto;aspect-ratio:3/4;image-rendering:pixelated}
 .cpick small{font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cpick[aria-pressed="true"]{background:#fbe3c2;box-shadow:inset 0 0 0 2px var(--accent),0 2px 0 #dccab0}
 @media (max-width:420px){ .charpick{grid-template-columns:repeat(3,minmax(0,1fr))} }
@@ -1218,7 +1218,7 @@ function buildEnter(){
   const box = $('#charPick'); box.innerHTML = '';
   CHARS.forEach((c, i) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'cpick'; b.setAttribute('aria-pressed', i === ME.ch); b.title = c.name;
-    const cv = document.createElement('canvas'); cv.width = 48; cv.height = 48; cv.getContext('2d').drawImage(charSprite({ ch: i }, 0, 0, 'stand'), 0, 0);
+    const cv = document.createElement('canvas'); cv.width = 36; cv.height = 48; cv.getContext('2d').drawImage(charSprite({ ch: i }, 0, 0, 'stand'), -6, 0); // trim the empty sides
     const nm = document.createElement('small'); nm.textContent = c.name;
     b.append(cv, nm); b.onclick = () => { ME.ch = i; ME.color = ME_COLOR = c.color; saveMe(); buildEnter(); };
     box.appendChild(b);
@@ -1276,9 +1276,9 @@ const FURN = [
 ];
 /* places to sit: x,y = where the avatar's feet anchor, z = draw order (so a sofa never covers its sitter) */
 const SEATS = {
-  so1: { x: 228, y: 117, dir: 0, z: 128, kind: 'sofa' }, so2: { x: 254, y: 117, dir: 0, z: 128, kind: 'sofa' },
-  so3: { x: 280, y: 117, dir: 0, z: 128, kind: 'sofa' }, so4: { x: 306, y: 117, dir: 0, z: 128, kind: 'sofa' },
-  bean: { x: 102, y: 214, dir: 0, z: 228, kind: 'bean' },
+  so1: { x: 228, y: 109, dir: 0, z: 128, kind: 'sofa' }, so2: { x: 254, y: 109, dir: 0, z: 128, kind: 'sofa' },
+  so3: { x: 280, y: 109, dir: 0, z: 128, kind: 'sofa' }, so4: { x: 306, y: 109, dir: 0, z: 128, kind: 'sofa' },
+  bean: { x: 102, y: 210, dir: 0, z: 228, kind: 'bean' },
   cuL: { x: 178, y: 206, dir: 3, kind: 'floor' }, cuR: { x: 351, y: 206, dir: 2, kind: 'floor' },
   cuB1: { x: 240, y: 254, dir: 1, kind: 'floor' }, cuB2: { x: 290, y: 254, dir: 1, kind: 'floor' },
   cuT: { x: 264, y: 162, dir: 0, kind: 'floor' }
@@ -2247,7 +2247,15 @@ function catPose(cat, t){
   if (cat.mode === 'follow') return 'sit';
   return cat.restPose || 'sit';
 }
+/* a cat napping where someone sits down moves onto their lap (drawn just in front of them) */
+function lapSeat(cat){
+  if (cat.mode !== 'rest' || cat.path.length || cat.hop) return null;
+  const all = [...Room.others.values(), Room.me];
+  for (const a of all) if (a && a.sit && Math.hypot(a.sit.x - cat.x, a.sit.y - cat.y) < 28) return a.sit;
+  return null;
+}
 function catZ(cat){
+  const lap = lapSeat(cat); if (lap) return (lap.z || lap.y) + 1;
   if (cat.mode === 'rest' && cat.spot && cat.spot.z && !cat.path.length && !cat.hop) return cat.spot.z;
   if (cat.hop && cat.spot && cat.spot.z) return Math.max(cat.y, cat.spot.z);
   return cat.y;
@@ -2304,8 +2312,9 @@ function catSprite(coat, pose, frame, happy){
 function drawCat(g, cat, t){
   const pose = catPose(cat, t), happy = cat.happy > performance.now();
   const frame = pose === 'walk' ? Math.floor(cat.walk * 8) % 4 : pose === 'sleep' ? Math.floor(t / 1400) % 2 : pose === 'groom' ? Math.floor(t / 300) % 2 : (Math.floor((t + hashStr(cat.id) % 3000) / 2600) % 5 === 0 ? 1 : 0);
-  const spr = catSprite(cat.coat, pose, frame, happy ? 1 : 0), x = Math.round(cat.x), y = Math.round(cat.y - (cat.lift || 0));
-  if (!cat.lift){ g.fillStyle = 'rgba(30,15,10,.25)'; g.fillRect(x - 8, y - 1, 16, 2); }
+  const lap = lapSeat(cat), lp = lap ? (pose === 'sleep' ? 'loaf' : pose) : pose;
+  const spr = catSprite(cat.coat, lp, frame, happy ? 1 : 0), x = Math.round(lap ? lap.x + 1 : cat.x), y = Math.round(lap ? lap.y - 2 : cat.y - (cat.lift || 0));
+  if (!cat.lift && !lap){ g.fillStyle = 'rgba(30,15,10,.25)'; g.fillRect(x - 8, y - 1, 16, 2); }
   if (cat.dir === 3){ g.save(); g.translate(x, 0); g.scale(-1, 1); g.drawImage(spr, -13, y - 19); g.restore(); }
   else g.drawImage(spr, x - 13, y - 19);
   if (pose === 'sleep' && !happy){
