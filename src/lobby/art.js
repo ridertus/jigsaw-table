@@ -429,7 +429,19 @@ function buildProps(){
 function drawTable(g, t){
   const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
   const O = (x, y, w, h, c) => { R(x, y, w, h, P.out); R(x + 1, y + 1, w - 2, h - 2, c); };
-  if (Table.mode === 'guess'){
+  if (Table.mode === 'chain'){
+    R(215, 172, 98, 38, 'rgba(60,30,10,.18)');
+    const k = Math.floor(t / 700) % 7, glyph = [[0,0,3,1],[3,0,1,4],[0,1,1,3]];
+    for (let i = 0; i < 7; i++){
+      if (i > k + 1) break;
+      const x = 214 + i * 13, y = 182 + Math.round(Math.sin(i * 1.1) * 7), lift = i === k ? 1 : 0;
+      R(x + 1, y + 11, 11, 2, 'rgba(60,30,10,.28)'); O(x, y - lift, 11, 12, '#f6dcaa'); R(x + 1, y + 9 - lift, 9, 1, '#d9a866');
+      glyph.forEach(([gx, gy, gw, gh]) => R(x + 3 + (i % 2) * 1 + gx, y + 3 - lift + gy, gw, gh, i === k ? P.redD : P.out));
+    }
+    O(316, 174, 10, 16, P.woodD); R(318, 176, 6, 5, '#fff3dc'); R(318, 183, 6, 5, '#fff3dc');
+    const sand = (t / 4000) % 1; R(319, 176 + Math.round(sand * 4), 4, 4 - Math.round(sand * 4), P.mus); R(319, 187 - Math.round(sand * 4), 4, Math.round(sand * 4) + 1, P.mus); R(320, 181, 2, 2, P.mus);
+    for (let i = 0; i < 3; i++){ R(300 + i * 6, 199, 4, 4, P.out); R(300 + i * 6, 199, 3, 3, P.red); }
+  } else if (Table.mode === 'guess'){
     // sketch paper, a doodle in progress, pencils and word cards
     R(215, 172, 98, 38, 'rgba(60,30,10,.25)'); O(213, 169, 98, 38, '#fffdf6');
     for (let y = 176; y < 204; y += 6) R(216, y, 92, 1, '#e4ecf6');

@@ -5,7 +5,8 @@
    (an unfinished jigsaw stays on the server and comes back when you switch back). */
 const TABLE_GAMES = [
   { id: 'jigsaw', name: 'จิ๊กซอว์', icon: 'puzzle', desc: 'ต่อภาพด้วยกัน ภาพที่ต่อค้างไว้จะยังอยู่', play(){ tableTapped(); } },
-  { id: 'guess', name: 'วาดภาพทายคำ', icon: 'pad', desc: 'ผลัดกันวาด คนอื่นทายคำ', play(){ openDrawGuess(); } }
+  { id: 'guess', name: 'วาดภาพทายคำ', icon: 'pad', desc: 'ผลัดกันวาด คนอื่นทายคำ', play(){ openDrawGuess(); } },
+  { id: 'chain', name: 'ต่อคำ', icon: 'tiles', desc: 'ผลัดกันต่อคำภาษาไทย คิดไม่ทันเสียหัวใจ เล่นคนเดียวก็ได้', play(){ wcOpen(); } }
 ];
 const Table = { mode: 'jigsaw', at: 0, fx: 0 };
 (() => { const m = LS.get('jt-table', null); if (m && TABLE_GAMES.some(g => g.id === m.mode)){ Table.mode = m.mode; Table.at = m.at || 0; } })();

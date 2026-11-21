@@ -22,6 +22,7 @@ html = f'''<!doctype html>
 {r('lobby.css')}
 {r('board.css')}
 {r('draw-guess.css')}
+{r('word-chain.css')}
 </style>
 </head>
 <body>
@@ -41,6 +42,7 @@ html = f'''<!doctype html>
 {r('ambient.js')}
 {r('board.js')}
 {r('draw-guess.js')}
+{r('word-chain.js')}
 {r('lobby.js')}
 }})();
 </script>

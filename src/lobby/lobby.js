@@ -590,6 +590,7 @@ function connect(){
     .on('broadcast', { event: 'drag' }, mine(onDrag))
     .on('broadcast', { event: 'release' }, mine(onRelease))
     .on('broadcast', { event: 'draw_guess' }, mine(DG.onBroadcast))
+    .on('broadcast', { event: 'word_chain' }, mine(WC.onBroadcast))
     .on('presence', { event: 'sync' }, () => { if (S.chan === ch) syncPresence(); })
     .subscribe((status, err) => {
       if (err) console.warn('realtime', status, err);

@@ -1,0 +1,53 @@
+/* ---------- ต่อคำ (ใช้โครง .dg-* ของวาดภาพทายคำ) ---------- */
+.wc-stage[hidden],.wc-form[hidden]{display:none}
+.wc-setting-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.wc-check{align-items:flex-start}
+.wc-check span{display:grid;gap:2px}
+.wc-check small{font-weight:600;color:var(--ink-soft);font-size:12px}
+.wc-side{grid-template-rows:auto minmax(0,1fr)}
+.wc-stage{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:10px;padding:14px;border-radius:18px;background:var(--paper);box-shadow:0 4px 14px rgba(60,40,20,.12)}
+.wc-top{display:flex;align-items:center;gap:14px}
+.wc-need{flex:none;width:92px;height:92px;border-radius:18px;display:grid;place-items:center;align-content:center;gap:0;
+  background:linear-gradient(160deg,#f6dcaa,#e2b06e);box-shadow:inset 0 -5px 0 rgba(120,70,20,.25),0 4px 0 #b9854a;color:#4a2c12}
+.wc-need small{font-size:11px;font-weight:800;opacity:.75}
+.wc-need b{font:600 52px/1 'Mitr',var(--display)}
+.wc-turninfo{flex:1;min-width:0;display:grid;gap:7px}
+.wc-turn{font:700 17px/1.35 var(--display);color:var(--ink)}
+.wc-turn.mine{color:var(--mint-ink)}
+.wc-bar{height:10px;border-radius:99px;background:#f0e5d4;overflow:hidden}
+.wc-bar i{display:block;height:100%;width:100%;border-radius:inherit;background:var(--mint);transition:width .25s linear}
+.wc-bar i.low{background:#e0643c}
+.wc-count{font-size:12px;font-weight:800;color:var(--ink-soft)}
+.wc-chain{min-height:90px;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-wrap:wrap;align-content:flex-start;align-items:center;gap:6px;padding:10px;border-radius:14px;background:#f7efe3;-webkit-overflow-scrolling:touch}
+.wc-word{display:grid;padding:5px 11px 4px;border-radius:11px;background:#fff;box-shadow:0 2px 0 #e2d2b8;line-height:1.15}
+.wc-word b{font:500 19px 'Mitr',var(--display);color:var(--ink)}
+.wc-word small{font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.wc-word.mine{background:#e5f4f1}
+.wc-word.last{background:#fff0bf;box-shadow:0 2px 0 #e6b94a;animation:wcPop .35s ease-out}
+.wc-word.last b{font-size:24px}
+.wc-link{font:600 13px 'Mitr',var(--display);color:#b9854a}
+.wc-link::before{content:'→ '}
+.wc-empty,.wc-more{width:100%;text-align:center;font-size:13px;color:var(--ink-soft);padding:6px}
+.wc-more{padding:0;font-size:11px}
+.wc-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.wc-form input{min-width:0;height:54px;border:2px solid #ddceb6;border-radius:14px;padding:0 14px;background:#fff;color:var(--ink);font:500 22px 'Mitr',var(--body)}
+.wc-form input:focus{outline:none;border-color:var(--mint)}
+.wc-form input:disabled{background:#f3ebdf;color:var(--ink-soft)}
+.wc-form input.shake{animation:wcShake .32s}
+.wc-form .btn{min-width:84px;min-height:54px}
+.wc-msg{min-height:18px;font-size:13px;font-weight:800;color:var(--ink-soft)}
+.wc-msg.bad{color:#b4532a}
+.dg-score-row.wc-turnrow{background:#fff0bf;box-shadow:inset 0 0 0 2px #e6b94a}
+.wc-hearts{color:#e0506a;font-size:11px;letter-spacing:-1px}
+@keyframes wcPop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+@keyframes wcShake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media(max-width:760px){
+  .wc-stage{padding:10px;gap:8px;grid-template-rows:auto auto auto auto}
+  .wc-need{width:70px;height:70px;border-radius:15px}
+  .wc-need b{font-size:38px}
+  .wc-turn{font-size:15px}
+  .wc-chain{max-height:24dvh;min-height:64px}
+  .wc-form input{height:48px;font-size:20px}
+  .wc-form .btn{min-height:48px}
+  .wc-side{grid-template-rows:auto minmax(0,1fr)}
+}
