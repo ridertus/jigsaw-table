@@ -565,6 +565,7 @@ $('#lookBtn').onclick = () => { $('#peoplePop').hidden = true; $('#peopleBtn').s
 function openDrawGuess(){ dgOpen(); }
 $('#dkTable').onclick = () => { strollTo('table'); openTableSheet(); };
 $('#dkDraw').onclick = () => { audioInit(); strollTo('easel'); openBoard(); };
+$('#dkCafe').onclick = () => cfOpen();
 $('#dkRadio').onclick = () => { audioInit(); strollTo('radio'); Radio.openPanel(); };
 
 /* ---------- realtime channel (one for the whole living room) ---------- */
@@ -591,6 +592,7 @@ function connect(){
     .on('broadcast', { event: 'release' }, mine(onRelease))
     .on('broadcast', { event: 'draw_guess' }, mine(DG.onBroadcast))
     .on('broadcast', { event: 'word_chain' }, mine(WC.onBroadcast))
+    .on('broadcast', { event: 'cafe' }, mine(CF.onBroadcast))
     .on('presence', { event: 'sync' }, () => { if (S.chan === ch) syncPresence(); })
     .subscribe((status, err) => {
       if (err) console.warn('realtime', status, err);

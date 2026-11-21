@@ -46,6 +46,11 @@ const ICONS = {
     E(5, 15, 3, 3, P.out, false); E(15, 15, 3, 3, P.out, false); E(5, 15, 2, 2, P.purple, false); E(15, 15, 2, 2, P.purple, false);
     R(4, 10, 5, 1, P.white); R(6, 8, 1, 5, P.white); R(12, 9, 2, 2, P.red); R(15, 9, 2, 2, P.mus); R(13, 12, 2, 2, P.leafL); R(16, 12, 2, 2, '#4aa8f0');
   },
+  cup(R, E, RR){
+    R(12, 0, 2, 6, '#f27aa8'); E(10, 6, 7, 3, '#eaf6fb'); R(3, 6, 15, 1, P.out);
+    for (let i = 0; i < 12; i++){ const ins = Math.round(i * 3 / 12); R(3 + ins, 7 + i, 15 - ins * 2, 1, P.out); R(4 + ins, 7 + i, 13 - ins * 2, 1, i < 2 ? '#fff3dc' : '#e8853c'); }
+    R(6, 19, 9, 1, P.out); E(7, 16, 1, 1, P.out, false); E(10, 17, 1, 1, P.out, false); E(13, 16, 1, 1, P.out, false); R(5, 9, 1, 7, '#f4b46e');
+  },
   tiles(R, E, RR){
     RR(9, 1, 10, 10, 2, '#c8955a'); R(10, 2, 8, 7, '#ecc58e'); R(12, 4, 4, 1, P.out); R(15, 4, 1, 4, P.out); R(12, 5, 1, 3, P.out);
     RR(1, 7, 12, 12, 2, '#b9854a'); R(2, 8, 10, 9, '#f6dcaa'); R(2, 16, 10, 1, '#d9a866');

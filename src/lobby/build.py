@@ -23,6 +23,7 @@ html = f'''<!doctype html>
 {r('board.css')}
 {r('draw-guess.css')}
 {r('word-chain.css')}
+{r('cafe.css')}
 </style>
 </head>
 <body>
@@ -43,6 +44,7 @@ html = f'''<!doctype html>
 {r('board.js')}
 {r('draw-guess.js')}
 {r('word-chain.js')}
+{r('cafe.js')}
 {r('lobby.js')}
 }})();
 </script>
